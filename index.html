@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <title>Даяна & Віктор — Весілля</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Хвилястий фон -->
+<div class="wave-bg">
+  <svg class="wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path fill="#FFF5F0" fill-opacity="1" d="M0,192L48,186.7C96,181,192,171,288,176C384,181,480,203,576,208C672,213,768,203,864,186.7C960,171,1056,149,1152,149.3C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+  </svg>
+  <svg class="wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+    <path fill="#F5E8DC" fill-opacity="0.5" d="M0,256L48,250.7C96,245,192,235,288,229.3C384,224,480,224,576,229.3C672,235,768,245,864,250.7C960,256,1056,256,1152,250.7C1248,245,1344,235,1392,229.3L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+  </svg>
+</div>
+
+<div class="page">
+
+  <!-- HERO - Центрований мінімалізм з анімацією -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-petals">
+        <span class="petal-animate">🌸</span>
+        <span class="petal-animate">🌿</span>
+        <span class="petal-animate">✨</span>
+        <span class="petal-animate">💕</span>
+        <span class="petal-animate">🌺</span>
+        <span class="petal-animate">🕊️</span>
+      </div>
+
+      <div class="hero-flower">✿</div>
+      <p class="hero-invite animate-text">Запрошуємо вас розділити наше щастя</p>
+
+      <div class="hero-names-container">
+        <h1 class="hero-title">
+          <span class="name-diana animate-name">Даяна</span>
+          <span class="hero-amp animate-amp">&</span>
+          <span class="name-viktor animate-name">Віктор</span>
+        </h1>
+      </div>
+
+      <div class="hero-date-simple animate-date">
+        <span>10</span>
+        <span>вересня</span>
+        <span>2026</span>
+      </div>
+
+      <div class="hero-location-simple animate-location">
+        Seven Lakes · Київ
+      </div>
+
+      <button class="hero-btn animate-btn" id="discoverBtn">
+        <span class="btn-text">Відкрити запрошення</span>
+        <span class="btn-glow"></span>
+      </button>
+    </div>
+  </section>
+
+  <main class="main-content hidden" id="mainContent">
+
+    <section class="story-wave">
+      <div class="container">
+        <div class="story-grid">
+          <div class="story-text-block">
+            <span class="story-label">Our love story</span>
+            <h2>Як усе почалося</h2>
+            <p>Ми зустрілись у квітні, коли все навколо розцвітало. Випадковий погляд, легка посмішка — і світ перевернувся. З того дня ми не розлучаємося, бо зрозуміли: доля звела нас разом назавжди.</p>
+            <p class="story-quote">"Кохання — це коли чиєсь щастя стає важливішим за твоє власне"</p>
+          </div>
+          <div class="story-image-block">
+            <div class="story-circle"></div>
+            <div class="story-flower-decor">🌿</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery-wave">
+      <div class="container">
+        <div class="gallery-header">
+          <span class="gallery-label">Моменти щастя</span>
+          <h2>Наші фотографії</h2>
+        </div>
+        <div class="gallery-stack">
+          <div class="gallery-stack-item" data-img="img/1.jpg"><img src="img/1.jpg" alt="Photo 1"><div class="stack-caption">Перша зустріч</div></div>
+          <div class="gallery-stack-item" data-img="img/2.jpg"><img src="img/2.jpg" alt="Photo 2"><div class="stack-caption">Наша подорож</div></div>
+          <div class="gallery-stack-item" data-img="img/3.jpg"><img src="img/3.jpg" alt="Photo 3"><div class="stack-caption">Заручини</div></div>
+          <div class="gallery-stack-item" data-img="img/4.jpg"><img src="img/4.jpg" alt="Photo 4"><div class="stack-caption">Щасливі миті</div></div>
+          <div class="gallery-stack-item" data-img="img/5.jpg"><img src="img/5.jpg" alt="Photo 5"><div class="stack-caption">Разом назавжди</div></div>
+          <div class="gallery-stack-item" data-img="img/6.jpg"><img src="img/6.jpg" alt="Photo 6"><div class="stack-caption">Наш стиль</div></div>
+          <div class="gallery-stack-item" data-img="img/7.jpg"><img src="img/7.jpg" alt="Photo 7"><div class="stack-caption">Романтика</div></div>
+          <div class="gallery-stack-item" data-img="img/8.jpg"><img src="img/8.jpg" alt="Photo 8"><div class="stack-caption">Найкращий день</div></div>
+          <div class="gallery-stack-item" data-img="img/9.jpg"><img src="img/9.jpg" alt="Photo 9"><div class="stack-caption">Наше кохання</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gifts-wave">
+      <div class="container">
+        <div class="gifts-inner">
+          <div class="gifts-icon">🎁</div>
+          <h2>Про подарунки</h2>
+          <div class="gifts-message">
+            <p>Найкращий подарунок для нас — <strong>ваша присутність та щирі почуття</strong>.</p>
+            <p>Якщо ж ваше серце бажає зробити матеріальний жест — ми будемо вдячні за внесок у наше спільне майбутнє у <strong>білому конверті</strong>.</p>
+            <div class="gifts-alt"><span>🌿 Замість квітів — корм для тварин</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dresscode-wave">
+      <div class="container">
+        <div class="dresscode-header">
+          <span class="dresscode-tag">Dress code</span>
+          <h2>Оберіть свій образ</h2>
+          <p>Ми мріємо про гармонію та елегантність</p>
+        </div>
+        <div class="dresscode-showcase">
+          <div class="dresscode-showcase-item">
+            <div class="showcase-icon">👗</div>
+            <div class="showcase-content">
+              <h3>Для жінок</h3>
+              <div class="showcase-palette">
+                <div class="palette-swatch" style="background: #FDF0E0;"></div>
+                <div class="palette-swatch" style="background: #E8D5C4;"></div>
+                <div class="palette-swatch" style="background: #D4E0D0;"></div>
+                <div class="palette-swatch" style="background: #E6D6E0;"></div>
+                <div class="palette-swatch" style="background: #F5E0D0;"></div>
+              </div>
+              <p>Сукні в пастельних тонах</p>
+              <div class="showcase-details">
+                <span>🌿 довжина міді/максі</span>
+                <span>✨ елегантні костюми</span>
+              </div>
+            </div>
+          </div>
+          <div class="dresscode-showcase-item">
+            <div class="showcase-icon">👔</div>
+            <div class="showcase-content">
+              <h3>Для чоловіків</h3>
+              <div class="showcase-palette">
+                <div class="palette-swatch" style="background: #E8E4DC;"></div>
+                <div class="palette-swatch" style="background: #D4CFC5;"></div>
+                <div class="palette-swatch" style="background: #B8B0A4;"></div>
+                <div class="palette-swatch" style="background: #2C4A6E;"></div>
+                <div class="palette-swatch" style="background: #8B7355;"></div>
+              </div>
+              <p>Класичні костюми в світлих тонах</p>
+              <div class="showcase-details">
+                <span>🎀 краватка або метелик</span>
+                <span>👞 класичне взуття</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dresscode-rules">
+          <div class="rule-badge">💕 Важливо</div>
+          <p>Просимо уникати <strong>білого кольору</strong> (окрім молодят) та надто яскравих неонових відтінків</p>
+          <p class="rule-small">Врахуйте, що церемонія проходитиме на відкритому повітрі — подбайте про зручне взуття</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="schedule-wave">
+      <div class="container">
+        <div class="schedule-card">
+          <div class="schedule-header">
+            <span>Розклад дня</span>
+            <h2>Програма свята</h2>
+          </div>
+          <div class="schedule-list">
+            <div class="schedule-item"><span class="schedule-time">10:30</span><span class="schedule-event">Зустріч гостей</span><span class="schedule-desc">Аперитив, жива музика</span></div>
+            <div class="schedule-item"><span class="schedule-time">11:00</span><span class="schedule-event">Церемонія одруження</span><span class="schedule-desc">Обмін обіцянками</span></div>
+            <div class="schedule-item"><span class="schedule-time">12:30</span><span class="schedule-event">Фотосесія та фуршет</span><span class="schedule-desc">Шампанське, закуски</span></div>
+            <div class="schedule-item"><span class="schedule-time">14:00</span><span class="schedule-event">Святковий банкет</span><span class="schedule-desc">Вечеря, тости, перший танець</span></div>
+            <div class="schedule-item"><span class="schedule-time">18:00</span><span class="schedule-event">Вечірка та фейєрверк</span><span class="schedule-desc">Музика, танці</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="song-wave">
+      <div class="container">
+        <div class="song-card">
+          <div class="song-header">
+            <span class="song-icon">🎵</span>
+            <h2>Спільна пісня</h2>
+            <p>Прошу бути готовими до співання!</p>
+          </div>
+          <div class="song-toggle">
+            <button class="song-btn" id="openSongBtn">
+              <span class="song-btn-icon">📖</span>
+              <span>Відкрити слова пісні</span>
+              <span class="song-arrow">▼</span>
+            </button>
+          </div>
+          <div class="song-content" id="songContent">
+            <div class="song-title">Гей, забава! — Весільна пісня</div>
+            <div class="song-verses">
+              <div class="verse"><p class="verse-refrain">Гей, забава! Забава аж до рання!<br>Гей, забава, забава цілу ніч!<br>Гей, гуляла! Гуляла аж до рання!<br>Гей, гуляла, гуляла цілу ніч!</p></div>
+              <div class="verse"><p>Ти казала, ти казала<br>В понеділок підем разом,<br>Підем разом по барвінок.</p><p class="verse-refrain-small">Я прийшов - тебе нема:<br>Підманула, підвела!<br>Підманула, підвела моя мила!</p></div>
+              <div class="verse"><p>Ти казала, ти казала<br>У вівторок поцілуєш,<br>Поцілуєш разів сорок.</p><p class="verse-refrain-small">Я прийшов - тебе нема:<br>Підманула, підвела!<br>Підманула, підвела моя мила!</p></div>
+              <div class="verse highlight-verse"><p>Ага, моя мила,<br>Моя мила до роботи не лінива,<br>Як з роботи я прийду -<br>Все за неї пороблю,<br>Все за неї пороблю, моя мила!</p></div>
+              <div class="verse"><p class="verse-refrain">Гей, забава! Забава аж до рання!<br>Гей, забава, забава цілу ніч!<br>Гей, гуляла! Гуляла аж до рання!<br>Гей, гуляла, гуляла цілу ніч!</p></div>
+              <div class="verse"><p>Ти казала, ти казала<br>У середу підем разом,<br>Підем разом по череду.</p><p class="verse-refrain-small">Я прийшов - тебе нема:<br>Підманула, підвела!<br>Підманула, підвела моя мила!</p></div>
+              <div class="verse"><p>Ти казала, ти казала<br>У четвер підем разом,<br>Підем разом на спацер.</p><p class="verse-refrain-small">Я прийшов - тебе нема:<br>Підманула, підвела!<br>Підманула, підвела моя мила!</p></div>
+              <div class="verse highlight-verse"><p>Ага, моя мила,<br>Моя мила до роботи не лінива,<br>Як з роботи я прийду -<br>Все за неї пороблю,<br>Все за неї пороблю, моя мила!</p></div>
+              <div class="verse"><p class="verse-refrain">Гей, забава! Забава аж до рання!<br>Гей, забава, забава цілу ніч!<br>Гей, гуляла! Гуляла аж до рання!<br>Гей, гуляла, гуляла цілу ніч!</p></div>
+              <div class="verse"><p>Ти казала, ти сказала<br>У п'ятницю підем разом,<br>Підем разом на вулицю.</p><p class="verse-refrain-small">Я прийшов - тебе нема:<br>Підманула, підвела!<br>Підманула, підвела моя мила!</p></div>
+              <div class="verse"><p>Ти казала, ти сказала<br>У суботу підем разом,<br>Підем разом на роботу.</p><p class="verse-refrain-small">Я прийшов - тебе нема:<br>Підманула, підвела!<br>Підманула, підвела моя мила!</p></div>
+              <div class="verse highlight-verse"><p>Ага, моя мила,<br>До роботи, до роботи не лінива,<br>Як з роботи я прийду -<br>Все за неї пороблю,<br>Все за неї пороблю, моя мила!</p></div>
+              <div class="verse"><p class="verse-refrain">Гей, забава! Забава аж до рання!<br>Гей, забава, забава цілу ніч!<br>Гей, гуляла! Гуляла аж до рання!<br>Гей, гуляла, гуляла цілу ніч!</p></div>
+              <div class="verse"><p>Ти сказала, ти казала<br>У неділю підем разом,<br>Підем разом на весілля.</p><p class="verse-refrain-small">Я прийшов - тебе нема:<br>Підманула, підвела!<br>Підманула, підвела моя мила!</p></div>
+              <div class="verse final-verse"><p>Ага, моя мила,<br>Моя мила до роботи не лінива,<br>Як з роботи я прийду -<br>Все за неї пороблю,<br>Все за неї пороблю, моя мила!</p></div>
+              <div class="verse"><p class="verse-refrain-final">Гей, забава! Забава аж до рання!<br>Гей, забава, забава цілу ніч!<br>Гей, гуляла! Гуляла аж до рання!<br>Гей, гуляла, гуляла цілу ніч!</p></div>
+            </div>
+            <div class="song-footer"><span>🎵 Співаємо разом! 🎵</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="location-wave">
+      <div class="container">
+        <div class="location-simple">
+          <div class="location-icon">📍</div>
+          <h3>Seven Lakes</h3>
+          <p>вулиця Центральна, 186, Київ</p>
+          <button class="map-simple-btn" onclick="window.open('https://maps.google.com/?q=Seven+Lakes+Kyiv', '_blank')">Відкрити на мапі</button>
+          <div class="location-feature-simple">
+            <span>🅿️ Парковка</span>
+            <span>🌳 На відкритому повітрі</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rsvp-wave">
+      <div class="container">
+        <div class="rsvp-card-simple">
+          <div class="rsvp-left-simple">
+            <h2>Підтвердіть<br>присутність</h2>
+            <p>До 1 серпня 2026</p>
+            <div class="rsvp-decor-simple">✧</div>
+          </div>
+          <div class="rsvp-right-simple">
+            <div class="rsvp-form-simple" id="rsvpFormSimple">
+              <div class="toggle-simple">
+                <button class="toggle-btn active" id="yesSimple">Буду ✓</button>
+                <button class="toggle-btn" id="noSimple">Не зможу</button>
+              </div>
+              <input type="text" id="nameSimple" placeholder="Ваше ім'я">
+              <div id="guestsSimple"><select id="countSimple"><option>1 гість</option><option>2 гостя</option><option>3 гостя</option><option>4+ гостей</option></select></div>
+              <div id="dietSimple"><input type="text" id="dietSimpleInput" placeholder="Харчові побажання"></div>
+              <input type="tel" id="phoneSimple" placeholder="Телефон">
+              <textarea id="wishesSimple" placeholder="Ваші побажання..."></textarea>
+              <button class="submit-simple" id="submitSimple">Надіслати</button>
+            </div>
+            <div class="success-simple" id="successSimple">
+              <div class="success-check">✓</div>
+              <h3>Дякуємо!</h3>
+              <p>Вашу відповідь отримано</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer-wave">
+    <div class="container">
+      <p>Даяна <span>&</span> Віктор</p>
+      <small>10.09.2026 · Seven Lakes · Київ</small>
+    </div>
+  </footer>
+</div>
+
+<div id="lightboxSimple" class="lightbox-simple">
+  <span class="lightbox-close-simple">&times;</span>
+  <img class="lightbox-img-simple" id="lightboxImgSimple">
+  <div class="lightbox-caption-simple" id="lightboxCaptionSimple"></div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
