@@ -5,7 +5,8 @@
   --bg-main: #FFF8F5;
   --bg-card: #FFFFFF;
   --text-dark: #2D2A26;
-  --text-light: #8B7B6E;
+  --text-light: #D48C64;
+  --text-darker: #000000;
   --accent: #E8A87C;
   --accent-dark: #D48C64;
   --accent-light: #F5D5C4;
@@ -101,6 +102,27 @@ body {
   text-align: center;
   padding: 60px 20px;
   position: relative;
+  background-image: url('/img/first.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Затемнення поверх зображення */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 0;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-inner {
@@ -237,7 +259,7 @@ body {
 @keyframes starPulse {
   0%, 100% {
     transform: scale(1);
-    text-shadow: 0 0 0px var(--accent);
+    text-shadow: 0 0 0 var(--accent);
   }
   50% {
     transform: scale(1.2);
@@ -307,10 +329,10 @@ body {
 }
 
 .hero-invite {
-  font-size: 13px;
+  font-size: 16px;
   letter-spacing: 5px;
   text-transform: uppercase;
-  color: var(--text-light);
+  color: #E8A87C;
   margin-bottom: 25px;
 }
 
@@ -319,7 +341,7 @@ body {
   font-size: clamp(48px, 10vw, 80px);
   font-weight: 500;
   font-style: italic;
-  color: var(--text-dark);
+  color: var(--text-light);
   margin-bottom: 30px;
 }
 
@@ -342,14 +364,14 @@ body {
 
 .hero-location-simple {
   font-size: 14px;
-  color: var(--gold);
+  color: var(--text-light);
   margin-bottom: 35px;
 }
 
 .hero-btn {
   background: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent-dark);
+  border: 1px solid #E8A87C;
+  color: #E8A87C;
   padding: 14px 42px;
   font-size: 12px;
   letter-spacing: 3px;
@@ -383,8 +405,7 @@ body {
 }
 
 .hero-btn:hover {
-  background: var(--accent);
-  color: white;
+  color: #E8A87C;
   border-color: var(--accent);
   transform: scale(1.05);
   box-shadow: 0 0 20px rgba(232,168,124,0.4);
