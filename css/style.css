@@ -123,13 +123,8 @@ body {
 .hero-inner {
   position: relative;
   z-index: 1;
-}
-
-.hero-inner {
   max-width: 700px;
   margin: 0 auto;
-  position: relative;
-  z-index: 2;
 }
 /* ============================================================
    МАГІЧНІ ЗІРКИ
@@ -226,7 +221,6 @@ body {
   }
 }
 
-/* Замість квітки - місяць */
 .hero-flower {
   font-size: 32px;
   color: var(--accent);
@@ -247,7 +241,6 @@ body {
   }
 }
 
-/* Змінено амперсанд на зірку */
 .hero-amp {
   font-size: 0.7em;
   color: var(--accent);
@@ -266,7 +259,7 @@ body {
     text-shadow: 0 0 10px var(--accent);
   }
 }
-/* Анімовані пелюстки */
+
 .hero-petals {
   position: absolute;
   top: 0;
@@ -309,25 +302,6 @@ body {
   }
 }
 
-.hero-flower {
-  font-size: 32px;
-  color: var(--accent);
-  animation: floatFlower 3s ease-in-out infinite;
-  display: inline-block;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 2;
-}
-
-@keyframes floatFlower {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-15px) rotate(10deg);
-  }
-}
-
 .hero-invite {
   font-size: 16px;
   letter-spacing: 5px;
@@ -343,12 +317,6 @@ body {
   font-style: italic;
   color: var(--text-light);
   margin-bottom: 30px;
-}
-
-.hero-amp {
-  font-size: 0.7em;
-  color: var(--accent);
-  margin: 0 10px;
 }
 
 .hero-date-simple {
@@ -808,11 +776,11 @@ body {
 }
 
 /* ============================================================
-   DRESS CODE - СУЧАСНИЙ ДИЗАЙН
+   DRESS CODE - БОХО / ПРИРОДНИЙ МІНІМАЛІЗМ
    ============================================================ */
 .dresscode-wave {
   padding: 100px 0;
-  background: linear-gradient(135deg, #FFF8F5 0%, #FFFFFF 100%);
+  background: #FEFAF6;
   position: relative;
   overflow: hidden;
   opacity: 0;
@@ -825,209 +793,217 @@ body {
   transform: translateY(0);
 }
 
+/* Декор: великі плавні кола на фоні */
 .dresscode-wave::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  top: -20%;
+  left: -10%;
+  width: 60%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(210, 190, 170, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.dresscode-wave::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 60%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(180, 200, 170, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .dresscode-header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 70px;
+  position: relative;
+  z-index: 2;
 }
 
 .dresscode-tag {
-  font-size: 11px;
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  color: var(--accent);
   display: inline-block;
-  margin-bottom: 15px;
-  position: relative;
-  padding: 0 20px;
-}
-
-.dresscode-tag::before,
-.dresscode-tag::after {
-  content: '✦';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 10px;
-  color: var(--gold);
-}
-
-.dresscode-tag::before {
-  left: 0;
-}
-
-.dresscode-tag::after {
-  right: 0;
+  font-size: 0.7rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #9B7B5C;
+  background: #FFF;
+  padding: 0.3rem 1.2rem;
+  border-radius: 30px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  border: 0.5px solid #EADBCE;
+  margin-bottom: 1.2rem;
 }
 
 .dresscode-header h2 {
   font-family: var(--font-serif);
-  font-size: 42px;
-  font-weight: 500;
-  margin-bottom: 15px;
-  color: var(--text-dark);
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: #4A3A2E;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.3px;
 }
 
 .dresscode-header p {
-  color: var(--text-light);
-  font-size: 16px;
+  font-size: 1rem;
+  color: #8F7A68;
+  max-width: 450px;
+  margin: 0 auto;
+  font-style: italic;
 }
 
 .dresscode-showcase {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 40px;
-  max-width: 900px;
-  margin: 0 auto 50px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  max-width: 1000px;
+  margin: 0 auto 4rem;
+  position: relative;
+  z-index: 2;
 }
 
 .dresscode-showcase-item {
-  background: white;
-  border-radius: 32px;
-  padding: 40px 30px;
+  flex: 1 1 280px;
+  background: #FFFFFF;
+  border-radius: 48px;
+  padding: 2rem 1.5rem;
   text-align: center;
-  transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-  border: 1px solid rgba(232,168,124,0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-.dresscode-showcase-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent));
-  transform: scaleX(0);
-  transition: transform 0.5s ease;
-}
-
-.dresscode-showcase-item:hover::before {
-  transform: scaleX(1);
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+  border: 0.5px solid #EFE4DA;
 }
 
 .dresscode-showcase-item:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.08);
-  border-color: rgba(232,168,124,0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.04);
+  border-color: #DECEBD;
 }
 
 .showcase-icon {
-  font-size: 56px;
-  margin-bottom: 20px;
-  display: inline-block;
-  animation: subtleFloat 3s ease-in-out infinite;
-}
-
-@keyframes subtleFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
 }
 
 .showcase-content h3 {
   font-family: var(--font-serif);
-  font-size: 26px;
-  font-weight: 500;
-  margin-bottom: 20px;
-  color: var(--text-dark);
+  font-size: 1.6rem;
+  font-weight: 450;
+  margin-bottom: 1rem;
+  color: #4A3A2E;
+  letter-spacing: -0.2px;
 }
 
+/* Палітри - мінімалістичні лінії замість кружечків */
 .showcase-palette {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 0.6rem;
+  margin: 1rem 0 0.5rem;
 }
 
 .palette-swatch {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  box-shadow: none;
+  border: 0.5px solid rgba(0,0,0,0.05);
 }
 
 .palette-swatch:hover {
-  transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: scale(1.05);
+  border-radius: 12px;
 }
 
 .showcase-content p {
-  font-size: 15px;
-  color: var(--text-light);
-  margin-bottom: 20px;
+  font-size: 0.85rem;
+  color: #9B8A78;
+  margin: 1rem 0;
+  font-weight: 400;
 }
 
 .showcase-details {
   display: flex;
-  justify-content: center;
-  gap: 20px;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
 }
 
 .showcase-details span {
-  font-size: 13px;
-  color: var(--accent);
-  background: rgba(232,168,124,0.1);
-  padding: 6px 14px;
-  border-radius: 40px;
-  transition: all 0.3s ease;
-}
-
-.showcase-details span:hover {
-  background: rgba(232,168,124,0.2);
-  transform: translateY(-2px);
+  font-size: 0.7rem;
+  background: #F7F2EC;
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  color: #8F7A68;
+  font-weight: 400;
 }
 
 .dresscode-rules {
-  max-width: 650px;
+  max-width: 600px;
   margin: 0 auto;
-  background: linear-gradient(135deg, rgba(232,168,124,0.05) 0%, rgba(232,168,124,0.02) 100%);
-  border-radius: 28px;
-  padding: 35px 40px;
   text-align: center;
-  border: 1px solid rgba(232,168,124,0.1);
+  background: #FFFFFF;
+  border-radius: 100px;
+  padding: 1rem 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  border: 0.5px solid #EFE4DA;
+  position: relative;
+  z-index: 2;
 }
 
 .rule-badge {
   display: inline-block;
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  color: white;
-  padding: 6px 20px;
-  border-radius: 40px;
-  font-size: 12px;
-  letter-spacing: 1px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(232,168,124,0.3);
+  background: #EADBCE;
+  color: #6B4F3A;
+  font-size: 0.7rem;
+  padding: 0.2rem 1rem;
+  border-radius: 30px;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
 }
 
 .dresscode-rules p {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text-light);
+  font-size: 0.85rem;
+  color: #7D6654;
 }
 
 .dresscode-rules p strong {
-  color: var(--accent);
+  color: #B2805A;
+  font-weight: 600;
 }
 
 .rule-small {
-  margin-top: 15px;
-  font-size: 13px !important;
-  font-style: italic;
+  font-size: 0.7rem !important;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .dresscode-wave {
+    padding: 60px 0;
+  }
+  .dresscode-header h2 {
+    font-size: 2rem;
+  }
+  .dresscode-showcase-item {
+    padding: 1.5rem;
+  }
+  .palette-swatch {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+  .dresscode-rules {
+    border-radius: 40px;
+    padding: 0.8rem 1.2rem;
+    margin: 0 1rem;
+  }
 }
 
 /* ============================================================
@@ -1478,100 +1454,6 @@ body {
 }
 
 /* ============================================================
-   АНІМАЦІЇ
-   ============================================================ */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 768px) {
-  .story-grid {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 30px;
-  }
-
-  .rsvp-card-simple {
-    grid-template-columns: 1fr;
-  }
-
-  .rsvp-left-simple {
-    text-align: center;
-  }
-
-  .schedule-item {
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .container {
-    padding: 0 20px;
-  }
-
-  .schedule-card {
-    padding: 30px;
-  }
-
-  .dresscode-showcase {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  .dresscode-header h2 {
-    font-size: 32px;
-  }
-}
-
-@media (max-width: 560px) {
-  .hero-title {
-    font-size: 42px;
-  }
-
-  .hero-date-simple {
-    font-size: 14px;
-  }
-
-  .story-text-block h2 {
-    font-size: 32px;
-  }
-
-  .story-circle {
-    width: 250px;
-    height: 250px;
-  }
-
-  .gifts-message p {
-    font-size: 14px;
-  }
-
-  .rsvp-left-simple h2 {
-    font-size: 28px;
-  }
-
-  .rsvp-right-simple {
-    padding: 30px;
-  }
-
-  .showcase-details {
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .palette-swatch {
-    width: 30px;
-    height: 30px;
-  }
-
-  .dresscode-rules {
-    padding: 25px 20px;
-  }
-}
-/* ============================================================
    ПІСЕННИЙ БЛОК - ГЕЙ, ЗАБАВА!
    ============================================================ */
 .song-wave {
@@ -1828,7 +1710,59 @@ body {
 .song-content.open .verse:nth-child(19) { animation-delay: 0.95s; }
 .song-content.open .verse:nth-child(20) { animation-delay: 1s; }
 
-@media (max-width: 560px) {
+/* ============================================================
+   АНІМАЦІЇ ЗАГАЛЬНІ
+   ============================================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .story-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .rsvp-card-simple {
+    grid-template-columns: 1fr;
+  }
+
+  .rsvp-left-simple {
+    text-align: center;
+  }
+
+  .schedule-item {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .container {
+    padding: 0 20px;
+  }
+
+  .schedule-card {
+    padding: 30px;
+  }
+
+  .dresscode-showcase {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .dresscode-header h2 {
+    font-size: 2rem;
+  }
+
+  .dresscode-showcase-item {
+    padding: 1.5rem;
+  }
+
   .song-card {
     padding: 30px 20px;
   }
@@ -1840,6 +1774,53 @@ body {
   .song-btn {
     padding: 12px 25px;
     font-size: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-title {
+    font-size: 42px;
+  }
+
+  .hero-date-simple {
+    font-size: 14px;
+  }
+
+  .story-text-block h2 {
+    font-size: 32px;
+  }
+
+  .story-circle {
+    width: 250px;
+    height: 250px;
+  }
+
+  .gifts-message p {
+    font-size: 14px;
+  }
+
+  .rsvp-left-simple h2 {
+    font-size: 28px;
+  }
+
+  .rsvp-right-simple {
+    padding: 30px;
+  }
+
+  .showcase-details {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .palette-swatch {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .dresscode-rules {
+    margin: 0 1rem;
+    padding: 1.5rem;
   }
 
   .verse p {
