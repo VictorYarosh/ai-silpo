@@ -1,23 +1,15 @@
 {
-  "name": "wedding",
-  "version": "0.0.1",
-  "description": "",
-  "private": true,
-  "keywords": [
-    ""
-  ],
-  "license": "",
-  "author": "",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack serve --open --config webpack.config.dev.js",
-    "build": "echo 'no build needed'"
-  },
-  "devDependencies": {
-    "copy-webpack-plugin": "^11.0.0",
-    "html-webpack-plugin": "^5.6.0",
-    "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4",
-    "webpack-merge": "^5.10.0"
-  }
+  "version": 2,
+  "builds": [{ "src": "**/*", "use": "@vercel/static" }],
+  "routes": [{ "src": "/(.*)", "dest": "/$1" }],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+    },
+    {
+      "source": "/(.*).html",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+    }
+  ]
 }
