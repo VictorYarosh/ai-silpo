@@ -197,7 +197,7 @@ section {
     max-height: 40vh;        /* ще менше на телефонах */
   }
   .hero-invite {
-    font-size: 0.8rem;
+    font-size: 22px;
     margin-bottom: 0.8rem;
   }
   .hero-btn {
@@ -208,7 +208,11 @@ section {
     margin-top: 0.8rem;
   }
   .btn-text-small {
-    font-size: 0.7rem;
+    font-size: 18px;
+  }
+
+  .hero-invite-sec {
+   font-size: 18px;
   }
 }
 
