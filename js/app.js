@@ -1,77 +1,37 @@
 // ============================================================
-// Весільне запрошення – повна логіка (сплеш, форма, музика, кнопка "Назад")
+// Весільне запрошення – без сплешу, музика при першому кліку
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-  // ------ ЕЛЕМЕНТИ ------
-  const splash = document.getElementById('splashScreen');
-  const mainPage = document.getElementById('mainPage');
   const discoverBtnForm = document.getElementById('discoverBtnForm');
   const mainContent = document.getElementById('mainContent');
-  const backBtn = document.getElementById('backToSplashBtn');
   const audio = document.getElementById('bgMusic');
-  let musicPlayed = false;
-  let isFormVisible = false; // чи відкрита форма
+  let musicStarted = false;
 
-  // ------ ФУНКЦІЯ ЗАПУСКУ МУЗИКИ ------
   function startMusic() {
-    if (!musicPlayed && audio) {
+    if (!musicStarted && audio) {
       audio.volume = 0.45;
       audio.play().catch(() => console.log('Автовідтворення заблоковано'));
-      musicPlayed = true;
+      musicStarted = true;
     }
   }
 
-  // ------ ФУНКЦІЯ СКИДАННЯ СТАНУ MAINCONTENT (показуємо всі секції) ------
-  function resetMainContentDisplay() {
-    if (!mainContent) return;
-    const sections = mainContent.querySelectorAll('section');
-    sections.forEach(section => {
-      section.style.display = '';          // видаляємо inline display
-      section.classList.remove('future-hidden');
-    });
-    isFormVisible = false;
-  }
+  // Глобальний обробник першого кліку (автозапуск музики)
+  document.body.addEventListener('click', function firstClick() {
+    startMusic();
+    document.body.removeEventListener('click', firstClick);
+  }, { once: true });
 
-  // ===== 1. СПЛЕШ: кнопка "Підтвердити" =====
-  const splashBtn = document.getElementById('splashOpenBtn');
-  if (splashBtn && splash && mainPage) {
-    splashBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      startMusic();
-
-      // Ховаємо сплеш
-      splash.classList.add('hide-splash');
-      splash.style.display = 'none';
-      // Показуємо головну сторінку
-      mainPage.classList.add('visible');
-      mainPage.style.display = 'block';
-      // Скидаємо стан всіх секцій (показуємо всі)
-      resetMainContentDisplay();
-      // Прокручуємо вгору
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
-
-  // ===== 2. КНОПКА "ВІДКРИТИ ФОРМУ" (показуємо тільки секцію RSVP) =====
+  // ===== 1. КНОПКА "ВІДКРИТИ ФОРМУ" =====
   if (discoverBtnForm && mainContent) {
     discoverBtnForm.addEventListener('click', function(e) {
       e.preventDefault();
-      startMusic();
+      startMusic(); // гарантуємо запуск, якщо раптом не спрацював глобальний
 
-      // Якщо форма вже видима, просто прокручуємо
-      if (isFormVisible) {
-        const rsvpSection = document.querySelector('.rsvp-wave');
-        if (rsvpSection) rsvpSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-
-      // Робимо mainContent видимим (на всяк випадок)
       if (mainContent.classList.contains('hidden')) {
         mainContent.classList.remove('hidden');
       }
 
-      // Приховуємо всі секції, крім .rsvp-wave
       const allSections = mainContent.querySelectorAll('section');
       allSections.forEach(section => {
         if (section.classList.contains('rsvp-wave')) {
@@ -80,9 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
           section.style.display = 'none';
         }
       });
-      isFormVisible = true;
 
-      // Прокручуємо до форми
       const rsvpSection = document.querySelector('.rsvp-wave');
       if (rsvpSection) {
         setTimeout(() => {
@@ -90,41 +48,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 150);
       }
 
-      // Анімація кнопки
       discoverBtnForm.style.transform = 'scale(0.98)';
       setTimeout(() => { discoverBtnForm.style.transform = ''; }, 150);
     });
   }
 
-  // ===== 3. КНОПКА "НАЗАД" (стрілка) – повернення до сплешу =====
-  if (backBtn && splash && mainPage) {
-    backBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-
-      // Зупиняємо музику і скидаємо прапорець
-      if (audio && !audio.paused) {
-        audio.pause();
-        audio.currentTime = 0;
-        musicPlayed = false;
-        const musicCtrl = document.querySelector('.music-btn');
-        if (musicCtrl) musicCtrl.innerHTML = '🎵 Увімкнути музику';
-      }
-
-      // Ховаємо основний контент
-      mainPage.style.display = 'none';
-      mainPage.classList.remove('visible');
-      if (mainContent) mainContent.classList.add('hidden');
-
-      // Показуємо сплеш
-      splash.classList.remove('hide-splash');
-      splash.style.display = 'flex';
-
-      // Прокручуємо вгору
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
-
-  // ===== 4. ЛОГІКА RSVP (відправка форми) =====
+  // ===== 2. ЛОГІКА RSVP (відправка форми) =====
   (function initRSVP() {
     let attendingSimple = true;
     let isSubmitting = false;
@@ -242,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setAttendance(true);
   })();
 
-  // ===== 5. ПІСЕННИЙ БЛОК =====
+  // ===== 3. ПІСЕННИЙ БЛОК =====
   const openSongBtn = document.getElementById('openSongBtn');
   const songContent = document.getElementById('songContent');
   if (openSongBtn && songContent) {
@@ -256,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     songContent.classList.remove('open');
   }
 
-  // ===== 6. ПАРАЛАКС ДЛЯ ХВИЛЬ =====
+  // ===== 4. ПАРАЛАКС ДЛЯ ХВИЛЬ =====
   window.addEventListener('scroll', () => {
     const scrolled = window.pageYOffset;
     const waves = document.querySelectorAll('.wave-svg');
@@ -265,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ===== 7. КНОПКА КЕРУВАННЯ МУЗИКОЮ =====
+  // ===== 5. КНОПКА КЕРУВАННЯ МУЗИКОЮ =====
   (function initMusicControl() {
     if (!audio) return;
     let musicControlBtn = null;
@@ -294,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (audio.paused) {
           audio.play().catch(err => console.log('Помилка відтворення:', err));
           musicControlBtn.innerHTML = '🎵 Додати музику/Вимкнути музику';
-          musicPlayed = true;
+          musicStarted = true;
         } else {
           audio.pause();
           musicControlBtn.innerHTML = '🎵 Додати музику/Вимкнути музику';

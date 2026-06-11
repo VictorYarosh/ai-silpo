@@ -1,6 +1,5 @@
 /* =====================================================
-   WEDDING INVITATION - FULL CSS
-   Colors: custom palette, matches existing HTML classes
+   WEDDING INVITATION - FULL CSS (очищений)
    ===================================================== */
 
 /* ----- CSS VARIABLES (COLORS) ----- */
@@ -54,12 +53,10 @@ body {
 }
 
 /* ----- TYPOGRAPHY ----- */
-h1, h2, h3, .hero-title, .story-label, .dresscode-tag, .splash-btn {
-  letter-spacing: -0.01em;
-
+h1, h2, h3, .hero-title, .story-label, .dresscode-tag {
   font-family: 'Lora', 'Playfair Display', serif;
+  letter-spacing: -0.01em;
   font-weight: 400;
-  font-style: normal;
 }
 
 h2 {
@@ -126,143 +123,104 @@ section {
   margin: 4rem 0;
 }
 
-/* ----- HERO SECTION ----- */
+/* Hero секція – точно на весь екран, без скролу */
 .hero {
-  min-height: 100vh;
+  /*min-height: 100vh;          !* мінімальна висота = екран *!*/
+  height: auto;               /* якщо контенту більше – розтягнеться, але ми цього не хочемо */
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  position: relative;
+  padding: 1rem;              /* невеликі відступи по краях */
+  box-sizing: border-box;
   background: var(--bg-light);
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-  backdrop-filter: none;
 }
 
 .hero-inner {
-  padding: 2rem;
-  position: relative;
-  z-index: 3;
-}
-
-.hero-petals {
-  position: absolute;
   width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
 }
 
-.petal-animate {
-  position: absolute;
-  font-size: 1.8rem;
-  animation: floatPetals 14s infinite ease-in-out;
-  opacity: 0.35;
+/* Зображення – обмежуємо висоту, щоб не виходило за межі */
+.hero-image {}
+
+.hero-image img {
+  max-width: 100%;
+  max-height: 45vh;          /* на десктопі займає не більше 45% висоти екрану */
+  width: auto;
+  height: auto;
 }
 
-.petal-animate:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; }
-.petal-animate:nth-child(2) { top: 70%; left: 85%; animation-delay: 2s; font-size: 2rem; }
-.petal-animate:nth-child(3) { top: 40%; left: 5%; animation-delay: 4s; }
-.petal-animate:nth-child(4) { top: 80%; left: 20%; animation-delay: 7s; }
-.petal-animate:nth-child(5) { top: 20%; left: 88%; animation-delay: 3s; }
-.petal-animate:nth-child(6) { top: 55%; left: 92%; animation-delay: 9s; }
-
-@keyframes floatPetals {
-  0% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
-  50% { transform: translateY(-25px) rotate(8deg); opacity: 0.6; }
-  100% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
-}
-
-.hero-flower {
-  font-size: 3rem;
-  color: var(--sandy-beige);
-  margin-bottom: 0.5rem;
-  animation: gentlePulse 3s infinite;
-}
-
-@keyframes gentlePulse {
-  0% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.08); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.7; }
-}
-.hero-main-box {
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  flex-direction: column;
-}
-
+/* Текст запрошення */
 .hero-invite {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-size: 14px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--dusty-rose);
-  background: rgba(255, 245, 235, 0.8);
-  display: inline-block;
-  padding: 0.4rem 1.8rem;
-  border-radius: 50px;
-  backdrop-filter: blur(4px);
-  margin-bottom: 1.5rem;
+  font-size: 28px;
+  padding: 0.3rem 1.2rem;
+  margin-bottom: 1rem;
+}
+.hero-date {
+  font-family: "Imperial Script", cursive;
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+.hero-invite-sec {
+  font-size: 24px;
+  padding: 0.3rem 1.2rem;
+  margin-bottom: 1rem;
 }
 
-.hero-names-container {
-  margin: 1rem 0 2rem;
+/* Кнопка */
+.hero-btn {
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  margin-top: 0;
 }
 
-.hero-title {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: baseline;
-  gap: 0.6rem;
-  font-size: 3.8rem;
+/* Додатковий текст та посилання */
+.hero-footer {
+  margin-top: 1rem;
+}
+.btn-text-small {
+  font-size: 46px;
+  padding: 0.3rem 0.8rem;
+}
+.map-link {
+  margin-top: 0.3rem;
 }
 
-@media (min-width: 768px) {
-  .hero-title {
-    font-size: 6rem;
+/* --- Мобільна адаптація: ще менші відступи та зображення --- */
+@media (max-width: 768px) {
+  .hero {
+    padding: 0.5rem;
+  }
+  .hero-image img {
+    max-height: 40vh;        /* ще менше на телефонах */
+  }
+  .hero-invite {
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+  .hero-btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  .hero-footer {
+    margin-top: 0.8rem;
+  }
+  .btn-text-small {
+    font-size: 0.7rem;
   }
 }
 
-.name-diana, .name-viktor {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-weight: 400;
-  background: linear-gradient(135deg, var(--deep-burgundy), var(--dusty-rose));
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  text-shadow: 2px 2px 12px rgba(94, 44, 46, 0.15);
-  animation: fadeRise 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
-  opacity: 0;
-  transform: translateY(20px);
+@media (max-width: 480px) {
+  .hero-image img {
+    max-height: 35vh;        /* на маленьких телефонах */
+  }
 }
 
-.name-diana { animation-delay: 0.2s; }
-.name-viktor { animation-delay: 0.6s; }
-
-.hero-amp {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-size: 4rem;
-  background: none;
-  color: var(--sandy-beige);
-  animation: fadeRise 0.8s forwards;
-  opacity: 0;
-  transform: translateY(20px);
-  animation-delay: 0.4s;
-}
-
-@keyframes fadeRise {
-  to { opacity: 1; transform: translateY(0); }
-}
-.hero-btn-box {
-
-}
+/* Кнопка */
 .hero-btn {
-  background: linear-gradient(105deg, var(--dusty-rose), var(--sandy-beige));
+  background: var(--dusty-rose);
   border: none;
   padding: 1rem 2.8rem;
   border-radius: 60px;
@@ -275,12 +233,13 @@ section {
   box-shadow: 0 8px 20px rgba(155, 111, 95, 0.35);
   position: relative;
   overflow: hidden;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .btn-text {
   position: relative;
   z-index: 2;
+  text-transform: uppercase;
 }
 
 .btn-glow {
@@ -302,8 +261,12 @@ section {
   left: 100%;
 }
 
-.footer-wave .btn-text-small {
-  font-size: 0.9rem;
+/* Футер hero */
+.hero-footer {
+  margin-top: 1.5rem;
+}
+.btn-text-small {
+  font-size: 22px;
   color: var(--deep-burgundy);
   background: rgba(255, 250, 240, 0.7);
   padding: 0.4rem 1rem;
@@ -311,8 +274,14 @@ section {
   backdrop-filter: blur(4px);
   display: inline-block;
 }
+.map-link {
+  margin-top: 0.5rem;
+}
+.map-link a {
+  text-decoration: none;
+}
 
-/* ----- MAIN CONTENT (init hidden) ----- */
+/* ----- MAIN CONTENT (прихований до кліку) ----- */
 .main-content {
   transition: opacity 0.5s ease;
 }
@@ -327,14 +296,12 @@ section {
   gap: 2rem;
   padding: 3rem 2rem;
 }
-
 @media (min-width: 900px) {
   .story-grid {
     grid-template-columns: 1fr 1fr;
     align-items: center;
   }
 }
-
 .story-label {
   font-size: 0.9rem;
   text-transform: uppercase;
@@ -343,12 +310,10 @@ section {
   margin-bottom: 0.5rem;
   display: inline-block;
 }
-
 .story-text-block p {
   margin: 1.5rem 0;
   color: var(--text-soft);
 }
-
 .story-quote {
   font-style: italic;
   font-size: 1.2rem;
@@ -356,7 +321,6 @@ section {
   padding-left: 1.2rem;
   color: var(--dusty-rose);
 }
-
 .story-circle {
   width: 280px;
   height: 280px;
@@ -366,7 +330,6 @@ section {
   box-shadow: 0 20px 35px -12px rgba(94, 44, 46, 0.2);
   border: 6px solid #FFF8F0;
 }
-
 .story-circle img {
   width: 100%;
   height: 100%;
@@ -378,22 +341,18 @@ section {
   text-align: center;
   padding: 3rem 2rem;
 }
-
 .gifts-icon {
   font-size: 3rem;
   margin-bottom: 0.5rem;
 }
-
 .gifts-message p {
   max-width: 620px;
   margin: 1rem auto;
   color: var(--text-soft);
 }
-
 .gifts-message strong {
   color: var(--deep-burgundy);
 }
-
 .gifts-alt {
   display: inline-block;
   background: rgba(168, 178, 159, 0.2);
@@ -406,16 +365,14 @@ section {
   border: 1px solid var(--sage-green);
 }
 
-/* ----- DRESS CODE SECTION ----- */
+/* ----- DRESS CODE ----- */
 .dresscode-wave {
   background: rgba(255, 249, 242, 0.85);
 }
-
 .dresscode-header {
   text-align: center;
   padding: 2rem 1rem 0.5rem;
 }
-
 .dresscode-tag {
   display: inline-block;
   background: rgba(168, 178, 159, 0.2);
@@ -428,7 +385,6 @@ section {
   margin-bottom: 1rem;
   border: 1px solid var(--sage-green);
 }
-
 .dresscode-minimal {
   display: flex;
   flex-wrap: wrap;
@@ -436,7 +392,6 @@ section {
   justify-content: center;
   padding: 1rem 1.5rem 2rem;
 }
-
 .dresscode-card {
   flex: 1 1 280px;
   background: var(--card-white);
@@ -446,27 +401,23 @@ section {
   box-shadow: var(--shadow-sm);
   border: 1px solid rgba(201, 164, 110, 0.2);
 }
-
 .dresscode-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
   border-color: var(--sandy-beige);
 }
-
 .card-title {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
-
 .title-marker {
   width: 4px;
   height: 28px;
   background: linear-gradient(135deg, var(--sandy-beige), var(--dusty-rose));
   border-radius: 4px;
 }
-
 .card-title h3 {
   font-family: 'Lora', 'Quicksand', sans-serif;
   font-size: 1.6rem;
@@ -474,14 +425,12 @@ section {
   color: var(--deep-burgundy);
   margin: 0;
 }
-
 .color-palette {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 1.5rem;
 }
-
 .color-chip {
   width: 32px;
   height: 32px;
@@ -489,18 +438,15 @@ section {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   transition: transform 0.2s;
 }
-
 .color-chip:hover {
   transform: scale(1.1);
 }
-
 .dress-desc {
   color: var(--text-soft);
   font-size: 0.95rem;
   line-height: 1.5;
   margin-bottom: 1.2rem;
 }
-
 .dress-tips {
   display: flex;
   flex-wrap: wrap;
@@ -510,7 +456,6 @@ section {
   border-top: 1px dashed rgba(163, 143, 126, 0.3);
   padding-top: 1rem;
 }
-
 .dresscode-rules {
   background: rgba(221, 225, 226, 0.4);
   backdrop-filter: blur(2px);
@@ -520,7 +465,6 @@ section {
   text-align: center;
   border: 1px solid var(--light-grayish);
 }
-
 .rule-badge {
   background: var(--deep-burgundy);
   display: inline-block;
@@ -531,42 +475,36 @@ section {
   font-size: 0.85rem;
   margin-bottom: 0.8rem;
 }
-
 .dresscode-rules p {
   margin: 0.5rem 0;
   color: var(--text-dark);
 }
-
 .rule-small {
   font-size: 0.85rem;
   opacity: 0.8;
 }
 
-/* ----- SCHEDULE SECTION ----- */
+/* ----- SCHEDULE ----- */
 .schedule-card {
   background: var(--card-white);
   border-radius: 48px;
   padding: 2rem;
   margin: 1rem;
 }
-
 .schedule-header {
   text-align: center;
   margin-bottom: 1.8rem;
 }
-
 .schedule-header span {
   color: var(--sage-green);
   font-size: 0.9rem;
   letter-spacing: 2px;
 }
-
 .schedule-list {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
-
 .schedule-item {
   display: flex;
   flex-wrap: wrap;
@@ -575,7 +513,6 @@ section {
   border-bottom: 1px dashed rgba(163, 143, 126, 0.3);
   padding-bottom: 0.8rem;
 }
-
 .schedule-time {
   font-weight: 700;
   font-family: 'Lora', 'Quicksand', sans-serif;
@@ -585,13 +522,11 @@ section {
   color: var(--deep-burgundy);
   min-width: 100px;
 }
-
 .schedule-event {
   font-weight: 600;
   width: 130px;
   color: var(--text-dark);
 }
-
 .schedule-desc {
   color: var(--muted-khaki);
   font-size: 0.9rem;
@@ -604,15 +539,12 @@ section {
   padding: 2rem;
   text-align: center;
 }
-
 .song-header h2 {
   color: var(--deep-burgundy);
 }
-
 .song-toggle {
   margin: 1.5rem 0;
 }
-
 .song-btn {
   background: rgba(201, 164, 110, 0.2);
   border: 1px solid var(--sandy-beige);
@@ -626,13 +558,11 @@ section {
   gap: 0.6rem;
   transition: 0.2s;
 }
-
 .song-btn:hover {
   background: var(--sandy-beige);
   color: white;
   transform: scale(0.98);
 }
-
 .song-content {
   display: none;
   margin-top: 1.8rem;
@@ -643,11 +573,9 @@ section {
   max-height: 500px;
   overflow-y: auto;
 }
-
 .song-content.open {
   display: block;
 }
-
 .song-title {
   font-size: 1.6rem;
   font-family: 'Lora', 'Quicksand', sans-serif;
@@ -655,17 +583,14 @@ section {
   margin-bottom: 1rem;
   color: var(--deep-burgundy);
 }
-
 .verse {
   margin-bottom: 1rem;
   color: var(--text-soft);
 }
-
 .verse-refrain, .verse-refrain-final {
   font-weight: 600;
   color: var(--dusty-rose);
 }
-
 .highlight-verse {
   background: rgba(168, 178, 159, 0.15);
   padding: 0.6rem;
@@ -679,16 +604,13 @@ section {
   border-radius: 48px;
   text-align: center;
 }
-
 .location-icon {
   font-size: 2.8rem;
 }
-
 .location-simple h3 {
   color: var(--deep-burgundy);
   font-family: 'Lora', 'Quicksand', sans-serif;
 }
-
 .map-simple-btn {
   background: transparent;
   border: 1.5px solid var(--sandy-beige);
@@ -700,13 +622,11 @@ section {
   transition: all 0.2s;
   color: var(--dusty-rose);
 }
-
 .map-simple-btn:hover {
   background: var(--sandy-beige);
   color: white;
   border-color: var(--sandy-beige);
 }
-
 .location-feature-simple {
   display: flex;
   justify-content: center;
@@ -724,13 +644,11 @@ section {
   overflow: hidden;
   box-shadow: 0 30px 40px -18px rgba(94, 44, 46, 0.2);
 }
-
 @media (min-width: 800px) {
   .rsvp-card-simple {
     grid-template-columns: 1fr 1.2fr;
   }
 }
-
 .rsvp-left-simple {
   background: linear-gradient(125deg, rgba(221,225,226,0.5), rgba(168,178,159,0.2));
   backdrop-filter: blur(2px);
@@ -740,21 +658,17 @@ section {
   justify-content: center;
   text-align: center;
 }
-
 .rsvp-left-simple h2 {
   color: var(--deep-burgundy);
 }
-
 .rsvp-right-simple {
   padding: 2rem;
 }
-
 .toggle-simple {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.2rem;
 }
-
 .toggle-btn {
   flex: 1;
   background: rgba(221, 225, 226, 0.5);
@@ -766,13 +680,11 @@ section {
   transition: 0.2s;
   color: var(--text-dark);
 }
-
 .toggle-btn.active {
-  background: var(--deep-burgundy);
+  background: var(--dusty-rose);
   color: white;
   box-shadow: 0 4px 10px rgba(94, 44, 46, 0.3);
 }
-
 .rsvp-form-simple input,
 .rsvp-form-simple select,
 .rsvp-form-simple textarea {
@@ -785,7 +697,6 @@ section {
   font-family: 'Lora', 'Quicksand', sans-serif;
   transition: 0.2s;
 }
-
 .rsvp-form-simple input:focus,
 select:focus,
 textarea:focus {
@@ -793,7 +704,6 @@ textarea:focus {
   border-color: var(--sandy-beige);
   box-shadow: 0 0 0 3px rgba(201, 164, 110, 0.2);
 }
-
 .submit-simple {
   background: var(--dusty-rose);
   color: white;
@@ -806,11 +716,9 @@ textarea:focus {
   cursor: pointer;
   transition: 0.2s;
 }
-
 .submit-simple:hover {
   background: var(--deep-burgundy);
 }
-
 .success-simple {
   display: none;
   text-align: center;
@@ -818,125 +726,18 @@ textarea:focus {
   padding: 2rem;
   border-radius: 38px;
 }
-
 .success-check {
   font-size: 3rem;
   color: var(--sage-green);
 }
 
-/* ----- SPLASH SCREEN (first image) ----- */
-.splash {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #FFFBF7;
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.8s ease, visibility 0.8s ease;
-  opacity: 1;
-  visibility: visible;
-}
-
-.splash.hide-splash {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.splash-inner {
-  text-align: center;
-  max-width: 90%;
-  animation: fadeGlow 1.2s ease;
-}
-
-.splash-inner img {
-  max-width: 85%;
-  width: auto;
-  height: auto;
-  max-height: 70vh;
-  object-fit: cover;
-  border-radius: 32px;
-  box-shadow: 0 25px 40px rgba(0,0,0,0.1);
-  margin-bottom: 2rem;
-  border: 2px solid #F9E2CF;
-}
-
-.splash-btn {
-  background: linear-gradient(135deg, #C8A27A 0%, #B4865F 100%);
-  border: none;
-  padding: 1rem 2.8rem;
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: white;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 8px 18px rgba(128, 78, 38, 0.25);
-  transition: transform 0.2s, box-shadow 0.2s;
-  letter-spacing: 1px;
-}
-
-.splash-btn:hover {
-  transform: scale(1.02);
-  box-shadow: 0 12px 24px rgba(128, 78, 38, 0.35);
-}
-
-@keyframes fadeGlow {
-  0% { opacity: 0; transform: scale(0.97); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-/* --- Мобільна адаптація: збільшуємо зображення на весь екран --- */
-@media (max-width: 768px) {
-  .splash-inner {
-    max-width: 95%;
-  }
-  .splash-inner img {
-    max-width: 95%;
-    max-height: 85vh;       /* більше місця по вертикалі */
-    width: auto;
-    height: auto;
-    margin-bottom: 1.5rem;
-  }
-  .splash-btn {
-    padding: 0.8rem 2rem;
-    font-size: 1.2rem;
-  }
-}
-
-/* Для дуже маленьких екранів (до 480px) – зображення майже впритул */
-@media (max-width: 480px) {
-  .splash-inner {
-    max-width: 98%;
-  }
-  .splash-inner img {
-    max-width: 98%;
-    max-height: 80vh;
-    border-radius: 20px;
-  }
-  .splash-btn {
-    padding: 0.7rem 1.5rem;
-    font-size: 1rem;
-  }
-}
-
-/* Основний контент (ховається до відкриття) */
+/* ----- PAGE (основний контент) ----- */
 .page {
-  display: none;
-  opacity: 0;
-  transition: opacity 0.9s ease;
-}
-
-.page.visible {
-  display: block;
   opacity: 1;
+  display: block;
 }
 
-/* Додаткові стилі для селектів */
-#guestsSimple select,
+/* Селекти */
 #drinkSimple select {
   width: 100%;
   padding: 0.9rem 2.5rem 0.9rem 1rem;
@@ -953,28 +754,16 @@ textarea:focus {
   background-position: right 1rem center;
   cursor: pointer;
 }
-
-#guestsSimple select:focus,
 #drinkSimple select:focus {
   outline: none;
   border-color: var(--sandy-beige);
   box-shadow: 0 0 0 3px rgba(201, 164, 110, 0.2);
 }
 
-#drinkSimple select::-ms-expand {
-  display: none;
-}
-
-/* ----- RESPONSIVE FIXES ----- */
+/* ----- RESPONSIVE ----- */
 @media (max-width: 680px) {
   .container {
     padding: 0 18px;
-  }
-  .hero-title {
-    font-size: 3rem;
-  }
-  .hero-amp {
-    font-size: 2.4rem;
   }
   h2 {
     font-size: 1.8rem;
@@ -1019,74 +808,4 @@ textarea:focus {
 
 .future-hidden {
   display: none !important;
-}
-
-.back-btn {
-  background: linear-gradient(135deg, #b4865f, #8a5a40) !important;
-  margin-left: 1rem;
-}
-@media (max-width: 560px) {
-  .back-btn {
-    margin-left: 0;
-    margin-top: 0.5rem;
-  }
-  .hero-btn-box {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-}
-
-#backToSplashBtn,
-#backToSplashBtn.hero-btn,
-#backToSplashBtn.back-btn {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 3000;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  outline: none !important;
-  font-size: 2rem;
-  font-weight: 300;
-  color: #C9A46E !important;
-  cursor: pointer;
-  transition: color 0.2s, transform 0.2s;
-  padding: 8px;
-  margin: 0;
-  line-height: 1;
-  font-family: 'Quicksand', sans-serif;
-  width: auto;
-  height: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  text-shadow: none;
-  backdrop-filter: none;
-}
-
-#backToSplashBtn:hover,
-#backToSplashBtn:focus,
-#backToSplashBtn:active {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  outline: none !important;
-  color: #ffffff !important;
-  transform: translateX(-2px);
-}
-
-@media (max-width: 768px) {
-  #backToSplashBtn,
-  #backToSplashBtn.hero-btn,
-  #backToSplashBtn.back-btn {
-    font-size: 1.6rem;
-    top: 12px;
-    left: 12px;
-    padding: 6px;
-  }
 }
