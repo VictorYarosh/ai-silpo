@@ -183,6 +183,7 @@ section {
 }
 .btn-text-small {
   font-family: "Cormorant", serif;
+  font-weight: 600;
   font-size: 46px;
   padding: 0.3rem 0.8rem;
 }
@@ -199,6 +200,7 @@ section {
     max-height: 40vh;        /* ще менше на телефонах */
   }
   .hero-invite {
+    font-family: "Cormorant", serif;
     font-size: 22px;
     margin-bottom: 0.8rem;
   }
@@ -206,11 +208,9 @@ section {
     padding: 0.6rem 1.5rem;
     font-size: 0.9rem;
   }
-  .hero-footer {
-    margin-top: 0.8rem;
-  }
+
   .btn-text-small {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .hero-invite-sec {
