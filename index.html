@@ -9,12 +9,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Imperial+Script&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Imperial+Script&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
 <audio id="bgMusic" loop preload="auto">
-  <source src="audio/Ed-Sheeran-Perfect.mp3" type="audio/mpeg">
+  <source src="audio/namalyuy-meni-nich.mp3" type="audio/mpeg">
 </audio>
 
 <!-- SPLASH: головне фото + кнопка -->
@@ -22,7 +24,7 @@
   <div class="splash-inner">
     <img src="img/Main.png" alt="Весільна світлина">
     <br>
-    <button class="splash-btn" id="splashOpenBtn">✨ Відкрити ✨</button>
+    <button class="splash-btn" id="splashOpenBtn">✨ Підтвердити ✨</button>
   </div>
 </div>
 
@@ -38,6 +40,8 @@
     </svg>
   </div>
 
+  <button class="hero-btn back-btn" id="backToSplashBtn">←</button>
+
   <!-- секція hero (імена + кнопка "Відкрити форму") -->
   <section class="hero">
     <div class="hero-inner">
@@ -51,13 +55,13 @@
       </div>
 
       <div class="hero-flower">✿</div>
-      <div class="hero-names-container">
-        <h1 class="hero-title">
-          <span class="name-diana animate-name">Даяна</span>
-          <span class="hero-amp animate-amp">&</span>
-          <span class="name-viktor animate-name">Віктор</span>
-        </h1>
-      </div>
+<!--      <div class="hero-names-container">-->
+<!--        <h1 class="hero-title">-->
+<!--          <span class="name-diana animate-name">Даяна</span>-->
+<!--          <span class="hero-amp animate-amp">&</span>-->
+<!--          <span class="name-viktor animate-name">Віктор</span>-->
+<!--        </h1>-->
+<!--      </div>-->
       <div class="hero-main-box">
         <p class="hero-invite animate-text">Ми запрошуємо тебе на свято та просимо заповнити форму нижче</p>
 
@@ -103,13 +107,13 @@
                 <button class="toggle-btn" id="noSimple">Не зможу</button>
               </div>
               <label for="nameSimple"></label><input type="text" id="nameSimple" placeholder="Ім'я та прізвище" required>
-              <div id="guestsSimple">
-                <label for="countSimple"></label><select id="countSimple">
-                  <option>без дітей</option>
-                  <option>+ 1 дитина</option>
-                  <option>+ 2 дитини</option>
-                </select>
-              </div>
+<!--              <div id="guestsSimple">-->
+<!--                <label for="countSimple"></label><select id="countSimple">-->
+<!--                  <option>без дітей</option>-->
+<!--                  <option>+ 1 дитина</option>-->
+<!--                  <option>+ 2 дитини</option>-->
+<!--                </select>-->
+<!--              </div>-->
               <div id="drinkSimple">
                 <label for="drinkSelect"></label><select id="drinkSelect" required>
                   <option value="" disabled selected>Що будете пити?</option>
