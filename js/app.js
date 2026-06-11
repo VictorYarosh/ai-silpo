@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
       musicControlBtn = document.createElement('button');
       musicControlBtn.className = 'music-btn';
-      musicControlBtn.innerHTML = '🎵 Увімкнути музику';
+      musicControlBtn.innerHTML = '🎵 Додати музику/Вимкнути музику';
       musicControlBtn.style.cssText = `
         background: rgba(232, 168, 124, 0.9); border: none; color: white;
         padding: 10px 20px; border-radius: 50px; font-size: 14px;
@@ -293,11 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
         e.stopPropagation();
         if (audio.paused) {
           audio.play().catch(err => console.log('Помилка відтворення:', err));
-          musicControlBtn.innerHTML = '🎵 Музика грає';
+          musicControlBtn.innerHTML = '🎵 Додати музику/Вимкнути музику';
           musicPlayed = true;
         } else {
           audio.pause();
-          musicControlBtn.innerHTML = '🎵 Увімкнути музику';
+          musicControlBtn.innerHTML = '🎵 Додати музику/Вимкнути музику';
         }
       });
       div.appendChild(musicControlBtn);

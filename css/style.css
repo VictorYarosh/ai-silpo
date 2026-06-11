@@ -196,9 +196,9 @@ section {
 }
 
 .hero-invite {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   font-size: 14px;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--dusty-rose);
   background: rgba(255, 245, 235, 0.8);
@@ -229,7 +229,7 @@ section {
 }
 
 .name-diana, .name-viktor {
-  font-family: 'Imperial Script', cursive;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   font-weight: 400;
   background: linear-gradient(135deg, var(--deep-burgundy), var(--dusty-rose));
   background-clip: text;
@@ -245,7 +245,7 @@ section {
 .name-viktor { animation-delay: 0.6s; }
 
 .hero-amp {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   font-size: 4rem;
   background: none;
   color: var(--sandy-beige);
@@ -266,7 +266,7 @@ section {
   border: none;
   padding: 1rem 2.8rem;
   border-radius: 60px;
-  font-family: 'Quicksand', sans-serif;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   font-weight: 600;
   font-size: 1.1rem;
   color: white;
@@ -468,7 +468,7 @@ section {
 }
 
 .card-title h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   font-size: 1.6rem;
   font-weight: 500;
   color: var(--deep-burgundy);
@@ -578,7 +578,7 @@ section {
 
 .schedule-time {
   font-weight: 700;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   background: rgba(221, 225, 226, 0.5);
   padding: 0.2rem 1rem;
   border-radius: 28px;
@@ -650,7 +650,7 @@ section {
 
 .song-title {
   font-size: 1.6rem;
-  font-family: 'Playfair Display', serif;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   text-align: center;
   margin-bottom: 1rem;
   color: var(--deep-burgundy);
@@ -686,7 +686,7 @@ section {
 
 .location-simple h3 {
   color: var(--deep-burgundy);
-  font-family: 'Playfair Display', serif;
+  font-family: 'Lora', 'Quicksand', sans-serif;
 }
 
 .map-simple-btn {
@@ -782,7 +782,7 @@ section {
   border: 1px solid var(--light-grayish);
   border-radius: 32px;
   background: white;
-  font-family: inherit;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   transition: 0.2s;
 }
 
@@ -944,7 +944,7 @@ textarea:focus {
   border: 1px solid var(--light-grayish);
   border-radius: 32px;
   background-color: white;
-  font-family: inherit;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   font-size: 0.95rem;
   color: var(--text-dark);
   appearance: none;
