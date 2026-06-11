@@ -880,6 +880,40 @@ textarea:focus {
   100% { opacity: 1; transform: scale(1); }
 }
 
+/* --- Мобільна адаптація: збільшуємо зображення на весь екран --- */
+@media (max-width: 768px) {
+  .splash-inner {
+    max-width: 95%;
+  }
+  .splash-inner img {
+    max-width: 95%;
+    max-height: 85vh;       /* більше місця по вертикалі */
+    width: auto;
+    height: auto;
+    margin-bottom: 1.5rem;
+  }
+  .splash-btn {
+    padding: 0.8rem 2rem;
+    font-size: 1.2rem;
+  }
+}
+
+/* Для дуже маленьких екранів (до 480px) – зображення майже впритул */
+@media (max-width: 480px) {
+  .splash-inner {
+    max-width: 98%;
+  }
+  .splash-inner img {
+    max-width: 98%;
+    max-height: 80vh;
+    border-radius: 20px;
+  }
+  .splash-btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
 /* Основний контент (ховається до відкриття) */
 .page {
   display: none;
