@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== 2. ЛОГІКА RSVP (відправка форми) – без змін =====
+  // ===== 2. ЛОГІКА RSVP (відправка форми) – БЕЗ ЗЕЛЕНОГО БЛОКУ =====
   (function initRSVP() {
     let attendingSimple = true;
     let isSubmitting = false;
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const drinkDiv = document.getElementById('drinkSimple');
     const submitBtn = document.getElementById('submitSimple');
     const rsvpForm = document.getElementById('rsvpFormSimple');
-    const successDiv = document.getElementById('successSimple');
+    // successDiv більше не використовується
 
     function setAttendance(value) {
       attendingSimple = value;
@@ -214,8 +214,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
       await sendToSheets(rsvpData);
 
+      // Приховуємо форму, але не показуємо зелений блок
       if (rsvpForm) rsvpForm.style.display = 'none';
-      if (successDiv) successDiv.style.display = 'block';
+      // Повідомлення-тост залишається для зворотного зв'язку
       showNotification('Дякуємо! Вашу відповідь отримано 💕');
       isSubmitting = false;
     }
