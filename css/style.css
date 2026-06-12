@@ -184,7 +184,7 @@ section {
   margin-top: 1rem;
 }
 .btn-text-small {
-  font-family: 'Quicksand', monospace;
+  font-family: 'Lora', 'Quicksand', sans-serif;
   font-weight: 600;
   font-size: 26px;
   padding: 0.3rem 0.8rem;
