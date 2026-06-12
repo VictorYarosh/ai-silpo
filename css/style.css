@@ -184,12 +184,14 @@ section {
   margin-top: 1rem;
 }
 .btn-text-small {
-  font-family: "Cormorant", serif;
+  font-family: 'Quicksand', monospace;
   font-weight: 600;
-  font-size: 46px;
+  font-size: 26px;
   padding: 0.3rem 0.8rem;
   text-transform: uppercase;
+  color: var(--dusty-rose);
 }
+
 .btn-text-small-footer {
   font-family: "Cormorant", serif;
   font-size: 22px;
@@ -280,15 +282,7 @@ section {
 .hero-footer {
   margin-top: 1.5rem;
 }
-.btn-text-small {
-  font-size: 22px;
-  color: var(--deep-burgundy);
-  background: rgba(255, 250, 240, 0.7);
-  padding: 0.4rem 1rem;
-  border-radius: 40px;
-  backdrop-filter: blur(4px);
-  display: inline-block;
-}
+
 .map-link {
   margin-top: 0.5rem;
 }
