@@ -1,5 +1,5 @@
 // ============================================================
-// Весільне запрошення – без сплешу, музика при першому кліку
+// Весільне запрошення – музика після кліку, кнопка з анімацією
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -7,26 +7,84 @@ document.addEventListener('DOMContentLoaded', function() {
   const mainContent = document.getElementById('mainContent');
   const audio = document.getElementById('bgMusic');
   let musicStarted = false;
+  let musicControlDiv = null;
+  let musicControlBtn = null;
 
+  // Функція запуску музики (змінює іконку та додає анімацію)
   function startMusic() {
     if (!musicStarted && audio) {
       audio.volume = 0.45;
-      audio.play().catch(() => console.log('Автовідтворення заблоковано'));
-      musicStarted = true;
+      audio.play().then(() => {
+        musicStarted = true;
+        if (musicControlBtn) {
+          musicControlBtn.innerHTML = '🎶'; // ноти, що грають
+          musicControlBtn.classList.add('playing');
+        }
+      }).catch(() => {
+        console.log('Автовідтворення заблоковано');
+        if (musicControlBtn) {
+          musicControlBtn.innerHTML = '🎵';
+          musicControlBtn.classList.remove('playing');
+        }
+      });
     }
   }
 
-  // Глобальний обробник першого кліку (автозапуск музики)
-  document.body.addEventListener('click', function firstClick() {
-    startMusic();
-    document.body.removeEventListener('click', firstClick);
-  }, { once: true });
+  // Створення кнопки керування (спочатку прихована)
+  function createMusicControl() {
+    if (document.querySelector('.music-control')) return;
+    const div = document.createElement('div');
+    div.className = 'music-control';
+    div.style.cssText = `
+      position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+      opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+    `;
+    musicControlBtn = document.createElement('button');
+    musicControlBtn.className = 'music-btn';
+    musicControlBtn.innerHTML = '🎵'; // початкова іконка
+    musicControlBtn.style.cssText = `
+      background: #9B6F5F; border: none; color: white;
+      width: 50px; height: 50px; border-radius: 50%; font-size: 24px;
+      cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      transition: all 0.3s; font-family: "Cormorant", serif; pointer-events: auto;
+      display: flex; align-items: center; justify-content: center;
+    `;
+    musicControlBtn.onmouseenter = () => musicControlBtn.style.transform = 'scale(1.05)';
+    musicControlBtn.onmouseleave = () => musicControlBtn.style.transform = 'scale(1)';
+    musicControlBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (audio.paused) {
+        audio.play().catch(err => console.log('Помилка відтворення:', err));
+        musicControlBtn.innerHTML = '🎶';
+        musicControlBtn.classList.add('playing');
+        musicStarted = true;
+      } else {
+        audio.pause();
+        musicControlBtn.innerHTML = '🎵';
+        musicControlBtn.classList.remove('playing');
+      }
+    });
+    div.appendChild(musicControlBtn);
+    document.body.appendChild(div);
+    musicControlDiv = div;
+  }
+
+  // Показати кнопку керування
+  function showMusicControl() {
+    if (musicControlDiv) {
+      musicControlDiv.style.opacity = '1';
+      musicControlDiv.style.pointerEvents = 'auto';
+    }
+  }
+
+  createMusicControl();
 
   // ===== 1. КНОПКА "ВІДКРИТИ ФОРМУ" =====
   if (discoverBtnForm && mainContent) {
     discoverBtnForm.addEventListener('click', function(e) {
       e.preventDefault();
-      startMusic(); // гарантуємо запуск, якщо раптом не спрацював глобальний
+      startMusic();
+      showMusicControl();
 
       if (mainContent.classList.contains('hidden')) {
         mainContent.classList.remove('hidden');
@@ -53,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== 2. ЛОГІКА RSVP (відправка форми) =====
+  // ===== 2. ЛОГІКА RSVP (відправка форми) – без змін =====
   (function initRSVP() {
     let attendingSimple = true;
     let isSubmitting = false;
@@ -193,50 +251,4 @@ document.addEventListener('DOMContentLoaded', function() {
       wave.style.transform = `translateY(${scrolled * 0.3}px)`;
     });
   });
-
-  // ===== 5. КНОПКА КЕРУВАННЯ МУЗИКОЮ =====
-  (function initMusicControl() {
-    if (!audio) return;
-    let musicControlBtn = null;
-
-    function createControl() {
-      if (document.querySelector('.music-control')) return;
-      const div = document.createElement('div');
-      div.className = 'music-control';
-      div.style.cssText = `
-        position: fixed; bottom: 20px; right: 20px; z-index: 1000;
-        opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
-      `;
-      musicControlBtn = document.createElement('button');
-      musicControlBtn.className = 'music-btn';
-      musicControlBtn.innerHTML = '🎵';
-      musicControlBtn.style.cssText = `
-        background: rgba(232, 168, 124, 0.9); border: none; color: white;
-        padding: 10px 20px; border-radius: 50px; font-size: 14px;
-        cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        transition: all 0.3s; font-family: 'Quicksand', sans-serif; pointer-events: auto;
-      `;
-      musicControlBtn.onmouseenter = () => musicControlBtn.style.transform = 'scale(1.05)';
-      musicControlBtn.onmouseleave = () => musicControlBtn.style.transform = 'scale(1)';
-      musicControlBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (audio.paused) {
-          audio.play().catch(err => console.log('Помилка відтворення:', err));
-          musicControlBtn.innerHTML = '🎵';
-          musicStarted = true;
-        } else {
-          audio.pause();
-          musicControlBtn.innerHTML = '🎵';
-        }
-      });
-      div.appendChild(musicControlBtn);
-      document.body.appendChild(div);
-    }
-
-    createControl();
-    setTimeout(() => {
-      const ctrl = document.querySelector('.music-control');
-      if (ctrl) ctrl.style.opacity = '1';
-    }, 1000);
-  })();
 });

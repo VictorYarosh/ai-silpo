@@ -210,7 +210,7 @@ section {
   }
   .hero-invite {
     font-family: "Cormorant", serif;
-    font-size: 22px;
+    font-size: 18px;
     margin-bottom: 0.8rem;
   }
   .hero-btn {
@@ -226,7 +226,7 @@ section {
   }
 
   .hero-invite-sec {
-   font-size: 22px;
+   font-size: 18px;
   }
 }
 
@@ -823,4 +823,21 @@ textarea:focus {
 
 .future-hidden {
   display: none !important;
+}
+
+/* Анімація для кнопки музики (пульсація) */
+.music-btn.playing {
+  animation: pulse 1s ease infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
