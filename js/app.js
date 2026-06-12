@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Приховуємо форму, але не показуємо зелений блок
       if (rsvpForm) rsvpForm.style.display = 'none';
       // Повідомлення-тост залишається для зворотного зв'язку
-      showNotification('Дякуємо! Вашу відповідь отримано 💕');
+      // showNotification('Дякуємо! Вашу відповідь отримано 💕');
       isSubmitting = false;
     }
 
