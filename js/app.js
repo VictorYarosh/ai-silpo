@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
       audio.play().then(() => {
         musicStarted = true;
         if (musicControlBtn) {
-          musicControlBtn.innerHTML = '🎶'; // ноти, що грають
+          musicControlBtn.innerHTML = '🎶';
           musicControlBtn.classList.add('playing');
         }
       }).catch(() => {
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     musicControlBtn = document.createElement('button');
     musicControlBtn.className = 'music-btn';
-    musicControlBtn.innerHTML = '🎵'; // початкова іконка
+    musicControlBtn.innerHTML = '🎵';
     musicControlBtn.style.cssText = `
       background: #9B6F5F; border: none; color: white;
       width: 50px; height: 50px; border-radius: 50%; font-size: 24px;
@@ -79,26 +79,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   createMusicControl();
 
-  // ===== 1. КНОПКА "ВІДКРИТИ ФОРМУ" =====
+  // ===== 1. КНОПКА "✧ ТИЦЬ ✧" – ВІДКРИВАЄ ВЕСЬ КОНТЕНТ =====
   if (discoverBtnForm && mainContent) {
     discoverBtnForm.addEventListener('click', function(e) {
       e.preventDefault();
       startMusic();
       showMusicControl();
 
+      // Відкриваємо ВЕСЬ додатковий контент (знімаємо клас hidden)
       if (mainContent.classList.contains('hidden')) {
         mainContent.classList.remove('hidden');
       }
 
-      const allSections = mainContent.querySelectorAll('section');
-      allSections.forEach(section => {
-        if (section.classList.contains('rsvp-wave')) {
-          section.style.display = 'block';
-        } else {
-          section.style.display = 'none';
-        }
-      });
-
+      // Прокручуємо до форми (щоб гість одразу бачив, куди заповнювати)
       const rsvpSection = document.querySelector('.rsvp-wave');
       if (rsvpSection) {
         setTimeout(() => {
@@ -106,12 +99,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 150);
       }
 
+      // Анімація кнопки
       discoverBtnForm.style.transform = 'scale(0.98)';
       setTimeout(() => { discoverBtnForm.style.transform = ''; }, 150);
     });
   }
 
-  // ===== 2. ЛОГІКА RSVP (відправка форми) – ВИДАЛЕНО ТІЛЬКИ ЗЕЛЕНЕ СПЛИВАЮЧЕ ПОВІДОМЛЕННЯ =====
+  // ===== 2. ЛОГІКА RSVP (відправка форми) – БЕЗ ЗЕЛЕНОГО ПОВІДОМЛЕННЯ =====
   (function initRSVP() {
     let attendingSimple = true;
     let isSubmitting = false;
@@ -216,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (rsvpForm) rsvpForm.style.display = 'none';
       if (successDiv) successDiv.style.display = 'block';
-      // ВИДАЛЕНО: showNotification('Дякуємо! Вашу відповідь отримано 💕');
+      // Видалено зелене спливаюче повідомлення
       isSubmitting = false;
     }
 
