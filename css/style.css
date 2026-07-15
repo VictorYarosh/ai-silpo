@@ -348,7 +348,7 @@ section {
 /* ----- GIFTS SECTION ----- */
 .gifts-inner {
   text-align: center;
-  padding: 3rem 2rem;
+  /*padding: 3rem 2rem;*/
 }
 .gifts-icon {
   font-size: 3rem;
@@ -374,136 +374,17 @@ section {
   border: 1px solid var(--sage-green);
 }
 
-/* ----- DRESS CODE old----- */
-/*.dresscode-wave {*/
-/*  background: rgba(255, 249, 242, 0.85);*/
-/*}*/
-/*.dresscode-header {*/
-/*  text-align: center;*/
-/*  padding: 2rem 1rem 0.5rem;*/
-/*}*/
-/*.dresscode-tag {*/
-/*  display: inline-block;*/
-/*  background: rgba(168, 178, 159, 0.2);*/
-/*  backdrop-filter: blur(2px);*/
-/*  padding: 0.3rem 1.2rem;*/
-/*  border-radius: 40px;*/
-/*  font-size: 0.8rem;*/
-/*  letter-spacing: 2px;*/
-/*  color: var(--deep-burgundy);*/
-/*  margin-bottom: 1rem;*/
-/*  border: 1px solid var(--sage-green);*/
-/*}*/
-/*.dresscode-minimal {*/
-/*  display: flex;*/
-/*  flex-wrap: wrap;*/
-/*  gap: 2rem;*/
-/*  justify-content: center;*/
-/*  padding: 1rem 1.5rem 2rem;*/
-/*}*/
-/*.dresscode-card {*/
-/*  flex: 1 1 280px;*/
-/*  background: var(--card-white);*/
-/*  border-radius: 32px;*/
-/*  padding: 2rem 1.8rem;*/
-/*  transition: all 0.25s ease;*/
-/*  box-shadow: var(--shadow-sm);*/
-/*  border: 1px solid rgba(201, 164, 110, 0.2);*/
-/*}*/
-/*.dresscode-card:hover {*/
-/*  transform: translateY(-4px);*/
-/*  box-shadow: var(--shadow-md);*/
-/*  border-color: var(--sandy-beige);*/
-/*}*/
-/*.card-title {*/
-/*  display: flex;*/
-/*  align-items: center;*/
-/*  gap: 0.75rem;*/
-/*  margin-bottom: 1.5rem;*/
-/*}*/
-/*.title-marker {*/
-/*  width: 4px;*/
-/*  height: 28px;*/
-/*  background: linear-gradient(135deg, var(--sandy-beige), var(--dusty-rose));*/
-/*  border-radius: 4px;*/
-/*}*/
-/*.card-title h3 {*/
-/*  font-family: 'Lora', 'Quicksand', sans-serif;*/
-/*  font-size: 1.6rem;*/
-/*  font-weight: 500;*/
-/*  color: var(--deep-burgundy);*/
-/*  margin: 0;*/
-/*}*/
-/*.color-palette {*/
-/*  display: flex;*/
-/*  flex-wrap: wrap;*/
-/*  gap: 10px;*/
-/*  margin-bottom: 1.5rem;*/
-/*}*/
-/*.color-chip {*/
-/*  width: 32px;*/
-/*  height: 32px;*/
-/*  border-radius: 50%;*/
-/*  box-shadow: 0 2px 6px rgba(0,0,0,0.1);*/
-/*  transition: transform 0.2s;*/
-/*}*/
-/*.color-chip:hover {*/
-/*  transform: scale(1.1);*/
-/*}*/
-/*.dress-desc {*/
-/*  color: var(--text-soft);*/
-/*  font-size: 0.95rem;*/
-/*  line-height: 1.5;*/
-/*  margin-bottom: 1.2rem;*/
-/*}*/
-/*.dress-tips {*/
-/*  display: flex;*/
-/*  flex-wrap: wrap;*/
-/*  gap: 0.8rem;*/
-/*  font-size: 0.85rem;*/
-/*  color: var(--muted-khaki);*/
-/*  border-top: 1px dashed rgba(163, 143, 126, 0.3);*/
-/*  padding-top: 1rem;*/
-/*}*/
-/*.dresscode-rules {*/
-/*  background: rgba(221, 225, 226, 0.4);*/
-/*  backdrop-filter: blur(2px);*/
-/*  margin: 0 1.5rem 2rem 1.5rem;*/
-/*  padding: 1.6rem;*/
-/*  border-radius: 32px;*/
-/*  text-align: center;*/
-/*  border: 1px solid var(--light-grayish);*/
-/*}*/
-/*.rule-badge {*/
-/*  background: var(--deep-burgundy);*/
-/*  display: inline-block;*/
-/*  padding: 0.3rem 1.2rem;*/
-/*  border-radius: 30px;*/
-/*  color: white;*/
-/*  font-weight: 600;*/
-/*  font-size: 0.85rem;*/
-/*  margin-bottom: 0.8rem;*/
-/*}*/
-/*.dresscode-rules p {*/
-/*  margin: 0.5rem 0;*/
-/*  color: var(--text-dark);*/
-/*}*/
-/*.rule-small {*/
-/*  font-size: 0.85rem;*/
-/*  opacity: 0.8;*/
-/*}*/
-
 /* ============================================================
-   DRESS CODE – СКОШЕНІ КОЛЬОРИ + ІКОНКИ
+   DRESS CODE – З КАРТИНКАМИ РЕЧЕЙ (flat lay)
    ============================================================ */
 .dresscode-wave {
-  padding: 80px 0;
+  padding: 100px 0;
   background: #FAF6F1;
 }
 
 .dresscode-header {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 60px;
 }
 
 .dresscode-tag {
@@ -521,95 +402,118 @@ section {
 
 .dresscode-header h2 {
   font-family: 'Lora', serif;
-  font-size: 2.6rem;
+  font-size: 2.8rem;
   font-weight: 400;
   color: #3A2C2A;
   margin-bottom: 0.5rem;
 }
 
-/* Сітка */
+.dresscode-header p {
+  font-size: 1.1rem;
+  color: #8F7A68;
+  font-style: italic;
+}
+
 .dresscode-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2.5rem;
-  max-width: 1100px;
-  margin: 0 auto 3rem;
+  gap: 3rem;
+  max-width: 1200px;
+  margin: 0 auto 3.5rem;
   padding: 0 2rem;
 }
 
-/* Картка */
 .dresscode-card {
   background: #FFFFFF;
-  border-radius: 32px;
+  border-radius: 40px;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
   border: 0.5px solid #EFE4DA;
   transition: all 0.3s ease;
 }
 
 .dresscode-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.06);
   border-color: #DECEBD;
 }
 
-/* Скошена кольорова смуга (зверху) */
-.color-strip-skew {
-  display: flex;
-  height: 28px;
+.dresscode-image-wrapper {
+  position: relative;
   width: 100%;
+  height: 65px;
   overflow: hidden;
 }
 
-.color-strip-skew span {
+.dresscode-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.dresscode-card:hover .dresscode-img {
+  transform: scale(1.04);
+}
+
+.color-overlay-women,
+.color-overlay-men {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 40px;
+  gap: 3px;
+  padding: 0 3px 3px 3px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.color-overlay-women span,
+.color-overlay-men span {
   flex: 1;
   height: 100%;
-  transform: skewX(-8deg); /* легкий скіс */
-  margin: 0 -2px;          /* перекриття, щоб не було щілин */
-  transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-  cursor: default;
-  border-right: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s ease;
 }
 
-.color-strip-skew span:last-child {
-  border-right: none;
-}
-
-.color-strip-skew span:hover {
-  transform: skewX(-8deg) scaleY(1.6);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+.color-overlay-women span:hover,
+.color-overlay-men span:hover {
+  transform: scaleY(2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   z-index: 2;
 }
 
-/* Тіло картки */
 .card-body {
-  padding: 1.8rem 2rem 2rem 2rem;
+  padding: 2rem 2.5rem 2.5rem 2.5rem;
 }
 
 .card-header-icon {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 0.8rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .card-icon {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   line-height: 1;
 }
 
 .card-header-icon h3 {
   font-family: 'Lora', serif;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 400;
   color: #4A3A2E;
   margin: 0;
 }
 
 .card-desc {
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #7A6858;
-  line-height: 1.6;
+  line-height: 1.7;
   margin-bottom: 1.2rem;
 }
 
@@ -620,9 +524,9 @@ section {
 }
 
 .card-tags span {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   background: #F7F2EC;
-  padding: 0.3rem 1rem;
+  padding: 0.3rem 1.2rem;
   border-radius: 40px;
   color: #8F7A68;
   border: 0.5px solid #EFE4DA;
@@ -634,9 +538,8 @@ section {
   transform: translateY(-2px);
 }
 
-/* Правила */
 .dresscode-rules {
-  max-width: 700px;
+  max-width: 720px;
   margin: 0 auto;
   text-align: center;
   background: #FFFDF9;
@@ -664,34 +567,60 @@ section {
   color: #B2805A;
 }
 
-/* Адаптивність */
+.rule-small {
+  font-size: 0.8rem !important;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+}
+
+@media (max-width: 992px) {
+  .dresscode-grid {
+    gap: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .dresscode-wave {
+    padding: 60px 0;
+  }
   .dresscode-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
     padding: 0 1rem;
   }
   .dresscode-header h2 {
     font-size: 2rem;
   }
-  .color-strip-skew {
-    height: 20px;
+  .dresscode-image-wrapper {
+    height: 220px;
   }
-  .color-strip-skew span {
-    transform: skewX(-4deg);
+  .color-overlay-women,
+  .color-overlay-men {
+    height: 30px;
   }
   .card-body {
     padding: 1.5rem;
   }
   .card-icon {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
   .card-header-icon h3 {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
+  }
+  .dresscode-rules {
+    padding: 1.5rem;
+    margin: 0 1rem;
   }
 }
 
 @media (max-width: 480px) {
+  .dresscode-image-wrapper {
+    height: 180px;
+  }
+  .color-overlay-women,
+  .color-overlay-men {
+    height: 24px;
+  }
   .card-body {
     padding: 1rem;
   }
@@ -699,11 +628,14 @@ section {
     font-size: 0.7rem;
     padding: 0.2rem 0.8rem;
   }
-  .dresscode-rules {
-    padding: 1.5rem;
-    margin: 0 1rem;
-  }
 }
+
+
+
+
+
+
+
 /* ----- SCHEDULE ----- */
 .schedule-card {
   background: var(--card-white);
@@ -734,17 +666,17 @@ section {
   padding-bottom: 0.8rem;
 }
 .schedule-time {
+  text-align: center;
   font-weight: 700;
   font-family: 'Lora', 'Quicksand', sans-serif;
   background: rgba(221, 225, 226, 0.5);
   padding: 0.2rem 1rem;
   border-radius: 28px;
   color: var(--deep-burgundy);
-  min-width: 100px;
+  /*min-width: 100px;*/
 }
 .schedule-event {
   font-weight: 600;
-  width: 130px;
   color: var(--text-dark);
 }
 .schedule-desc {
@@ -782,6 +714,9 @@ section {
   background: var(--sandy-beige);
   color: white;
   transform: scale(0.98);
+}
+.song-icon {
+  margin: 0 10px;
 }
 .song-content {
   display: none;
@@ -823,6 +758,7 @@ section {
   padding: 2rem;
   border-radius: 48px;
   text-align: center;
+
 }
 .location-icon {
   font-size: 2.8rem;

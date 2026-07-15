@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     musicControlBtn.innerHTML = '🎵';
     musicControlBtn.style.cssText = `
       background: #9B6F5F; border: none; color: white;
-      width: 50px; height: 50px; border-radius: 50%; font-size: 24px;
+      width: 50px; height: 50px; border-radius: 50%; font-size: 20px;
       cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 2px 10px rgba(0,0,0,0.2);
       transition: all 0.3s; font-family: "Cormorant", serif; pointer-events: auto;
       display: flex; align-items: center; justify-content: center;
