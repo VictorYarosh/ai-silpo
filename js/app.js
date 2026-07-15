@@ -79,19 +79,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
   createMusicControl();
 
-  // ===== 1. КНОПКА "✧ ТИЦЬ ✧" – ВІДКРИВАЄ ВЕСЬ КОНТЕНТ =====
+  // ===== 1. КНОПКА "✧ ТИЦЬ ✧" – ПОКАЗУЄМО ТІЛЬКИ ФОРМУ =====
   if (discoverBtnForm && mainContent) {
     discoverBtnForm.addEventListener('click', function(e) {
       e.preventDefault();
       startMusic();
       showMusicControl();
 
-      // Відкриваємо ВЕСЬ додатковий контент (знімаємо клас hidden)
+      // Робимо mainContent видимим
       if (mainContent.classList.contains('hidden')) {
         mainContent.classList.remove('hidden');
       }
 
-      // Прокручуємо до форми (щоб гість одразу бачив, куди заповнювати)
+      // Ховаємо всі секції, КРІМ .rsvp-wave
+      const allSections = mainContent.querySelectorAll('section');
+      allSections.forEach(section => {
+        if (section.classList.contains('rsvp-wave')) {
+          section.style.display = 'block';
+        } else {
+          section.style.display = 'none';
+        }
+      });
+
+      // Прокручуємо до форми
       const rsvpSection = document.querySelector('.rsvp-wave');
       if (rsvpSection) {
         setTimeout(() => {
