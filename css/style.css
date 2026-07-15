@@ -592,7 +592,7 @@ section {
     font-size: 2rem;
   }
   .dresscode-image-wrapper {
-    height: 220px;
+    height: 20px;
   }
   .color-overlay-women,
   .color-overlay-men {
@@ -615,7 +615,7 @@ section {
 
 @media (max-width: 480px) {
   .dresscode-image-wrapper {
-    height: 180px;
+    height: 20px;
   }
   .color-overlay-women,
   .color-overlay-men {
