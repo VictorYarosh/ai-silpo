@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
     songContent.classList.remove('open');
   }
 
-  // ===== 4. ПАРАЛАКС ДЛЯ ХВИЛЬ =====
+  // ===== 4. ПАРАЛАКС ДЛЯ ХВИЛЬ ======
   window.addEventListener('scroll', () => {
     const scrolled = window.pageYOffset;
     const waves = document.querySelectorAll('.wave-svg');
