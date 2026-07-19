@@ -375,16 +375,16 @@ section {
 }
 
 /* ============================================================
-   DRESS CODE – З КАРТИНКАМИ РЕЧЕЙ (flat lay)
+   DRESS CODE – СПІЛЬНІ КОЛЬОРИ (КРУГЛІ)
    ============================================================ */
 .dresscode-wave {
-  padding: 100px 0;
+  padding: 80px 0;
   background: #FAF6F1;
 }
 
 .dresscode-header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 }
 
 .dresscode-tag {
@@ -402,46 +402,72 @@ section {
 
 .dresscode-header h2 {
   font-family: 'Lora', serif;
-  font-size: 2.8rem;
+  font-size: 2.6rem;
   font-weight: 400;
   color: #3A2C2A;
   margin-bottom: 0.5rem;
 }
 
 .dresscode-header p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #8F7A68;
   font-style: italic;
 }
 
+/* Спільний блок кольорів – 6 круглих елементів */
+.common-colors {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.color-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.color-circle:hover {
+  transform: scale(1.12) rotate(6deg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Сітка карток */
 .dresscode-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 3rem;
-  max-width: 1200px;
-  margin: 0 auto 3.5rem;
+  gap: 2.5rem;
+  max-width: 1100px;
+  margin: 0 auto 3rem;
   padding: 0 2rem;
 }
 
 .dresscode-card {
   background: #FFFFFF;
-  border-radius: 40px;
+  border-radius: 32px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.03);
   border: 0.5px solid #EFE4DA;
   transition: all 0.3s ease;
 }
 
 .dresscode-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.06);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
   border-color: #DECEBD;
 }
 
 .dresscode-image-wrapper {
   position: relative;
   width: 100%;
-  height: 65px;
+  height: 220px;
   overflow: hidden;
 }
 
@@ -454,66 +480,37 @@ section {
 }
 
 .dresscode-card:hover .dresscode-img {
-  transform: scale(1.04);
-}
-
-.color-overlay-women,
-.color-overlay-men {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  height: 40px;
-  gap: 3px;
-  padding: 0 3px 3px 3px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-}
-
-.color-overlay-women span,
-.color-overlay-men span {
-  flex: 1;
-  height: 100%;
-  border-radius: 6px 6px 0 0;
-  transition: all 0.3s ease;
-}
-
-.color-overlay-women span:hover,
-.color-overlay-men span:hover {
-  transform: scaleY(2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  z-index: 2;
+  transform: scale(1.03);
 }
 
 .card-body {
-  padding: 2rem 2.5rem 2.5rem 2.5rem;
+  padding: 1.8rem 2rem 2rem 2rem;
 }
 
 .card-header-icon {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
 }
 
 .card-icon {
-  font-size: 2.4rem;
+  font-size: 2rem;
   line-height: 1;
 }
 
 .card-header-icon h3 {
   font-family: 'Lora', serif;
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   font-weight: 400;
   color: #4A3A2E;
   margin: 0;
 }
 
 .card-desc {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #7A6858;
-  line-height: 1.7;
+  line-height: 1.6;
   margin-bottom: 1.2rem;
 }
 
@@ -524,9 +521,9 @@ section {
 }
 
 .card-tags span {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   background: #F7F2EC;
-  padding: 0.3rem 1.2rem;
+  padding: 0.3rem 1rem;
   border-radius: 40px;
   color: #8F7A68;
   border: 0.5px solid #EFE4DA;
@@ -573,39 +570,37 @@ section {
   opacity: 0.7;
 }
 
-@media (max-width: 992px) {
-  .dresscode-grid {
-    gap: 2rem;
-  }
-}
-
+/* Адаптивність */
 @media (max-width: 768px) {
   .dresscode-wave {
     padding: 60px 0;
   }
   .dresscode-grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
     padding: 0 1rem;
   }
   .dresscode-header h2 {
     font-size: 2rem;
   }
   .dresscode-image-wrapper {
-    height: 20px;
+    height: 180px;
   }
-  .color-overlay-women,
-  .color-overlay-men {
-    height: 30px;
+  .color-circle {
+    width: 42px;
+    height: 42px;
+  }
+  .common-colors {
+    gap: 0.8rem;
   }
   .card-body {
     padding: 1.5rem;
   }
   .card-icon {
-    font-size: 2rem;
+    font-size: 1.6rem;
   }
   .card-header-icon h3 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
   .dresscode-rules {
     padding: 1.5rem;
@@ -615,11 +610,14 @@ section {
 
 @media (max-width: 480px) {
   .dresscode-image-wrapper {
-    height: 20px;
+    height: 140px;
   }
-  .color-overlay-women,
-  .color-overlay-men {
-    height: 24px;
+  .color-circle {
+    width: 36px;
+    height: 36px;
+  }
+  .common-colors {
+    gap: 0.6rem;
   }
   .card-body {
     padding: 1rem;
@@ -629,10 +627,6 @@ section {
     padding: 0.2rem 0.8rem;
   }
 }
-
-
-
-
 
 
 
