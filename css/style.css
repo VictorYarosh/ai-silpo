@@ -1,12 +1,12 @@
 /* =====================================================
-   WEDDING INVITATION - FULL CSS (очищений)
+   WEDDING INVITATION - FULL CSS (очищений та адаптований)
    ===================================================== */
 
 /* ----- CSS VARIABLES (COLORS) ----- */
 :root {
   --light-grayish: #DDE1E2;
   --sage-green: #A8B29F;
-  --dusty-rose: #9B6F5F;
+  --dusty-rose: #865D3F;
   --deep-burgundy: #5E2C2E;
   --olive-drab: #606023;
   --warm-taupe: #A38F7E;
@@ -17,9 +17,11 @@
   --card-white: #FFFFFF;
   --text-dark: #2C241E;
   --text-soft: #5A4A3C;
+  --main-color: #865D3F;
   --shadow-sm: 0 12px 28px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
 }
+
 @font-face {
   font-family: 'Lora';
   src: url('/fonts/Lora-Regular.ttf') format('truetype');
@@ -53,12 +55,6 @@ body {
 }
 
 /* ----- TYPOGRAPHY ----- */
-h1, h2, h3, .hero-title, .story-label, .dresscode-tag {
-  font-family: 'Lora', 'Playfair Display', serif;
-  letter-spacing: -0.01em;
-  font-weight: 400;
-}
-
 h2 {
   font-size: 2rem;
   margin-bottom: 1rem;
@@ -116,20 +112,13 @@ h2:after {
   fill-opacity: 0.3;
 }
 
-/* ----- GLOBAL CARD STYLE ----- */
-section {
-  position: relative;
-  z-index: 2;
-  margin: 4rem 0;
-}
-
-/* Hero секція – точно на весь екран, без скролу */
+/* ----- HERO SECTION ----- */
 .hero {
-  height: auto;               /* якщо контенту більше – розтягнеться, але ми цього не хочемо */
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;              /* невеликі відступи по краях */
+  padding: 1rem;
   box-sizing: border-box;
   background: var(--bg-light);
 }
@@ -141,17 +130,11 @@ section {
   text-align: center;
 }
 
-/* Зображення – обмежуємо висоту, щоб не виходило за межі */
-.hero-image {}
-
 .hero-image img {
   max-width: 100%;
-  /*max-height: 45vh;          !* на десктопі займає не більше 45% висоти екрану *!*/
-  width: auto;
   height: auto;
 }
 
-/* Текст запрошення */
 .hero-invite {
   font-family: "Imperial Script", cursive;
   font-size: 24px;
@@ -159,11 +142,7 @@ section {
   margin-bottom: 1rem;
   text-transform: uppercase;
 }
-.hero-date {
-  font-family: "Imperial Script", cursive;
-  font-size: 22px;
-  letter-spacing: 2px;
-}
+
 .hero-invite-sec {
   font-family: "Cormorant", serif;
   font-size: 22px;
@@ -172,69 +151,6 @@ section {
   text-transform: uppercase;
 }
 
-/* Кнопка */
-.hero-btn {
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
-  margin-top: 0;
-}
-
-/* Додатковий текст та посилання */
-.hero-footer {
-  margin-top: 1rem;
-}
-.btn-text-small {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-weight: 600;
-  font-size: 26px;
-  padding: 0.3rem 0.8rem;
-  text-transform: uppercase;
-  color: var(--dusty-rose);
-}
-
-.btn-text-small-footer {
-  font-family: "Cormorant", serif;
-  font-size: 22px;
-  padding: 0.3rem 0.8rem;
-  text-transform: uppercase;
-}
-.map-link {
-  margin-top: 0.3rem;
-}
-
-/* --- Мобільна адаптація: ще менші відступи та зображення --- */
-@media (max-width: 768px) {
-  .hero {
-    padding: 0.5rem;
-  }
-  .hero-image img {
-    /*max-height: 40vh;        !* ще менше на телефонах *!*/
-  }
-  .hero-invite {
-    font-family: "Cormorant", serif;
-    font-size: 18px;
-    margin-bottom: 0.8rem;
-  }
-  .hero-btn {
-    padding: 0.6rem 1.5rem;
-    font-size: 0.9rem;
-  }
-
-  .btn-text-small {
-    font-size: 16px;
-  }
-  .btn-text-small-footer {
-    font-size: 16px;
-  }
-
-  .hero-invite-sec {
-   font-size: 18px;
-  }
-}
-
-
-
-/* Кнопка */
 .hero-btn {
   background: var(--dusty-rose);
   border: none;
@@ -278,13 +194,28 @@ section {
   left: 100%;
 }
 
-/* Футер hero */
 .hero-footer {
   margin-top: 1.5rem;
 }
 
+.btn-text-small {
+  font-family: 'Lora', 'Quicksand', sans-serif;
+  font-weight: 600;
+  font-size: 26px;
+  padding: 0.3rem 0.8rem;
+  text-transform: uppercase;
+  color: var(--dusty-rose);
+}
+
+.btn-text-small-footer {
+  font-family: "Cormorant", serif;
+  font-size: 22px;
+  padding: 0.3rem 0.8rem;
+  text-transform: uppercase;
+}
+
 .map-link {
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
 }
 .map-link a {
   text-decoration: none;
@@ -298,106 +229,31 @@ section {
   display: none;
 }
 
-/* ----- STORY SECTION ----- */
-.story-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  padding: 3rem 2rem;
-}
-@media (min-width: 900px) {
-  .story-grid {
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-  }
-}
-.story-label {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: var(--sage-green);
-  margin-bottom: 0.5rem;
-  display: inline-block;
-}
-.story-text-block p {
-  margin: 1.5rem 0;
-  color: var(--text-soft);
-}
-.story-quote {
-  font-style: italic;
-  font-size: 1.2rem;
-  border-left: 3px solid var(--sandy-beige);
-  padding-left: 1.2rem;
-  color: var(--dusty-rose);
-}
-.story-circle {
-  width: 280px;
-  height: 280px;
-  margin: 0 auto;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 20px 35px -12px rgba(94, 44, 46, 0.2);
-  border: 6px solid #FFF8F0;
-}
-.story-circle img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 /* ----- GIFTS SECTION ----- */
 .gifts-inner {
   text-align: center;
-  /*padding: 3rem 2rem;*/
-}
-.gifts-icon {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-}
-.gifts-message p {
-  max-width: 620px;
-  margin: 1rem auto;
-  color: var(--text-soft);
-}
-.gifts-message strong {
-  color: var(--deep-burgundy);
-}
-.gifts-alt {
-  display: inline-block;
-  background: rgba(168, 178, 159, 0.2);
-  backdrop-filter: blur(2px);
-  padding: 0.6rem 1.6rem;
-  border-radius: 60px;
-  font-size: 0.9rem;
-  color: var(--olive-drab);
-  margin-top: 1rem;
-  border: 1px solid var(--sage-green);
 }
 
-/* ============================================================
-   DRESS CODE – СПІЛЬНІ КОЛЬОРИ (КРУГЛІ)
-   ============================================================ */
+.gifts-message p {
+  max-width: 800px;
+  margin: 1rem auto;
+  color: var(--text-soft);
+  font-size: 22px;
+  font-family: 'Lora', 'Playfair Display', serif;
+}
+
+/* ----- DRESS CODE – СПІЛЬНИЙ БЛОК (КОЛЬОРИ + ТЕКСТ) ----- */
 .dresscode-wave {
-  padding: 80px 0;
   background: #FAF6F1;
 }
 
 .dresscode-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
+  /*font-family: "Imperial Script", cursive;*/
 
-.dresscode-tag {
-  display: inline-block;
-  font-size: 0.7rem;
-  letter-spacing: 4px;
+  font-family: Cormorant, serif;
   text-transform: uppercase;
-  color: #9B7B5C;
-  background: #FFF;
-  padding: 0.3rem 1.2rem;
-  border-radius: 30px;
-  border: 0.5px solid #EADBCE;
-  margin-bottom: 1rem;
+  text-align: center;
+  margin: 40px;
 }
 
 .dresscode-header h2 {
@@ -408,13 +264,6 @@ section {
   margin-bottom: 0.5rem;
 }
 
-.dresscode-header p {
-  font-size: 1rem;
-  color: #8F7A68;
-  font-style: italic;
-}
-
-/* Спільний блок кольорів – 6 круглих елементів */
 .common-colors {
   display: flex;
   justify-content: center;
@@ -424,365 +273,197 @@ section {
 }
 
 .color-circle {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.6);
   transition: all 0.3s ease;
   cursor: default;
 }
 
 .color-circle:hover {
-  transform: scale(1.12) rotate(6deg);
+  transform: scale(1.12) rotate(4deg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   border-color: rgba(255, 255, 255, 0.9);
 }
 
-/* Сітка карток */
-.dresscode-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2.5rem;
-  max-width: 1100px;
-  margin: 0 auto 3rem;
-  padding: 0 2rem;
-}
-
-.dresscode-card {
+.dresscode-info {
+  margin: 0 auto 2.5rem;
+  text-align: center;
   background: #FFFFFF;
   border-radius: 32px;
-  overflow: hidden;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.03);
+  padding: 2rem 2.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   border: 0.5px solid #EFE4DA;
-  transition: all 0.3s ease;
 }
 
-.dresscode-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
-  border-color: #DECEBD;
-}
-
-.dresscode-image-wrapper {
-  position: relative;
-  width: 100%;
-  height: 220px;
-  overflow: hidden;
-}
-
-.dresscode-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.5s ease;
-}
-
-.dresscode-card:hover .dresscode-img {
-  transform: scale(1.03);
-}
-
-.card-body {
-  padding: 1.8rem 2rem 2rem 2rem;
-}
-
-.card-header-icon {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 0.8rem;
-}
-
-.card-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.card-header-icon h3 {
-  font-family: 'Lora', serif;
-  font-size: 1.5rem;
-  font-weight: 400;
+.dresscode-description {
+  font-family: 'Lora', 'Quicksand', sans-serif;
+  font-size: 22px;
   color: #4A3A2E;
+  line-height: 1.7;
+  text-align: center;
   margin: 0;
 }
 
-.card-desc {
-  font-size: 0.95rem;
-  color: #7A6858;
-  line-height: 1.6;
-  margin-bottom: 1.2rem;
+.dresscode-description.small {
+  font-size: 20px;
 }
 
-.card-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-}
-
-.card-tags span {
-  font-size: 0.8rem;
-  background: #F7F2EC;
-  padding: 0.3rem 1rem;
-  border-radius: 40px;
-  color: #8F7A68;
-  border: 0.5px solid #EFE4DA;
-  transition: 0.2s;
-}
-
-.card-tags span:hover {
-  background: #EDE4DA;
-  transform: translateY(-2px);
-}
-
-.dresscode-rules {
-  max-width: 720px;
-  margin: 0 auto;
-  text-align: center;
-  background: #FFFDF9;
-  border-radius: 40px;
-  padding: 2rem 2.5rem;
-  border: 0.5px solid #EFE4DA;
-}
-
-.rule-badge {
-  display: inline-block;
-  background: #EADBCE;
-  color: #6B4F3A;
-  font-size: 0.7rem;
-  padding: 0.2rem 1rem;
-  border-radius: 30px;
-  margin-bottom: 0.5rem;
-}
-
-.dresscode-rules p {
-  font-size: 0.95rem;
-  color: #7D6654;
-}
-
-.dresscode-rules p strong {
-  color: #B2805A;
-}
-
-.rule-small {
-  font-size: 0.8rem !important;
-  margin-top: 0.5rem;
-  opacity: 0.7;
-}
-
-/* Адаптивність */
-@media (max-width: 768px) {
-  .dresscode-wave {
-    padding: 60px 0;
-  }
-  .dresscode-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 0 1rem;
-  }
-  .dresscode-header h2 {
-    font-size: 2rem;
-  }
-  .dresscode-image-wrapper {
-    height: 180px;
-  }
-  .color-circle {
-    width: 42px;
-    height: 42px;
-  }
-  .common-colors {
-    gap: 0.8rem;
-  }
-  .card-body {
-    padding: 1.5rem;
-  }
-  .card-icon {
-    font-size: 1.6rem;
-  }
-  .card-header-icon h3 {
-    font-size: 1.3rem;
-  }
-  .dresscode-rules {
-    padding: 1.5rem;
-    margin: 0 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .dresscode-image-wrapper {
-    height: 140px;
-  }
-  .color-circle {
-    width: 36px;
-    height: 36px;
-  }
-  .common-colors {
-    gap: 0.6rem;
-  }
-  .card-body {
-    padding: 1rem;
-  }
-  .card-tags span {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.8rem;
-  }
-}
-
-
-
-/* ----- SCHEDULE ----- */
-.schedule-card {
-  background: var(--card-white);
-  border-radius: 48px;
-  padding: 2rem;
-  margin: 1rem;
-}
-.schedule-header {
-  text-align: center;
-  margin-bottom: 1.8rem;
-}
-.schedule-header span {
-  color: var(--sage-green);
-  font-size: 0.9rem;
-  letter-spacing: 2px;
-}
-.schedule-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-.schedule-item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.8rem;
-  border-bottom: 1px dashed rgba(163, 143, 126, 0.3);
-  padding-bottom: 0.8rem;
-}
-.schedule-time {
-  text-align: center;
-  font-weight: 700;
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  background: rgba(221, 225, 226, 0.5);
-  padding: 0.2rem 1rem;
-  border-radius: 28px;
-  color: var(--deep-burgundy);
-  /*min-width: 100px;*/
-}
-.schedule-event {
-  font-weight: 600;
-  color: var(--text-dark);
-}
-.schedule-desc {
-  color: var(--muted-khaki);
-  font-size: 0.9rem;
+/* Декоративна лінія */
+.line {
+  display: block;
+  width: 150px;
+  height: 2px;
+  margin: 1.5rem auto;
+  background: linear-gradient(90deg, var(--sandy-beige), var(--dusty-rose));
+  border-radius: 2px;
 }
 
 /* ----- SONG SECTION ----- */
 .song-card {
-  background: #FEFAF5;
-  border-radius: 48px;
-  padding: 2rem;
   text-align: center;
 }
-.song-header h2 {
-  color: var(--deep-burgundy);
-}
+
 .song-toggle {
   margin: 1.5rem 0;
 }
+
 .song-btn {
-  background: rgba(201, 164, 110, 0.2);
-  border: 1px solid var(--sandy-beige);
+  background: var(--dusty-rose);
   padding: 0.8rem 2rem;
   border-radius: 60px;
   font-weight: 600;
-  color: var(--deep-burgundy);
+  color: var(--card-white);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   transition: 0.2s;
+  border: none;
 }
+
 .song-btn:hover {
-  background: var(--sandy-beige);
+  background: var(--deep-burgundy);
   color: white;
   transform: scale(0.98);
 }
-.song-icon {
-  margin: 0 10px;
+
+.song-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
 }
+
+.song-btn.open .song-arrow {
+  transform: rotate(180deg);
+}
+
 .song-content {
   display: none;
-  margin-top: 1.8rem;
-  text-align: left;
+  position: relative;
+  margin: 1.8rem auto 0 auto;
   background: #FFFBF6;
   border-radius: 36px;
-  padding: 2rem;
+  padding: 2rem 2.5rem;
   max-height: 500px;
   overflow-y: auto;
+  text-align: center;
+  font-size: 22px;
+  max-width: 90%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
+
 .song-content.open {
-  display: block;
+  display: inline-block;
+  width: auto;
+  min-width: 280px;
 }
+
+.close-song-btn {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: var(--dusty-rose);
+  transition: 0.2s;
+  line-height: 1;
+  padding: 4px;
+}
+
+.close-song-btn:hover {
+  transform: scale(1.15) rotate(90deg);
+  color: var(--deep-burgundy);
+}
+
 .song-title {
   font-size: 1.6rem;
   font-family: 'Lora', 'Quicksand', sans-serif;
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   color: var(--deep-burgundy);
+
+  /*font-family: Cormorant, serif;*/
+  /*text-transform: uppercase;*/
 }
-.verse {
-  margin-bottom: 1rem;
-  color: var(--text-soft);
+
+.song-verses {
+  text-align: center;
 }
-.verse-refrain, .verse-refrain-final {
-  font-weight: 600;
-  color: var(--dusty-rose);
-}
-.highlight-verse {
-  background: rgba(168, 178, 159, 0.15);
-  padding: 0.6rem;
-  border-radius: 28px;
+
+.song-verses p {
+  text-align: center;
+  margin: 0;
+  line-height: 1.8;
 }
 
 /* ----- LOCATION ----- */
 .location-simple {
   background: var(--card-white);
-  padding: 2rem;
   border-radius: 48px;
   text-align: center;
+}
 
-}
-.location-icon {
-  font-size: 2.8rem;
-}
-.location-simple h3 {
-  color: var(--deep-burgundy);
+.location-simple-head {
   font-family: 'Lora', 'Quicksand', sans-serif;
+  font-size: 22px;
+  color: var(--text-dark);
 }
+
+.location-simple-main {
+  font-family: 'Lora', 'Quicksand', sans-serif;
+  font-size: 20px;
+  color: var(--text-dark);
+}
+
 .map-simple-btn {
-  background: transparent;
-  border: 1.5px solid var(--sandy-beige);
+  background: var(--dusty-rose);
   padding: 0.5rem 1.6rem;
   border-radius: 60px;
   font-weight: 600;
   margin: 1rem 0;
   cursor: pointer;
   transition: all 0.2s;
-  color: var(--dusty-rose);
+  color: var(--card-white);
+  border: none;
 }
+
 .map-simple-btn:hover {
-  background: var(--sandy-beige);
+  background: var(--deep-burgundy);
   color: white;
-  border-color: var(--sandy-beige);
 }
+
 .location-feature-simple {
+  font-size: 18px;
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  font-size: 0.9rem;
-  color: var(--sage-green);
+  gap: 0.5rem;
+  color: var(--text-dark);
+  flex-wrap: wrap;
+  padding-top: 15px;
 }
 
 /* ----- RSVP CARD ----- */
@@ -794,11 +475,13 @@ section {
   overflow: hidden;
   box-shadow: 0 30px 40px -18px rgba(94, 44, 46, 0.2);
 }
+
 @media (min-width: 800px) {
   .rsvp-card-simple {
     grid-template-columns: 1fr 1.2fr;
   }
 }
+
 .rsvp-left-simple {
   background: linear-gradient(125deg, rgba(221,225,226,0.5), rgba(168,178,159,0.2));
   backdrop-filter: blur(2px);
@@ -808,17 +491,28 @@ section {
   justify-content: center;
   text-align: center;
 }
-.rsvp-left-simple h2 {
-  color: var(--deep-burgundy);
+
+.rsvp-left-simple p {
+  font-size: 1.2rem;
+  color: var(--text-dark);
 }
+
+.rsvp-decor-simple {
+  font-size: 2rem;
+  color: var(--dusty-rose);
+  margin-top: 1rem;
+}
+
 .rsvp-right-simple {
   padding: 2rem;
 }
+
 .toggle-simple {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.2rem;
 }
+
 .toggle-btn {
   flex: 1;
   background: rgba(221, 225, 226, 0.5);
@@ -829,12 +523,16 @@ section {
   cursor: pointer;
   transition: 0.2s;
   color: var(--text-dark);
+  font-family: Cormorant, serif;
+  text-transform: uppercase;
 }
+
 .toggle-btn.active {
   background: var(--dusty-rose);
   color: white;
   box-shadow: 0 4px 10px rgba(94, 44, 46, 0.3);
 }
+
 .rsvp-form-simple input,
 .rsvp-form-simple select,
 .rsvp-form-simple textarea {
@@ -847,15 +545,18 @@ section {
   font-family: 'Lora', 'Quicksand', sans-serif;
   transition: 0.2s;
 }
+
 .rsvp-form-simple input:focus,
-select:focus,
-textarea:focus {
+.rsvp-form-simple select:focus,
+.rsvp-form-simple textarea:focus {
   outline: none;
   border-color: var(--sandy-beige);
   box-shadow: 0 0 0 3px rgba(201, 164, 110, 0.2);
 }
+
 .submit-simple {
   background: var(--dusty-rose);
+  text-transform: uppercase;
   color: white;
   border: none;
   padding: 0.9rem;
@@ -866,9 +567,11 @@ textarea:focus {
   cursor: pointer;
   transition: 0.2s;
 }
+
 .submit-simple:hover {
   background: var(--deep-burgundy);
 }
+
 .success-simple {
   display: none;
   text-align: center;
@@ -876,18 +579,27 @@ textarea:focus {
   padding: 2rem;
   border-radius: 38px;
 }
+
+.success-simple h3 {
+  color: var(--deep-burgundy);
+  font-size: 1.5rem;
+}
+
 .success-check {
   font-size: 3rem;
   color: var(--sage-green);
+
+  font-family: Cormorant, serif;
+  text-transform: uppercase;
 }
 
-/* ----- PAGE (основний контент) ----- */
+/* ----- PAGE ----- */
 .page {
   opacity: 1;
   display: block;
 }
 
-/* Селекти */
+/* ----- SELECTS ----- */
 #drinkSimple select {
   width: 100%;
   padding: 0.9rem 2.5rem 0.9rem 1rem;
@@ -896,71 +608,378 @@ textarea:focus {
   border-radius: 32px;
   background-color: white;
   font-family: 'Lora', 'Quicksand', sans-serif;
-  font-size: 0.95rem;
-  color: var(--text-dark);
+  font-size: 0.85rem;
   appearance: none;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%23827C64" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
   background-repeat: no-repeat;
   background-position: right 1rem center;
   cursor: pointer;
 }
+
 #drinkSimple select:focus {
   outline: none;
   border-color: var(--sandy-beige);
   box-shadow: 0 0 0 3px rgba(201, 164, 110, 0.2);
 }
 
-/* ----- RESPONSIVE ----- */
-@media (max-width: 680px) {
+/* ===== Стилізація select, щоб placeholder виглядав як у input ===== */
+.rsvp-form-simple select:invalid {
+  color: #999;
+}
+
+.rsvp-form-simple select option {
+  color: var(--text-dark);
+}
+
+.rsvp-form-simple select option:disabled {
+  color: #999;
+}
+
+.rsvp-form-simple select {
+  font-weight: 400;
+}
+
+/* ============================================================
+   АДАПТИВНІСТЬ (МОБІЛЬНА ВЕРСІЯ)
+   ============================================================ */
+
+@media (max-width: 992px) {
   .container {
-    padding: 0 18px;
+    padding: 0 20px;
   }
-  h2 {
-    font-size: 1.8rem;
+  .dresscode-info {
+    padding: 1.8rem 2rem;
   }
-  .schedule-item {
-    flex-direction: column;
-    gap: 0.2rem;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 0.5rem;
   }
-  .schedule-time {
-    align-self: flex-start;
+  .hero-invite {
+    font-family: "Cormorant", serif;
+    font-size: 18px;
+    margin-bottom: 0.8rem;
+    padding: 0.2rem 1rem;
   }
-  .dresscode-rules {
-    flex-direction: column;
+  .hero-invite-sec {
+    font-size: 18px;
+    padding: 0.2rem 1rem;
+  }
+  .hero-btn {
+    padding: 0.7rem 2rem;
+    font-size: 0.95rem;
+  }
+  .btn-text-small {
+    font-size: 16px;
+    padding: 0.2rem 0.6rem;
+  }
+  .btn-text-small-footer {
+    font-size: 16px;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .dresscode-header h2 {
+    font-size: 2rem;
+  }
+  .dresscode-header {
+    margin-bottom: 30px;
+  }
+  .common-colors {
+    gap: 0.8rem;
+    margin-bottom: 1.8rem;
+  }
+  .color-circle {
+    width: 44px;
+    height: 44px;
+  }
+  .dresscode-info {
+    padding: 1.5rem 1.2rem;
+    margin: 0 1rem 1.8rem 1rem;
+    border-radius: 28px;
+  }
+  .dresscode-description {
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  .dresscode-description.small {
+    font-size: 16px;
+  }
+  .line {
+    width: 100px;
+    margin: 1.2rem auto;
+  }
+
+  .gifts-message p {
+    font-size: 18px;
+    padding: 0 0.5rem;
+  }
+
+  .song-content {
+    font-size: 18px;
+    padding: 1.5rem 1.2rem;
+    max-width: 95%;
+    min-width: 200px;
+    border-radius: 28px;
+  }
+  .close-song-btn {
+    font-size: 1.4rem;
+    top: 8px;
+    right: 12px;
+  }
+  .song-title {
+    font-size: 1.4rem;
+  }
+
+  .location-simple-head {
+    font-size: 20px;
+  }
+  .location-simple-main {
+    font-size: 18px;
+  }
+  .location-feature-simple {
+    font-size: 16px;
+    gap: 0.3rem;
+  }
+  .map-simple-btn {
+    padding: 0.4rem 1.4rem;
+    font-size: 0.9rem;
+  }
+
+  .rsvp-card-simple {
+    border-radius: 40px;
+    margin: 0 0.5rem;
+  }
+  .rsvp-left-simple {
+    padding: 1.8rem 1.2rem;
+  }
+  .rsvp-left-simple p {
+    font-size: 1rem;
+  }
+  .rsvp-right-simple {
+    padding: 1.5rem 1.2rem;
+  }
+  .toggle-btn {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    font-family: "Cormorant", serif;
+    text-transform: uppercase;
+  }
+  .rsvp-form-simple input,
+  .rsvp-form-simple select,
+  .rsvp-form-simple textarea {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  .submit-simple {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+
+  /* Пісня на весь екран на мобільних */
+  .song-content.open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    border-radius: 0;
+    padding: 3rem 1.5rem 2rem 1.5rem;
+    background: rgba(255, 251, 246, 0.98);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    overflow-y: auto;
+    display: block;
+    font-size: 18px;
     text-align: center;
   }
-  .color-chip {
-    width: 28px;
-    height: 28px;
+
+  .close-song-btn {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dusty-rose);
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
-  .dresscode-card {
-    padding: 1.5rem;
+
+  .close-song-btn:hover {
+    transform: scale(1.05);
+    color: var(--deep-burgundy);
   }
-  .card-title h3 {
+
+  .song-title {
+    font-size: 1.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .song-verses p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+  }
+}
+
+/* Для дуже маленьких екранів (до 480px) */
+@media (max-width: 480px) {
+  .hero-invite {
+    font-size: 16px;
+  }
+  .hero-invite-sec {
+    font-size: 16px;
+  }
+  .hero-btn {
+    padding: 0.6rem 1.6rem;
+    font-size: 0.85rem;
+  }
+  .btn-text-small {
+    font-size: 14px;
+  }
+  .btn-text-small-footer {
+    font-size: 14px;
+  }
+
+  .dresscode-header h2 {
     font-size: 1.4rem;
+  }
+  .color-circle {
+    width: 36px;
+    height: 36px;
+  }
+  .common-colors {
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+  .dresscode-info {
+    padding: 1.2rem 0.8rem;
+    margin: 0 0.5rem 1.5rem 0.5rem;
+    border-radius: 24px;
+  }
+  .dresscode-description {
+    font-size: 16px;
+  }
+  .dresscode-description.small {
+    font-size: 14px;
+  }
+  .line {
+    width: 80px;
+    margin: 1rem auto;
+  }
+
+  .gifts-message p {
+    font-size: 16px;
+  }
+
+  .song-content.open {
+    padding: 2.5rem 1rem 1.5rem 1rem;
+    font-size: 16px;
+  }
+  .close-song-btn {
+    top: 10px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.6rem;
+  }
+  .song-title {
+    font-size: 1.5rem;
+  }
+  .song-verses p {
+    font-size: 1rem;
+  }
+  .song-btn {
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .location-simple-head {
+    font-size: 18px;
+  }
+  .location-simple-main {
+    font-size: 16px;
+  }
+  .location-feature-simple {
+    font-size: 14px;
+  }
+  .map-simple-btn {
+    padding: 0.3rem 1.2rem;
+    font-size: 0.8rem;
+  }
+
+  .rsvp-card-simple {
+    border-radius: 32px;
+    margin: 0 0.3rem;
+  }
+  .rsvp-left-simple {
+    padding: 1.2rem 0.8rem;
+  }
+  .rsvp-left-simple p {
+    font-size: 0.9rem;
+  }
+  .rsvp-right-simple {
+    padding: 1rem 0.8rem;
+  }
+  .toggle-simple {
+    gap: 0.5rem;
+  }
+  .toggle-btn {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+    border-radius: 60px;
+  }
+  .rsvp-form-simple input,
+  .rsvp-form-simple select,
+  .rsvp-form-simple textarea {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    border-radius: 28px;
+  }
+  .submit-simple {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+    border-radius: 50px;
+    font-family: Cormorant, serif;
+    text-transform: uppercase;
+  }
+  .container {
+    padding: 0 12px;
   }
 }
 
 /* ----- SCROLLBAR ----- */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--light-grayish);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--sandy-beige);
+  background: var(--dusty-rose);
   border-radius: 12px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--dusty-rose);
 }
 
+/* ----- UTILITY ----- */
 .future-hidden {
   display: none !important;
 }
 
-/* Анімація для кнопки музики (пульсація) */
+/* ----- Анімація для кнопки музики (пульсація) ----- */
 .music-btn.playing {
   animation: pulse 1s ease infinite;
 }
@@ -975,4 +994,11 @@ textarea:focus {
   100% {
     transform: scale(1);
   }
+}
+
+.music-control {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
 }

@@ -1,5 +1,5 @@
 // ============================================================
-// Весільне запрошення – музика після кліку, кнопка з анімацією
+// Весільне запрошення – повний контент для тесту та роботи
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let musicControlDiv = null;
   let musicControlBtn = null;
 
-  // Функція запуску музики (змінює іконку та додає анімацію)
+  // Функція запуску музики
   function startMusic() {
     if (!musicStarted && audio) {
       audio.volume = 0.45;
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Створення кнопки керування (спочатку прихована)
+  // Кнопка керування музикою
   function createMusicControl() {
     if (document.querySelector('.music-control')) return;
     const div = document.createElement('div');
@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
     musicControlDiv = div;
   }
 
-  // Показати кнопку керування
   function showMusicControl() {
     if (musicControlDiv) {
       musicControlDiv.style.opacity = '1';
@@ -79,27 +78,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   createMusicControl();
 
-  // ===== 1. КНОПКА "✧ ТИЦЬ ✧" – ПОКАЗУЄМО ТІЛЬКИ ФОРМУ =====
+  // ===== 1. КНОПКА "✧ ТИЦЬ ✧" – ВІДКРИВАЄ ВЕСЬ КОНТЕНТ =====
   if (discoverBtnForm && mainContent) {
     discoverBtnForm.addEventListener('click', function(e) {
       e.preventDefault();
       startMusic();
       showMusicControl();
 
-      // Робимо mainContent видимим
+      // Показуємо весь mainContent (без приховування секцій)
       if (mainContent.classList.contains('hidden')) {
         mainContent.classList.remove('hidden');
       }
-
-      // Ховаємо всі секції, КРІМ .rsvp-wave
-      const allSections = mainContent.querySelectorAll('section');
-      allSections.forEach(section => {
-        if (section.classList.contains('rsvp-wave')) {
-          section.style.display = 'block';
-        } else {
-          section.style.display = 'none';
-        }
-      });
 
       // Прокручуємо до форми
       const rsvpSection = document.querySelector('.rsvp-wave');
@@ -115,7 +104,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== 2. ЛОГІКА RSVP (відправка форми) – БЕЗ ЗЕЛЕНОГО ПОВІДОМЛЕННЯ =====
+  // ===== 2. ЯКЩО ХОЧЕТЕ БАЧИТИ ВЕСЬ САЙТ ОДРАЗУ (без кліку) – додайте до URL ?full=1 =====
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('full') === '1' && mainContent) {
+    mainContent.classList.remove('hidden');
+    // Можна одразу запустити музику (якщо потрібно)
+    // startMusic();
+    // showMusicControl();
+  }
+
+  // ===== 3. ЛОГІКА RSVP (відправка форми) =====
   (function initRSVP() {
     let attendingSimple = true;
     let isSubmitting = false;
@@ -233,21 +231,59 @@ document.addEventListener('DOMContentLoaded', function() {
     setAttendance(true);
   })();
 
-  // ===== 3. ПІСЕННИЙ БЛОК =====
+  // ===== 4. ПІСЕННИЙ БЛОК (з керуванням музикою) =====
   const openSongBtn = document.getElementById('openSongBtn');
   const songContent = document.getElementById('songContent');
+  const closeSongBtn = document.getElementById('closeSongBtn');
+  let wasMusicPlaying = false;
+
   if (openSongBtn && songContent) {
+    function closeSongBlock() {
+      songContent.classList.remove('open');
+      openSongBtn.classList.remove('open');
+      openSongBtn.innerHTML = `<span>✧ ЗАБАВА АЖ ДО РАНЯ ✧</span><span class="btn-text"></span>`;
+      if (wasMusicPlaying && audio) {
+        audio.play().catch(err => console.log('Помилка відтворення:', err));
+        if (musicControlBtn) {
+          musicControlBtn.innerHTML = '🎶';
+          musicControlBtn.classList.add('playing');
+        }
+        musicStarted = true;
+      }
+    }
+
+    function openSongBlock() {
+      wasMusicPlaying = !audio.paused;
+      if (audio && !audio.paused) {
+        audio.pause();
+        if (musicControlBtn) {
+          musicControlBtn.innerHTML = '🎵';
+          musicControlBtn.classList.remove('playing');
+        }
+      }
+      songContent.classList.add('open');
+      openSongBtn.classList.add('open');
+      openSongBtn.innerHTML = `<span>✧ ЗАБАВА АЖ ДО РАНЯ ✧</span><span class="btn-text"></span>`;
+    }
+
     openSongBtn.addEventListener('click', () => {
-      songContent.classList.toggle('open');
       const isOpen = songContent.classList.contains('open');
-      openSongBtn.innerHTML = isOpen
-        ? `<span class="song-btn-icon">🎤</span><span>Співаємо разом!</span><span class="song-arrow">▲</span>`
-        : `<span class="song-btn-icon">📖</span><span>Відкрити слова пісні</span><span class="song-arrow">▼</span>`;
+      if (isOpen) {
+        closeSongBlock();
+      } else {
+        openSongBlock();
+      }
     });
-    songContent.classList.remove('open');
+
+    if (closeSongBtn) {
+      closeSongBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeSongBlock();
+      });
+    }
   }
 
-  // ===== 4. ПАРАЛАКС ДЛЯ ХВИЛЬ ======
+  // ===== 5. ПАРАЛАКС ДЛЯ ХВИЛЬ =====
   window.addEventListener('scroll', () => {
     const scrolled = window.pageYOffset;
     const waves = document.querySelectorAll('.wave-svg');
