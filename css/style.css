@@ -1,1004 +1,510 @@
-/* =====================================================
-   WEDDING INVITATION - FULL CSS (очищений та адаптований)
-   ===================================================== */
-
-/* ----- CSS VARIABLES (COLORS) ----- */
-:root {
-  --light-grayish: #DDE1E2;
-  --sage-green: #A8B29F;
-  --dusty-rose: #865D3F;
-  --deep-burgundy: #5E2C2E;
-  --olive-drab: #606023;
-  --warm-taupe: #A38F7E;
-  --sandy-beige: #C9A46E;
-  --muted-khaki: #827C64;
-  --bg-light: #FBF8ED;
-  --bg-soft: #F7F2EC;
-  --card-white: #FFFFFF;
-  --text-dark: #2C241E;
-  --text-soft: #5A4A3C;
-  --main-color: #865D3F;
-  --shadow-sm: 0 12px 28px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 20px 35px -12px rgba(0, 0, 0, 0.08);
-}
-
-@font-face {
-  font-family: 'Lora';
-  src: url('/fonts/Lora-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ----- RESET & BASE ----- */
-*,
-*::before,
-*::after {
+/* ============================================================
+   Глобальні стилі
+   ============================================================ */
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-}
-
 body {
-  background: #FBF8ED;
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  line-height: 1.5;
-  color: var(--text-dark);
-  overflow-x: hidden;
-}
-
-/* ----- TYPOGRAPHY ----- */
-h2 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  position: relative;
-  display: inline-block;
-  color: var(--deep-burgundy);
-  text-align: center;
-}
-
-h2:after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--sandy-beige), var(--dusty-rose));
-  border-radius: 2px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #f5f0eb;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 
 .container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-/* ----- WAVE BACKGROUND ----- */
-.wave-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
+  max-width: 1100px;
   width: 100%;
-  height: 100%;
-  z-index: -2;
-  pointer-events: none;
-}
-
-.wave-svg {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  min-height: 280px;
-}
-
-.wave-svg:first-child path {
-  fill: var(--light-grayish);
-  fill-opacity: 0.9;
-}
-
-.wave-svg:last-child path {
-  fill: var(--warm-taupe);
-  fill-opacity: 0.3;
-}
-
-/* ----- HERO SECTION ----- */
-.hero {
-  height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  box-sizing: border-box;
-  background: var(--bg-light);
-}
-
-.hero-inner {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.hero-image img {
-  max-width: 100%;
-  height: auto;
-}
-
-.hero-invite {
-  font-family: "Imperial Script", cursive;
-  font-size: 24px;
-  padding: 0.3rem 1.2rem;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-}
-
-.hero-invite-sec {
-  font-family: "Cormorant", serif;
-  font-size: 22px;
-  padding: 0.3rem 1.2rem;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-}
-
-.hero-btn {
-  background: var(--dusty-rose);
-  border: none;
-  padding: 1rem 2.8rem;
-  border-radius: 60px;
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: white;
-  cursor: pointer;
-  transition: 0.25s;
-  box-shadow: 0 8px 20px rgba(155, 111, 95, 0.35);
-  position: relative;
-  overflow: hidden;
-  margin-top: 0.5rem;
-}
-
-.btn-text {
-  font-family: "Cormorant", serif;
-  position: relative;
-  z-index: 2;
-  text-transform: uppercase;
-}
-
-.btn-glow {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,240,0.4), transparent);
-  transition: left 0.5s;
-}
-
-.hero-btn:hover {
-  transform: scale(1.02);
-  box-shadow: 0 12px 26px rgba(155, 111, 95, 0.45);
-}
-
-.hero-btn:hover .btn-glow {
-  left: 100%;
-}
-
-.hero-footer {
-  margin-top: 1.5rem;
-}
-
-.btn-text-small {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-weight: 600;
-  font-size: 26px;
-  padding: 0.3rem 0.8rem;
-  text-transform: uppercase;
-  color: var(--dusty-rose);
-}
-
-.btn-text-small-footer {
-  font-family: "Cormorant", serif;
-  font-size: 22px;
-  padding: 0.3rem 0.8rem;
-  text-transform: uppercase;
-}
-
-.map-link {
-  margin-top: 0.3rem;
-}
-.map-link a {
-  text-decoration: none;
-}
-
-/* ----- MAIN CONTENT (прихований до кліку) ----- */
-.main-content {
-  transition: opacity 0.5s ease;
-}
-.main-content.hidden {
-  display: none;
-}
-
-/* ----- GIFTS SECTION ----- */
-.gifts-inner {
-  text-align: center;
-}
-
-.gifts-message p {
-  max-width: 800px;
-  margin: 1rem auto;
-  color: var(--text-soft);
-  font-size: 22px;
-  font-family: 'Lora', 'Playfair Display', serif;
-}
-
-/* ----- DRESS CODE – СПІЛЬНИЙ БЛОК (КОЛЬОРИ + ТЕКСТ) ----- */
-.dresscode-wave {
-  background: #FAF6F1;
-}
-
-.dresscode-header {
-  /*font-family: "Imperial Script", cursive;*/
-
-  font-family: Cormorant, serif;
-  text-transform: uppercase;
-  text-align: center;
-  margin: 40px;
-}
-
-.dresscode-header h2 {
-  font-family: 'Lora', serif;
-  font-size: 2.6rem;
-  font-weight: 400;
-  color: #3A2C2A;
-  margin-bottom: 0.5rem;
-}
-
-.common-colors {
-  display: flex;
-  justify-content: center;
-  gap: 1.2rem;
-  margin-bottom: 2.5rem;
-  flex-wrap: wrap;
-}
-
-.color-circle {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  transition: all 0.3s ease;
-  cursor: default;
-}
-
-.color-circle:hover {
-  transform: scale(1.12) rotate(4deg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: rgba(255, 255, 255, 0.9);
-}
-
-.dresscode-info {
-  margin: 0 auto 2.5rem;
-  text-align: center;
-  background: #FFFFFF;
-  border-radius: 32px;
-  padding: 2rem 2.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
-  border: 0.5px solid #EFE4DA;
-}
-
-.dresscode-description {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-size: 22px;
-  color: #4A3A2E;
-  line-height: 1.7;
-  text-align: center;
-  margin: 0;
-}
-
-.dresscode-description.small {
-  font-size: 20px;
-}
-
-/* Декоративна лінія */
-.line {
-  display: block;
-  width: 150px;
-  height: 2px;
-  margin: 1.5rem auto;
-  background: linear-gradient(90deg, var(--sandy-beige), var(--dusty-rose));
-  border-radius: 2px;
-}
-
-/* ----- SONG SECTION ----- */
-.song-card {
-  text-align: center;
-}
-
-.song-toggle {
-  margin: 1.5rem 0;
-}
-
-.song-btn {
-  background: var(--dusty-rose);
-  padding: 0.8rem 2rem;
-  border-radius: 60px;
-  font-weight: 600;
-  color: var(--card-white);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  transition: 0.2s;
-  border: none;
-}
-
-.song-btn:hover {
-  background: var(--deep-burgundy);
-  color: white;
-  transform: scale(0.98);
-}
-
-.song-arrow {
-  display: inline-block;
-  transition: transform 0.3s ease;
-}
-
-.song-btn.open .song-arrow {
-  transform: rotate(180deg);
-}
-
-.song-content {
-  display: none;
-  position: relative;
-  margin: 1.8rem auto 0 auto;
-  background: #FFFBF6;
-  border-radius: 36px;
-  padding: 2rem 2.5rem;
-  max-height: 500px;
-  overflow-y: auto;
-  text-align: center;
-  font-size: 22px;
-  max-width: 90%;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-}
-
-.song-content.open {
-  display: inline-block;
-  width: auto;
-  min-width: 280px;
-}
-
-.close-song-btn {
-  position: absolute;
-  top: 12px;
-  right: 18px;
-  background: none;
-  border: none;
-  font-size: 1.6rem;
-  cursor: pointer;
-  color: var(--dusty-rose);
-  transition: 0.2s;
-  line-height: 1;
-  padding: 4px;
-}
-
-.close-song-btn:hover {
-  transform: scale(1.15) rotate(90deg);
-  color: var(--deep-burgundy);
-}
-
-.song-title {
-  font-size: 1.6rem;
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  text-align: center;
-  margin-bottom: 1.2rem;
-  color: var(--deep-burgundy);
-
-  /*font-family: Cormorant, serif;*/
-  /*text-transform: uppercase;*/
-}
-
-.song-verses {
-  text-align: center;
-}
-
-.song-verses p {
-  text-align: center;
-  margin: 0;
-  line-height: 1.8;
-}
-
-/* ----- LOCATION ----- */
-.location-simple {
-  background: var(--card-white);
-  border-radius: 48px;
-  text-align: center;
-}
-
-.location-simple-head {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-size: 22px;
-  color: var(--text-dark);
-}
-
-.location-simple-main {
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-size: 20px;
-  color: var(--text-dark);
-}
-
-.map-simple-btn {
-  background: var(--dusty-rose);
-  padding: 0.5rem 1.6rem;
-  border-radius: 60px;
-  font-weight: 600;
-  margin: 1rem 0;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--card-white);
-  border: none;
-}
-
-.map-simple-btn:hover {
-  background: var(--deep-burgundy);
-  color: white;
-}
-
-.location-feature-simple {
-  font-size: 18px;
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  color: var(--text-dark);
-  flex-wrap: wrap;
-  padding-top: 15px;
-}
-
-/* ----- RSVP CARD ----- */
-.rsvp-card-simple {
-  display: grid;
-  grid-template-columns: 1fr;
-  background: var(--card-white);
-  border-radius: 56px;
-  overflow: hidden;
-  box-shadow: 0 30px 40px -18px rgba(94, 44, 46, 0.2);
-}
-
-@media (min-width: 800px) {
-  .rsvp-card-simple {
-    grid-template-columns: 1fr 1.2fr;
-  }
-}
-
-.rsvp-left-simple {
-  background: linear-gradient(125deg, rgba(221,225,226,0.5), rgba(168,178,159,0.2));
-  backdrop-filter: blur(2px);
-  padding: 2.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.rsvp-left-simple p {
-  font-size: 1.2rem;
-  color: var(--text-dark);
-}
-
-.rsvp-decor-simple {
-  font-size: 2rem;
-  color: var(--dusty-rose);
-  margin-top: 1rem;
-}
-
-.rsvp-right-simple {
-  padding: 2rem;
-}
-
-.toggle-simple {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
-}
-
-.toggle-btn {
-  flex: 1;
-  background: rgba(221, 225, 226, 0.5);
-  border: none;
-  padding: 0.7rem;
-  border-radius: 80px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-  color: var(--text-dark);
-  font-family: Cormorant, serif;
-  text-transform: uppercase;
-}
-
-.toggle-btn.active {
-  background: var(--dusty-rose);
-  color: white;
-  box-shadow: 0 4px 10px rgba(94, 44, 46, 0.3);
-}
-
-.rsvp-form-simple input,
-.rsvp-form-simple select,
-.rsvp-form-simple textarea {
-  width: 100%;
-  margin: 0.6rem 0;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--light-grayish);
-  border-radius: 32px;
   background: white;
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  transition: 0.2s;
-}
-
-.rsvp-form-simple input:focus,
-.rsvp-form-simple select:focus,
-.rsvp-form-simple textarea:focus {
-  outline: none;
-  border-color: var(--sandy-beige);
-  box-shadow: 0 0 0 3px rgba(201, 164, 110, 0.2);
-}
-
-.submit-simple {
-  background: var(--dusty-rose);
-  text-transform: uppercase;
-  color: white;
-  border: none;
-  padding: 0.9rem;
-  width: 100%;
-  border-radius: 60px;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.submit-simple:hover {
-  background: var(--deep-burgundy);
-}
-
-.success-simple {
-  display: none;
-  text-align: center;
-  background: rgba(168, 178, 159, 0.2);
-  padding: 2rem;
-  border-radius: 38px;
-}
-
-.success-simple h3 {
-  color: var(--deep-burgundy);
-  font-size: 1.5rem;
-}
-
-.success-check {
-  font-size: 3rem;
-  color: var(--sage-green);
-
-  font-family: Cormorant, serif;
-  text-transform: uppercase;
-}
-
-/* ----- PAGE ----- */
-.page {
-  opacity: 1;
-  display: block;
-}
-
-/* ----- SELECTS ----- */
-#drinkSimple select {
-  width: 100%;
-  padding: 0.9rem 2.5rem 0.9rem 1rem;
-  margin: 0.6rem 0;
-  border: 1px solid var(--light-grayish);
   border-radius: 32px;
-  background-color: white;
-  font-family: 'Lora', 'Quicksand', sans-serif;
-  font-size: 0.85rem;
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="%23827C64" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  cursor: pointer;
-}
-
-#drinkSimple select:focus {
-  outline: none;
-  border-color: var(--sandy-beige);
-  box-shadow: 0 0 0 3px rgba(201, 164, 110, 0.2);
-}
-
-/* ===== Стилізація select, щоб placeholder виглядав як у input ===== */
-.rsvp-form-simple select:invalid {
-  color: #999;
-}
-
-.rsvp-form-simple select option {
-  color: var(--text-dark);
-}
-
-.rsvp-form-simple select option:disabled {
-  color: #999;
-}
-
-.rsvp-form-simple select {
-  font-weight: 400;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  padding: 32px;
+  transition: all 0.2s;
 }
 
 /* ============================================================
-   АДАПТИВНІСТЬ (МОБІЛЬНА ВЕРСІЯ)
+   Шапка
    ============================================================ */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
 
-@media (max-width: 992px) {
-  .container {
-    padding: 0 20px;
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e2b3a;
+}
+
+h1 span {
+  color: #e31e24;
+}
+
+.address {
+  font-size: 14px;
+  color: #6b7a8a;
+  background: #f5f0eb;
+  padding: 6px 16px;
+  border-radius: 40px;
+}
+
+/* ============================================================
+   Пошук
+   ============================================================ */
+.search-box {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 14px 20px;
+  border: 2px solid #e5e0db;
+  border-radius: 60px;
+  font-size: 16px;
+  background: #faf8f6;
+  transition: 0.2s;
+  min-width: 200px;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #e31e24;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.08);
+}
+
+.search-box button {
+  padding: 14px 32px;
+  background: #e31e24;
+  color: white;
+  border: none;
+  border-radius: 60px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.search-box button:hover {
+  background: #c41a1f;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(227, 30, 36, 0.25);
+}
+
+.search-box button:active {
+  transform: translateY(0);
+}
+
+/* ============================================================
+   Карта магазину
+   ============================================================ */
+.store-map {
+  position: relative;
+  background: #faf8f6;
+  border-radius: 24px;
+  padding: 16px;
+  border: 1px solid #ede8e3;
+  margin-bottom: 20px;
+  min-height: 450px;
+}
+
+.map-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.zone {
+  background: white;
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.zone .icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.zone .name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e2b3a;
+}
+
+.zone .items {
+  font-size: 11px;
+  color: #6b7a8a;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Кольори зон */
+.zone-vegetables {
+  border-color: #4caf50;
+  background: #f0f9f0;
+}
+.zone-dairy {
+  border-color: #42a5f5;
+  background: #f0f7ff;
+}
+.zone-meat {
+  border-color: #ef5350;
+  background: #fff0f0;
+}
+.zone-drinks {
+  border-color: #ffa726;
+  background: #fff8f0;
+}
+.zone-bakery {
+  border-color: #d4a373;
+  background: #fdf6ef;
+}
+.zone-grocery {
+  border-color: #8d6e63;
+  background: #f5f0eb;
+}
+.zone-sweets {
+  border-color: #ec407a;
+  background: #fdf0f5;
+}
+.zone-sauces {
+  border-color: #ff7043;
+  background: #fff5f0;
+}
+
+/* Підсвітка знайденого товару */
+.zone.highlight {
+  border-color: #e31e24 !important;
+  box-shadow: 0 0 0 6px rgba(227, 30, 36, 0.15), 0 8px 30px rgba(227, 30, 36, 0.2);
+  transform: scale(1.02);
+  z-index: 2;
+}
+
+.zone .found-marker {
+  display: none;
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: #e31e24;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 30px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(227, 30, 36, 0.3);
+}
+
+.zone.highlight .found-marker {
+  display: block;
+}
+
+/* ============================================================
+   Вхід та вихід
+   ============================================================ */
+.entry-exit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.entry,
+.exit {
+  background: white;
+  border-radius: 16px;
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px dashed #6b7a8a;
+  color: #1e2b3a;
+}
+
+.entry {
+  border-color: #4caf50;
+  background: #f0f9f0;
+}
+
+.exit {
+  border-color: #e31e24;
+  background: #fff0f0;
+}
+
+/* ============================================================
+   Маршрут (стрілки) - ПОКРАЩЕНА ВЕРСІЯ
+   ============================================================ */
+.route-container {
+  position: relative;
+  margin-top: 8px;
+  padding: 20px 24px;
+  background: #faf8f6;
+  border-radius: 16px;
+  border: 1px solid #ede8e3;
+  min-height: 80px;
+  display: none;
+  overflow: hidden;
+}
+
+.route-container.active {
+  display: block;
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  .dresscode-info {
-    padding: 1.8rem 2rem;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+.route-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: #1e2b3a;
+}
+
+.route-steps .step {
+  background: white;
+  padding: 10px 18px;
+  border-radius: 40px;
+  border: 2px solid #e5e0db;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  transition: 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.route-steps .step .step-icon {
+  font-size: 18px;
+}
+
+.route-steps .step .step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e0db;
+  color: #1e2b3a;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.route-steps .arrow {
+  font-size: 22px;
+  color: #e31e24;
+  font-weight: 700;
+  animation: pulseArrow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseArrow {
+  0%, 100% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(6px); opacity: 0.6; }
+}
+
+.route-steps .step.highlight-step {
+  background: #e31e24;
+  color: white;
+  border-color: #e31e24;
+  box-shadow: 0 4px 16px rgba(227, 30, 36, 0.3);
+  transform: scale(1.05);
+}
+
+.route-steps .step.highlight-step .step-number {
+  background: white;
+  color: #e31e24;
+}
+
+.route-steps .step.passed-step {
+  border-color: #4caf50;
+  background: #f0f9f0;
+  opacity: 0.8;
+}
+
+.route-steps .step.passed-step .step-number {
+  background: #4caf50;
+  color: white;
+}
+
+.route-info {
+  margin-top: 14px;
+  padding: 14px 18px;
+  background: white;
+  border-radius: 12px;
+  border-left: 4px solid #e31e24;
+  font-size: 14px;
+  color: #1e2b3a;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.route-info strong {
+  color: #e31e24;
+}
+
+.route-info .distance-badge {
+  background: #1e2b3a;
+  color: white;
+  padding: 4px 14px;
+  border-radius: 40px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ============================================================
+   Результат пошуку
+   ============================================================ */
+.result-box {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: #faf8f6;
+  border-radius: 16px;
+  border: 1px solid #ede8e3;
+  display: none;
+  font-size: 14px;
+  color: #1e2b3a;
+}
+
+.result-box.active {
+  display: block;
+  animation: slideDown 0.4s ease-out;
+}
+
+.result-box .product-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.result-box .product-location {
+  color: #e31e24;
+  font-weight: 500;
+}
+
+.result-box .mcp-call {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: #1e2b3a;
+  color: #a8d8ea;
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ============================================================
+   Футер
+   ============================================================ */
+.footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #6b7a8a;
+  border-top: 1px solid #ede8e3;
+  padding-top: 16px;
+}
+
+/* ============================================================
+   Анімація появи зони
+   ============================================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.zone.highlight {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* ============================================================
+   Адаптивність
+   ============================================================ */
 @media (max-width: 768px) {
-  .hero {
-    padding: 0.5rem;
+  .container {
+    padding: 16px;
   }
-  .hero-invite {
-    font-family: "Cormorant", serif;
-    font-size: 18px;
-    margin-bottom: 0.8rem;
-    padding: 0.2rem 1rem;
+  .map-grid {
+    grid-template-columns: 1fr 1fr;
   }
-  .hero-invite-sec {
-    font-size: 18px;
-    padding: 0.2rem 1rem;
+  .entry-exit {
+    grid-template-columns: 1fr;
   }
-  .hero-btn {
-    padding: 0.7rem 2rem;
-    font-size: 0.95rem;
+  h1 {
+    font-size: 22px;
   }
-  .btn-text-small {
-    font-size: 16px;
-    padding: 0.2rem 0.6rem;
-  }
-  .btn-text-small-footer {
-    font-size: 16px;
-    padding: 0.2rem 0.6rem;
-  }
-
-  .dresscode-header h2 {
-    font-size: 2rem;
-  }
-  .dresscode-header {
-    margin-bottom: 30px;
-  }
-  .common-colors {
-    gap: 0.8rem;
-    margin-bottom: 1.8rem;
-  }
-  .color-circle {
-    width: 44px;
-    height: 44px;
-  }
-  .dresscode-info {
-    padding: 1.5rem 1.2rem;
-    margin: 0 1rem 1.8rem 1rem;
-    border-radius: 28px;
-  }
-  .dresscode-description {
-    font-size: 18px;
-    line-height: 1.6;
-  }
-  .dresscode-description.small {
-    font-size: 16px;
-  }
-  .line {
-    width: 100px;
-    margin: 1.2rem auto;
-  }
-
-  .gifts-message p {
-    font-size: 18px;
-    padding: 0 0.5rem;
-  }
-
-  .song-content {
-    font-size: 18px;
-    padding: 1.5rem 1.2rem;
-    max-width: 95%;
-    min-width: 200px;
-    border-radius: 28px;
-  }
-  .close-song-btn {
-    font-size: 1.4rem;
-    top: 8px;
-    right: 12px;
-  }
-  .song-title {
-    font-size: 1.4rem;
-  }
-
-  .location-simple-head {
-    font-size: 20px;
-  }
-  .location-simple-main {
-    font-size: 18px;
-  }
-  .location-feature-simple {
-    font-size: 16px;
-    gap: 0.3rem;
-  }
-  .map-simple-btn {
-    padding: 0.4rem 1.4rem;
-    font-size: 0.9rem;
-  }
-
-  .rsvp-card-simple {
-    border-radius: 40px;
-    margin: 0 0.5rem;
-  }
-  .rsvp-left-simple {
-    padding: 1.8rem 1.2rem;
-  }
-  .rsvp-left-simple p {
-    font-size: 1rem;
-  }
-  .rsvp-right-simple {
-    padding: 1.5rem 1.2rem;
-  }
-  .toggle-btn {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-    font-family: "Cormorant", serif;
-    text-transform: uppercase;
-  }
-  .rsvp-form-simple input,
-  .rsvp-form-simple select,
-  .rsvp-form-simple textarea {
-    padding: 0.7rem 0.8rem;
-    font-size: 0.9rem;
-  }
-  .submit-simple {
-    padding: 0.7rem;
-    font-size: 0.9rem;
-  }
-
-  /* Пісня на весь екран на мобільних */
-  .song-content.open {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+  .search-box button {
     width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    margin: 0;
-    border-radius: 0;
-    padding: 3rem 1.5rem 2rem 1.5rem;
-    background: rgba(255, 251, 246, 0.98);
-    backdrop-filter: blur(4px);
-    z-index: 999;
-    overflow-y: auto;
-    display: block;
-    font-size: 18px;
+    justify-content: center;
+  }
+  .route-steps {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .route-steps .arrow {
+    transform: rotate(90deg);
+    align-self: center;
+  }
+  .route-info {
+    flex-direction: column;
+    align-items: stretch;
     text-align: center;
   }
-
-  .close-song-btn {
-    position: fixed;
-    top: 15px;
-    right: 20px;
-    font-size: 2rem;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--dusty-rose);
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-
-  .close-song-btn:hover {
-    transform: scale(1.05);
-    color: var(--deep-burgundy);
-  }
-
-  .song-title {
-    font-size: 1.8rem;
-    margin-top: 0.5rem;
-  }
-
-  .song-verses p {
-    font-size: 1.1rem;
-    line-height: 1.8;
+  .route-info .distance-badge {
+    margin-left: 0;
+    align-self: center;
   }
 }
 
-/* Для дуже маленьких екранів (до 480px) */
 @media (max-width: 480px) {
-  .hero-invite {
-    font-size: 16px;
+  .map-grid {
+    grid-template-columns: 1fr;
   }
-  .hero-invite-sec {
-    font-size: 16px;
-  }
-  .hero-btn {
-    padding: 0.6rem 1.6rem;
-    font-size: 0.85rem;
-  }
-  .btn-text-small {
-    font-size: 14px;
-  }
-  .btn-text-small-footer {
-    font-size: 14px;
-  }
-
-  .dresscode-header h2 {
-    font-size: 1.4rem;
-  }
-  .color-circle {
-    width: 36px;
-    height: 36px;
-  }
-  .common-colors {
-    gap: 0.6rem;
-    margin-bottom: 1.5rem;
-  }
-  .dresscode-info {
-    padding: 1.2rem 0.8rem;
-    margin: 0 0.5rem 1.5rem 0.5rem;
-    border-radius: 24px;
-  }
-  .dresscode-description {
-    font-size: 16px;
-  }
-  .dresscode-description.small {
-    font-size: 14px;
-  }
-  .line {
-    width: 80px;
-    margin: 1rem auto;
-  }
-
-  .gifts-message p {
-    font-size: 16px;
-  }
-
-  .song-content.open {
-    padding: 2.5rem 1rem 1.5rem 1rem;
-    font-size: 16px;
-  }
-  .close-song-btn {
-    top: 10px;
-    right: 12px;
-    width: 38px;
-    height: 38px;
-    font-size: 1.6rem;
-  }
-  .song-title {
-    font-size: 1.5rem;
-  }
-  .song-verses p {
-    font-size: 1rem;
-  }
-  .song-btn {
-    padding: 0.5rem 1.2rem;
-    font-size: 0.9rem;
-  }
-
-  .location-simple-head {
-    font-size: 18px;
-  }
-  .location-simple-main {
-    font-size: 16px;
-  }
-  .location-feature-simple {
-    font-size: 14px;
-  }
-  .map-simple-btn {
-    padding: 0.3rem 1.2rem;
-    font-size: 0.8rem;
-  }
-
-  .rsvp-card-simple {
-    border-radius: 32px;
-    margin: 0 0.3rem;
-  }
-  .rsvp-left-simple {
-    padding: 1.2rem 0.8rem;
-  }
-  .rsvp-left-simple p {
-    font-size: 0.9rem;
-  }
-  .rsvp-right-simple {
-    padding: 1rem 0.8rem;
-  }
-  .toggle-simple {
-    gap: 0.5rem;
-  }
-  .toggle-btn {
-    padding: 0.4rem;
-    font-size: 0.8rem;
-    border-radius: 60px;
-  }
-  .rsvp-form-simple input,
-  .rsvp-form-simple select,
-  .rsvp-form-simple textarea {
-    padding: 0.6rem 0.8rem;
-    font-size: 0.85rem;
-    border-radius: 28px;
-  }
-  .submit-simple {
-    padding: 0.6rem;
-    font-size: 0.85rem;
-    border-radius: 50px;
-    font-family: Cormorant, serif;
-    text-transform: uppercase;
-  }
-  .container {
-    padding: 0 12px;
-  }
-}
-
-/* ----- SCROLLBAR ----- */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--light-grayish);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--dusty-rose);
-  border-radius: 12px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--dusty-rose);
-}
-
-/* ----- UTILITY ----- */
-.future-hidden {
-  display: none !important;
-}
-
-/* ----- Анімація для кнопки музики (пульсація) ----- */
-.music-btn.playing {
-  animation: pulse 1s ease infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.music-control {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
 }

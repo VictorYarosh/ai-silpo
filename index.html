@@ -2,304 +2,52 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-  <title>Даяна & Віктор — Весілля</title>
-  <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💌%3C/text%3E%3C/svg%3E" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Imperial+Script&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Imperial+Script&family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Навігатор Сільпо — Воскресенський просп., 36</title>
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
 
-<audio id="bgMusic" loop preload="auto">
-  <source src="audio/namalyuy-meni-nich.mp3" type="audio/mpeg">
-</audio>
+<div class="container">
+  <header>
+    <h1>🛒 Навігатор <span>Сільпо</span></h1>
+    <div class="address">📍 Воскресенський просп., 36, Київ</div>
+  </header>
 
-<!-- Основний контент -->
-<div class="page" id="mainPage">
+  <!-- Пошук -->
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Що шукаєте? Наприклад: молоко, хліб, ковбаса..." />
+    <button id="searchBtn">🔍 Знайти на карті</button>
+  </div>
 
-  <div class="hero">
-    <div class="hero-inner">
-      <!-- Головне зображення -->
-      <div class="hero-image">
-        <img src="img/main-1.png" alt="Даяна та Віктор">
-      </div>
-      <p class="hero-invite animate-text">Ці діти збираються одружитися, тож зберігай дату</p>
-
-      <div class="map-link">
-        <a href="https://www.google.com/maps/place/Seven+Lakes/@50.3486316,30.5950326,12.67z/data=!4m9!3m8!1s0x40d4c141fbf00b6b:0xb973b7d01095eca1!5m2!4m1!1i2!8m2!3d50.3303926!4d30.6401398!16s%2Fg%2F11vhrrv2rc?entry=ttu&g_ep=EgoyMDI2MDYwOS4wIKXMDSoASAFQAw%3D%3D"
-           target="_blank" rel="noopener noreferrer" class="map-link-btn">
-          <p class="btn-text-small">10.09.2026 · Київ · Seven Lakes</p>
-        </a>
-      </div>
-
-      <p class="hero-invite-sec">Ми запрошуємо тебе на свято та просимо заповнити форму:</p>
-      <!-- Кнопка для відкриття форми -->
-      <div class="hero-btn-box">
-        <button class="hero-btn animate-btn" id="discoverBtnForm">
-          <span class="btn-text">✧ ТИЦЬ ✧</span>
-          <span class="btn-glow"></span>
-        </button>
-      </div>
-      <!-- Додаткова інформація -->
-      <div class="hero-footer">
-        <span class="btn-text-small-footer">Інші деталі щодо точного часу, дрескоду, тощо – зʼявляться тут згодом. На звʼязочку!</span>
-      </div>
+  <!-- Карта магазину -->
+  <div class="store-map" id="storeMap">
+    <div class="map-grid" id="mapGrid">
+      <!-- Зони будуть вставлені JS -->
+    </div>
+    <div class="entry-exit">
+      <div class="entry">🚪 ВХІД</div>
+      <div class="exit">🛒 КАСИ / ВИХІД</div>
     </div>
   </div>
 
-  <!-- ВЕСЬ ДОДАТКОВИЙ КОНТЕНТ (прихований до кліку) -->
-  <main class="main-content hidden" id="mainContent">
+  <!-- Стрілки маршруту -->
+  <div class="route-container" id="routeContainer">
+    <div class="route-steps" id="routeSteps"></div>
+    <div class="route-info" id="routeInfo"></div>
+  </div>
 
-    <!-- Секція з формою RSVP -->
-    <section class="rsvp-wave">
-      <div class="container">
-        <div class="rsvp-card-simple">
-          <div class="rsvp-left-simple">
-            <p>Підтверди, будь ласка, присутність <br/>до 10 серпня 2026</p>
-            <div class="rsvp-decor-simple">✧</div>
-          </div>
-          <div class="rsvp-right-simple">
-            <div class="rsvp-form-simple" id="rsvpFormSimple">
-              <div class="toggle-simple">
-                <button class="toggle-btn active" id="yesSimple">Буду ✓</button>
-                <button class="toggle-btn" id="noSimple">Не зможу</button>
-              </div>
-              <label for="nameSimple"></label><input type="text" id="nameSimple" placeholder="Ім'я та Прізвище" required>
-              <div id="drinkSimple">
-                <label for="drinkSelect"></label><select id="drinkSelect" required>
-                <option value="" disabled selected>Що будеш пити?</option>
-                <option value="горілка">🥃 Горілка</option>
-                <option value="джин">🍸 Джин</option>
-                <option value="вино">🍷 Вино</option>
-                <option value="ігристе">🥂 Ігристе</option>
-                <option value="безалкогольне">🧉 Безалкогольна тусовка</option>
-              </select>
-              </div>
-              <label for="wishesSimple"></label><textarea id="wishesSimple" placeholder="Ваші побажання або коментар..."></textarea>
-              <button class="submit-simple" id="submitSimple">Надіслати</button>
-            </div>
-            <div class="success-simple" id="successSimple">
-              <div class="success-check">✓</div>
-              <h3>Дякуємо!</h3>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- Результат пошуку з MCP -->
+  <div class="result-box" id="resultBox">
+    <div id="resultContent"></div>
+  </div>
 
-    <!-- Основні моменти -->
-    <section class="dresscode-wave">
-      <div class="dresscode-header">
-        <h2>Основні моменти</h2>
-      </div>
-      <div class="container">
-        <div class="dresscode-info">
-          <p class="dresscode-description">
-            Чекаємо на тебе о 12:00, щоб всі встигли познайомитися й провести трохи часу разом до початку церемонії.
-          </p>
-          <p class="dresscode-description">
-            Церемонія одруження розпочнеться о 13:00, а святкуватимемо разом до 22:00.
-          </p>
-          <span class="line"></span>
-          <div class="location-simple">
-            <p class="location-simple-head">Seven Lakes</p>
-            <p class="location-simple-main">вулиця Центральна, 186, Київ</p>
-
-            <button class="hero-btn animate-btn" onclick="window.open('https://maps.google.com/?q=Seven+Lakes+Kyiv', '_blank')" style="">
-              <span class="btn-text">✧ Відкрити на мапі ✧</span>
-              <span class="btn-glow"></span>
-            </button>
-
-
-            <div class="location-feature-simple"><span>Парковка безкоштовна</span> | <span>На локації є готель</span></div>
-          </div>
-          <span class="line"></span>
-          <p class="dresscode-description small">Якщо під час свята виникнуть будь-які питання чи потрібна буде допомога — сміливо звертайся до нашого координатора.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Dress code -->
-    <section class="dresscode-wave">
-      <div class="container">
-        <div class="dresscode-header">
-          <h2>Обери свій образ</h2>
-        </div>
-
-        <div class="common-colors">
-          <div class="color-circle" style="background: #FAD5D2;" title="#"></div>
-          <div class="color-circle" style="background: #FDF3D3;" title="#"></div>
-          <div class="color-circle" style="background: #DBC5A8;" title="#"></div>
-          <div class="color-circle" style="background: #855D3E;" title="#"></div>
-          <div class="color-circle" style="background: #A49F99;" title="#"></div>
-          <div class="color-circle" style="background: #C1CDD7;" title="#"></div>
-        </div>
-
-        <div class="dresscode-info">
-          <p class="dresscode-description">
-            Будемо вдячні, якщо ти дотримуватимешся пастельної кольорової гами та не обиратимеш білий чи яскраві кольори. Та памʼятай про власний комфорт – одягай те, що зручно саме тобі!
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Наші прохання -->
-    <div class="container">
-      <div class="dresscode-header">
-        <h2>Наші прохання</h2>
-      </div>
-      <div class="dresscode-description">
-          <p>Ми дуже хочемо, щоб на весіллі лунала лише українська мова.</p><br>
-          <p>Ми дуже просимо тебе насолоджуватися моментом та не старатися зафільмувати його. Ми обов'язково поділимося з тобою всіма фото та відео (посилання з'явиться тут). А ще будемо раді, якщо ти зробиш кілька кадрів себе чи гостей на плівкові фотоапарати, які можна буде взяти у нашого координатора.</p><br>
-          <p>Ми будемо дуже раді, якщо ти заспіваєш разом із нами весільну пісню «Забава аж до рання». Нижче залишаємо слова та приклад виконання, щоб можна було трохи підготуватися.</p>
-        </div>
-    </div>
-
-    <!-- Спільна пісня -->
-    <div class="container">
-      <div class="song-card">
-        <div class="song-toggle">
-
-          <button class="hero-btn animate-btn" id="openSongBtn" style="">
-            <span class="btn-text">✧ ЗАБАВА АЖ ДО РАНЯ ✧</span>
-            <span class="btn-glow"></span>
-          </button>
-        </div>
-        <div class="song-content" id="songContent">
-          <button class="close-song-btn" id="closeSongBtn">✕</button>
-          <div class="song-title">Гей, забава!</div>
-          <div class="song-verses">
-            <p>
-              Гей, забава! Забава аж до рання!<br>
-              Гей, забава, забава цілу ніч!<br>
-              Гей, гуляла! Гуляла аж до рання!<br>
-              Гей, гуляла, гуляла цілу ніч!<br>
-              <br>
-              Ти казала, ти казала<br>
-              В понеділок підем разом,<br>
-              Підем разом по барвінок.<br>
-              <br>
-              Я прийшов - тебе нема:<br>
-              Підманула, підвела!<br>
-              Підманула, підвела моя мила!<br>
-              <br>
-              Ти казала, ти казала<br>
-              У вівторок поцілуєш,<br>
-              Поцілуєш разів сорок.<br>
-              <br>
-              Я прийшов - тебе нема:<br>
-              Підманула, підвела!<br>
-              Підманула, підвела моя мила!<br>
-              <br>
-              Ага, моя мила,<br>
-              Моя мила до роботи не лінива,<br>
-              Як з роботи я прийду -<br>
-              Все за неї пороблю,<br>
-              Все за неї пороблю, моя мила!<br>
-              <br>
-              Гей, забава! Забава аж до рання!<br>
-              Гей, забава, забава цілу ніч!<br>
-              Гей, гуляла! Гуляла аж до рання!<br>
-              Гей, гуляла, гуляла цілу ніч!<br>
-              <br>
-              Ти казала, ти казала<br>
-              У середу підем разом,<br>
-              Підем разом по череду.<br>
-              <br>
-              Я прийшов - тебе нема:<br>
-              Підманула, підвела!<br>
-              Підманула, підвела моя мила!<br>
-              <br>
-              Ти казала, ти казала<br>
-              У четвер підем разом,<br>
-              Підем разом на спацер.<br>
-              <br>
-              Я прийшов - тебе нема:<br>
-              Підманула, підвела!<br>
-              Підманула, підвела моя мила!<br>
-              <br>
-              Ага, моя мила,<br>
-              Моя мила до роботи не лінива,<br>
-              Як з роботи я прийду -<br>
-              Все за неї пороблю,<br>
-              Все за неї пороблю, моя мила!<br>
-              <br>
-              Гей, забава! Забава аж до рання!<br>
-              Гей, забава, забава цілу ніч!<br>
-              Гей, гуляла! Гуляла аж до рання!<br>
-              Гей, гуляла, гуляла цілу ніч!<br>
-              <br>
-              Ти казала, ти сказала<br>
-              У п'ятницю підем разом,<br>
-              Підем разом на вулицю.<br>
-              <br>
-              Я прийшов - тебе нема:<br>
-              Підманула, підвела!<br>
-              Підманула, підвела моя мила!<br>
-              <br>
-              Ти казала, ти сказала<br>
-              У суботу підем разом,<br>
-              Підем разом на роботу.<br>
-              <br>
-              Я прийшов - тебе нема:<br>
-              Підманула, підвела!<br>
-              Підманула, підвела моя мила!<br>
-              <br>
-              Ага, моя мила,<br>
-              До роботи, до роботи не лінива,<br>
-              Як з роботи я прийду -<br>
-              Все за неї пороблю,<br>
-              Все за неї пороблю, моя мила!<br>
-              <br>
-              Гей, забава! Забава аж до рання!<br>
-              Гей, забава, забава цілу ніч!<br>
-              Гей, гуляла! Гуляла аж до рання!<br>
-              Гей, гуляла, гуляла цілу ніч!<br>
-              <br>
-              Ти сказала, ти казала<br>
-              У неділю підем разом,<br>
-              Підем разом на весілля.<br>
-              <br>
-              Я прийшов - тебе нема:<br>
-              Підманула, підвела!<br>
-              Підманула, підвела моя мила!<br>
-              <br>
-              Ага, моя мила,<br>
-              Моя мила до роботи не лінива,<br>
-              Як з роботи я прийду -<br>
-              Все за неї пороблю,<br>
-              Все за неї пороблю, моя мила!<br>
-              <br>
-              Гей, забава! Забава аж до рання!<br>
-              Гей, забава, забава цілу ніч!<br>
-              Гей, гуляла! Гуляла аж до рання!<br>
-              Гей, гуляла, гуляла цілу ніч!<br>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Подарунки -->
-    <div class="container">
-      <div class="dresscode-header">
-        <h2>Подарунки</h2>
-      </div>
-      <div class="dresscode-info">
-        <div class="gifts-message">
-          <p>Не обтяжуй себе вибором подарунку, а сміливо неси білий конверт. Також просимо не приносити квіти чи алкоголь — у цьому немає потреби.</p>
-        </div>
-      </div>
-    </div>
-
-  </main>
+  <!-- Футер -->
+  <div class="footer">
+    🧠 Працює на базі офіційного MCP «Сільпо» · AI Factory Hackathon 2026
+  </div>
 </div>
 
-<script src="js/app.js"></script>
+<script src="/js/app.js"></script>
 </body>
 </html>
