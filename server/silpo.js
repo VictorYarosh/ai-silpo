@@ -1,5 +1,4 @@
 import { buildLayout, buildMultiRoute, buildRoute, matchShelf } from './layout.js';
-import { matchTheme } from '../public/js/themes.js';
 
 // Публічні дані каталогу кешуємо на процес — вони однакові для всіх гостей.
 const storesCache = { at: 0, stores: [] };
@@ -86,8 +85,7 @@ function normalizeStore(branch) {
     latitude: Number(branch.latitude) || null,
     longitude: Number(branch.longitude) || null,
     hasPickup: Boolean(branch.hasPickup),
-    open: Boolean(branch.open),
-    theme: matchTheme({ city, address })
+    open: Boolean(branch.open)
   };
 }
 
@@ -243,9 +241,7 @@ async function fetchDepartments(call, branchId) {
 export async function getLayout(call, branchId, seed = branchId) {
   const key = `${branchId}:${seed}`;
   const cached = layoutCache.get(key);
-  if (cached && Date.now() - cached.at < 30 * MINUTE) {
-    return withStoreTheme(cached.layout, branchId);
-  }
+  if (cached && Date.now() - cached.at < 30 * MINUTE) return cached.layout;
 
   let departments = deptCache.get(branchId);
   if (!departments || Date.now() - departments.at > 30 * MINUTE) {
@@ -270,12 +266,6 @@ export async function getLayout(call, branchId, seed = branchId) {
     }
   }
   layoutCache.set(key, { at: Date.now(), layout });
-  return withStoreTheme(layout, branchId);
-}
-
-function withStoreTheme(layout, branchId) {
-  const known = storesCache.stores.find((s) => s.id === branchId);
-  if (known?.theme) layout.theme = known.theme;
   return layout;
 }
 

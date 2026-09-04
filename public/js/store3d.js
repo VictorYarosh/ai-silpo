@@ -64,16 +64,6 @@ function tint(hex, rng, amount = 0.22) {
   return color;
 }
 
-function hexToCss(hex) {
-  return `#${Number(hex).toString(16).padStart(6, '0')}`;
-}
-
-function mixHex(a, b, t) {
-  const ca = new THREE.Color(a);
-  const cb = new THREE.Color(b);
-  return ca.lerp(cb, t).getHex();
-}
-
 export class StoreMap3D {
   constructor(canvas) {
     this.canvas = canvas;
@@ -86,16 +76,13 @@ export class StoreMap3D {
     this.walkT = 0;
     this.walkPhase = 0;
 
-    this.theme = { id: 'default', floor: 0xffffff, wall: 0xffffff, sky: 0xf2f4f9 };
-
     this.scene = new THREE.Scene();
-    this.scene.background = null;
+    this.scene.background = new THREE.Color(0xf2f4f9);
 
     this.camera = new THREE.PerspectiveCamera(46, 1, 0.1, 300);
     this.camera.position.set(0, 30, 34);
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    this.renderer.setClearColor(0x000000, 0);
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     this.controls = new OrbitControls(this.camera, canvas);
@@ -105,8 +92,7 @@ export class StoreMap3D {
     this.controls.minDistance = 8;
     this.controls.maxDistance = 90;
 
-    this.hemi = new THREE.HemisphereLight(0xffffff, 0xc7ced9, 1.05);
-    this.scene.add(this.hemi);
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xc7ced9, 1.05));
     const sun = new THREE.DirectionalLight(0xffffff, 0.75);
     sun.position.set(14, 26, 18);
     this.scene.add(sun);
@@ -193,21 +179,12 @@ export class StoreMap3D {
     }
   }
 
-  loadLayout(layout, theme) {
+  loadLayout(layout) {
     this.clearRoute();
     this.group.clear();
     this.shelves.clear();
     this.labels = [];
     this.layout = layout;
-    this.theme = theme || layout.theme || this.theme || { floor: 0xffffff, wall: 0xffffff };
-    this.scene.background = null;
-    this.renderer.setClearColor(0x000000, 0);
-    if (this.hemi) {
-      const sky = this.theme.id && this.theme.id !== 'default' && this.theme.sky
-        ? mixHex(0xffffff, this.theme.sky, 0.22)
-        : 0xffffff;
-      this.hemi.color.setHex(sky);
-    }
 
     this._floor(layout);
     this._walls(layout);
@@ -221,26 +198,23 @@ export class StoreMap3D {
 
   _floor({ floor }) {
     const { width, depth } = floor;
-    const color = this.theme?.floor ?? 0xffffff;
     const slab = new THREE.Mesh(
       new THREE.PlaneGeometry(width, depth),
-      new THREE.MeshStandardMaterial({ color, roughness: 0.9, map: this._tileTexture(width, depth, color) })
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, map: this._tileTexture(width, depth) })
     );
     slab.rotation.x = -Math.PI / 2;
     this.group.add(slab);
   }
 
   /** Плитка підлоги текстурою, а не сіткою: не виходить за межі залу. */
-  _tileTexture(width, depth, floorHex = 0xffffff) {
+  _tileTexture(width, depth) {
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
     const ctx = canvas.getContext('2d');
-    const fill = hexToCss(mixHex(floorHex, 0xedf0f5, 0.55));
-    const grout = hexToCss(mixHex(floorHex, 0xc5ccd8, 0.35));
-    ctx.fillStyle = fill;
+    ctx.fillStyle = '#EDF0F5';
     ctx.fillRect(0, 0, 64, 64);
-    ctx.strokeStyle = grout;
+    ctx.strokeStyle = '#E1E6EF';
     ctx.lineWidth = 3;
     ctx.strokeRect(0, 0, 64, 64);
 
@@ -254,7 +228,7 @@ export class StoreMap3D {
 
   _walls({ floor }) {
     const { width, depth } = floor;
-    const mat = new THREE.MeshStandardMaterial({ color: this.theme?.wall ?? 0xffffff, roughness: 0.92 });
+    const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92 });
     const walls = [
       { x: 0, z: -depth / 2, w: width, d: 0.3 },
       { x: -width / 2, z: 0, w: 0.3, d: depth },
