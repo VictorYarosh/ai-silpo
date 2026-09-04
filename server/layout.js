@@ -121,22 +121,25 @@ function layoutSlots({ rng, width, depth, entranceSide, bandCount, bandSplit, fi
   const slots = [];
 
   // Периметр: фреш і холодильники вздовж стін, обличчям у racetrack.
+  // Відступ WALL_CLEAR — щоб корпус і товари не прорізали 3D-стіну (вона має товщину 0.3).
+  const WALL_CLEAR = 0.55;
   const wallFrom = -depth / 2 + WALL_DEPTH + 1.4;
   const wallTo = innerMaxZ + 3.4;
   for (const side of ['left', 'right']) {
     const count = pick(rng, 3, 4);
-    const x = side === 'left' ? -width / 2 + WALL_DEPTH / 2 : width / 2 - WALL_DEPTH / 2;
-    const facing = side === 'left' ? 1 : -1;
+    const inward = side === 'left' ? 1 : -1;
+    const x = inward * (-width / 2 + WALL_CLEAR + WALL_DEPTH / 2);
     for (const z of spread(wallFrom, wallTo, count)) {
       slots.push({
         kind: 'wall',
         side,
         x,
         z,
-        rotY: Math.PI / 2,
+        // Ліва стіна: +90° дивиться в зал (+X). Права: −90°, інакше товари вилазять назовні.
+        rotY: side === 'left' ? Math.PI / 2 : -Math.PI / 2,
         length: (wallTo - wallFrom) / count - 1.1,
         depth: WALL_DEPTH,
-        approach: { x: x + facing * (WALL_DEPTH / 2 + 1.4), z }
+        approach: { x: x + inward * (WALL_DEPTH / 2 + 1.4), z }
       });
     }
   }
@@ -147,11 +150,11 @@ function layoutSlots({ rng, width, depth, entranceSide, bandCount, bandSplit, fi
       kind: 'wall',
       side: 'back',
       x,
-      z: -depth / 2 + WALL_DEPTH / 2,
+      z: -depth / 2 + WALL_CLEAR + WALL_DEPTH / 2,
       rotY: 0,
       length: (innerMaxX - innerMinX + 2) / backCount - 1.2,
       depth: WALL_DEPTH,
-      approach: { x, z: -depth / 2 + WALL_DEPTH / 2 + 1.4 }
+      approach: { x, z: -depth / 2 + WALL_CLEAR + WALL_DEPTH / 2 + 1.4 }
     });
   }
 

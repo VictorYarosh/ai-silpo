@@ -89,10 +89,23 @@
     }
     .zoom button:active { background: var(--blue-soft); }
     .mcp-badge {
-      position: absolute; left: 12px; bottom: 12px; background: var(--ink); color: #fff;
+      position: absolute; left: 12px; bottom: 56px; background: var(--ink); color: #fff;
       border-radius: 999px; padding: 7px 12px; font-size: 11px; font-weight: 600; opacity: .92;
       display: inline-flex; align-items: center; gap: 6px;
     }
+    .dept-strip {
+      position: absolute; left: 12px; right: 64px; bottom: 12px;
+      display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: 2px; scrollbar-width: none;
+    }
+    .dept-strip::-webkit-scrollbar { display: none; }
+    .dept-chip {
+      flex: none; border: 1px solid var(--border); background: rgba(255,255,255,.96);
+      color: var(--ink); border-radius: 999px; padding: 8px 12px; font-size: 11px; font-weight: 700;
+      white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .dept-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .dept-chip:active { background: var(--blue-soft); }
 
     .sheet {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--card);
@@ -234,6 +247,7 @@
       <button id="shuffleBtn" title="Інша планіровка"><i class="si si-routes"></i></button>
     </div>
     <div class="mcp-badge" id="mcpBadge"><i class="si si-shop"></i>MCP «Сільпо»</div>
+    <div class="dept-strip hidden" id="deptStrip"></div>
   </main>
 
   <script type="module">
@@ -470,21 +484,47 @@
       layout = data.layout;
       promos = { title: '', suggestions: [] };
       map.loadLayout(layout);
-      map.onShelfTap = (id) => {
-        const shelf = layout.shelves.find((s) => s.id === id);
-        if (!shelf) return;
-        map.highlight(id);
-        map.showRoute(shelf.route);
-        const bits = [`${shelf.name} · ${shelf.total} товарів`];
-        if (shelf.popular) bits.push('зараз популярний відділ');
-        if (shelf.family) bits.push('для вашої родини');
-        mapHint.textContent = bits.join(' · ');
-        loadOnTheWay(shelf.route, [shelf.id]);
-        openShelf(shelf);
-      };
-      mapHint.textContent = `${layout.shelves.length} відділів · зал ${layout.floor.width}×${layout.floor.depth} м`;
+      map.onShelfTap = (id) => selectShelf(id);
+      renderDeptStrip();
+      mapHint.textContent = `${layout.shelves.length} відділів · зал ${layout.floor.width}×${layout.floor.depth} м · оберіть стелаж на карті або зі стрічки`;
       loadPersonal();
       if (tab === 'products') renderProducts();
+    }
+
+    function renderDeptStrip() {
+      const strip = el('deptStrip');
+      if (!layout?.shelves?.length) {
+        strip.classList.add('hidden');
+        strip.innerHTML = '';
+        return;
+      }
+      strip.classList.remove('hidden');
+      strip.innerHTML = layout.shelves.map((s) =>
+        `<button class="dept-chip" data-shelf="${esc(s.id)}" title="${esc(s.name)}">${esc(s.name)}</button>`
+      ).join('');
+      strip.querySelectorAll('[data-shelf]').forEach((btn) => {
+        btn.onclick = () => selectShelf(btn.dataset.shelf);
+      });
+    }
+
+    function markDeptChip(id) {
+      el('deptStrip').querySelectorAll('.dept-chip').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.shelf === id);
+      });
+    }
+
+    function selectShelf(id) {
+      const shelf = layout?.shelves.find((s) => s.id === id);
+      if (!shelf) return;
+      map.highlight(id);
+      map.showRoute(shelf.route);
+      markDeptChip(id);
+      const bits = [`${shelf.name} · ${shelf.total} товарів`];
+      if (shelf.popular) bits.push('зараз популярний відділ');
+      if (shelf.family) bits.push('для вашої родини');
+      mapHint.textContent = bits.join(' · ');
+      loadOnTheWay(shelf.route, [shelf.id]);
+      openShelf(shelf);
     }
 
     async function searchProducts(query) {
@@ -650,6 +690,7 @@
       if (!p?.route || p.route.length < 2) return;
       map.highlight(p.shelfId);
       map.showRoute(p.route);
+      markDeptChip(p.shelfId);
       mapHint.textContent = `${p.name} → ${p.shelfName || 'стелаж'}`;
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
       await loadOnTheWay(p.route, [p.shelfId]);
@@ -751,6 +792,7 @@
       sheetCount.textContent = `${data.order?.length || 0} відділів`;
       map.showRoute(data.route);
       map.highlight(null);
+      markDeptChip(null);
       mapHint.textContent = `${title} · вхід → ${data.order?.length || 0} відділів → каси`;
       sheetBody.innerHTML =
         (data.order || []).map((s, i) => `<div class="step"><b>${i + 1}</b><span>${esc(s.name)}</span></div>`).join('') +
@@ -865,6 +907,7 @@
       shoppingList = data.results.map((r) => r.best).filter(Boolean);
       map.showRoute(data.route);
       map.highlight(null);
+      markDeptChip(null);
       sheetTitle.textContent = 'Маршрут по списку';
       sheetCount.textContent = `${data.order.length} відділів`;
       mapHint.textContent = `Вхід → ${data.order.length} відділів → каси`;
@@ -1036,7 +1079,7 @@
     el('reloadBtn').onclick = boot;
     el('zoomIn').onclick = () => map.camera.position.multiplyScalar(0.85);
     el('zoomOut').onclick = () => map.camera.position.multiplyScalar(1.18);
-    el('zoomReset').onclick = () => { map.clearRoute(); map.highlight(null); map.frameAll(); };
+    el('zoomReset').onclick = () => { map.clearRoute(); map.highlight(null); markDeptChip(null); map.frameAll(); };
     el('shuffleBtn').onclick = () => {
       if (!store) return;
       products = [];

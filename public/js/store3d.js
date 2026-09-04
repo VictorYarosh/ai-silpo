@@ -105,7 +105,18 @@ export class StoreMap3D {
 
     this.raycaster = new THREE.Raycaster();
     this.onShelfTap = null;
-    canvas.addEventListener('pointerdown', (e) => this._pick(e));
+    this._hoverId = null;
+    this._pointerDown = null;
+    canvas.addEventListener('pointerdown', (e) => {
+      this._pointerDown = { x: e.clientX, y: e.clientY };
+    });
+    canvas.addEventListener('pointerup', (e) => this._pick(e));
+    canvas.addEventListener('pointerleave', () => {
+      this._pointerDown = null;
+      this._hoverId = null;
+      canvas.style.cursor = '';
+    });
+    canvas.addEventListener('pointermove', (e) => this._hover(e));
 
     window.addEventListener('resize', () => this.resize());
     this.resize();
@@ -132,17 +143,40 @@ export class StoreMap3D {
     if (this.layout && !this.routeGroup) this.frameAll();
   }
 
-  _pick(event) {
-    if (!this.onShelfTap) return;
+  _hitShelf(event) {
     const rect = this.canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
     const pointer = new THREE.Vector2(
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
       -((event.clientY - rect.top) / rect.height) * 2 + 1
     );
     this.raycaster.setFromCamera(pointer, this.camera);
-    const meshes = [...this.shelves.values()].map((s) => s.frame);
-    const hit = this.raycaster.intersectObjects(meshes, false)[0];
-    if (hit) this.onShelfTap(hit.object.userData.shelfId);
+    const targets = [...this.shelves.values()].flatMap((s) => [s.hit, s.frame, s.label].filter(Boolean));
+    const hit = this.raycaster.intersectObjects(targets, false)[0];
+    return hit?.object.userData.shelfId || null;
+  }
+
+  _pick(event) {
+    const start = this._pointerDown;
+    this._pointerDown = null;
+    if (!this.onShelfTap || !start) return;
+    // Обертання камери не має обирати стелаж.
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) return;
+    const id = this._hitShelf(event);
+    if (id) this.onShelfTap(id);
+  }
+
+  _hover(event) {
+    if (this._pointerDown || !this.shelves.size) return;
+    const id = this._hitShelf(event);
+    this.canvas.style.cursor = id ? 'pointer' : 'grab';
+    if (id === this._hoverId) return;
+    this._hoverId = id;
+    for (const entry of this.shelves.values()) {
+      const hot = entry.shelf.id === id;
+      const active = entry.header.material.emissiveIntensity > 0.4;
+      entry.group.scale.setScalar(hot || active ? 1.05 : 1);
+    }
   }
 
   loadLayout(layout) {
@@ -299,6 +333,17 @@ export class StoreMap3D {
     body.userData.shelfId = shelf.id;
     group.add(body);
 
+    const aisleFace = shelf.kind === 'wall' || shelf.kind === 'fridge' || shelf.kind === 'counter';
+
+    // Невидимий «магніт» для тапу: з висоти пташиного польоту корпус стелажа занадто тонкий.
+    const hit = new THREE.Mesh(
+      new THREE.BoxGeometry(Math.max(shelf.width, 2.4), shelf.height + 1.1, Math.max(shelf.depth + 1.2, 1.8)),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+    );
+    hit.position.set(0, (shelf.height + 1.1) / 2, aisleFace ? shelf.depth / 2 + 0.4 : 0);
+    hit.userData.shelfId = shelf.id;
+    group.add(hit);
+
     // Кольоровий фриз зверху — так відділ видно навіть без підпису.
     const header = new THREE.Mesh(
       new THREE.BoxGeometry(shelf.width, 0.3, shelf.depth + 0.06),
@@ -339,11 +384,18 @@ export class StoreMap3D {
 
     this._stock(group, shelf, sides, zoneColor);
 
-    const label = this._label(shelf.name, 0, shelf.height + 0.85, 0, 'shelf');
+    const label = this._label(
+      shelf.name,
+      0,
+      shelf.height + 0.85,
+      aisleFace ? shelf.depth / 2 + 0.15 : 0,
+      'shelf'
+    );
+    label.userData.shelfId = shelf.id;
     group.add(label);
 
     this.group.add(group);
-    this.shelves.set(shelf.id, { group, shelf, frame: body, header, label, baseColor: zoneColor });
+    this.shelves.set(shelf.id, { group, shelf, frame: body, header, label, hit, baseColor: zoneColor });
   }
 
   /** Товари на полицях: ряди коробок і бутлів, стабільні для конкретного відділу. */
@@ -408,7 +460,7 @@ export class StoreMap3D {
       new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false })
     );
     sprite.position.set(x, y, z);
-    sprite.scale.set(variant === 'shelf' ? 4.8 : 3.4, variant === 'shelf' ? 1.2 : 0.85, 1);
+    sprite.scale.set(variant === 'shelf' ? 3.4 : 2.6, variant === 'shelf' ? 0.85 : 0.65, 1);
     sprite.userData = { canvas, text, variant };
     this.labels.push(sprite);
     this._drawLabel(sprite);
@@ -454,12 +506,13 @@ export class StoreMap3D {
   }
 
   highlight(shelfId) {
+    this._hoverId = shelfId || null;
     for (const entry of this.shelves.values()) {
       const active = entry.shelf.id === shelfId;
       entry.header.material.color = new THREE.Color(active ? ORANGE : entry.baseColor);
       entry.header.material.emissive = new THREE.Color(active ? 0x6b3200 : entry.shelf.popular ? YELLOW : 0x000000);
       entry.header.material.emissiveIntensity = active ? 0.6 : entry.shelf.popular ? 0.28 : 0;
-      entry.group.scale.setScalar(active ? 1.03 : 1);
+      entry.group.scale.setScalar(active ? 1.05 : 1);
     }
   }
 
