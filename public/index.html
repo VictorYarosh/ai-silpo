@@ -104,10 +104,11 @@
     .grabber { padding: 10px; display: flex; justify-content: center; }
     .grabber i { width: 42px; height: 4px; background: var(--border); border-radius: 999px; display: block; }
     .tabs { display: flex; gap: 6px; padding: 0 12px 10px; }
-    .tab {
-      flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--muted);
-      padding: 10px 4px; border-radius: 999px; font-size: 12px; font-weight: 700;
-    }
+    .tab { flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--muted); padding: 9px 2px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .card-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
+    .card-btn span { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 3px; }
+    .card-btn .si { font-size: 18px; color: var(--blue); }
+    .warn-pill { background: #FDECEA; color: var(--red); }
     .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
     .sheet-head { display: flex; align-items: baseline; gap: 8px; padding: 0 16px 10px; }
     .sheet-head h2 { font-size: 16px; font-weight: 800; }
@@ -211,6 +212,7 @@
       <div class="tabs">
         <button class="tab active" data-tab="products">Товари</button>
         <button class="tab" data-tab="list">Список</button>
+        <button class="tab" data-tab="me">Для мене</button>
         <button class="tab" data-tab="stores">Магазини</button>
         <button class="tab" data-tab="cart">Кошик</button>
       </div>
@@ -255,6 +257,9 @@
     let promos = { title: '', suggestions: [] };
     let shoppingList = [];
     let cart = null;
+    let guest = null;
+    let personal = { favorites: [], sets: [], onlineOrders: [], offlineOrders: [] };
+    let insight = null;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const money = (v) => (v == null ? '' : `${Number(v).toFixed(2).replace('.00', '')} ₴`);
@@ -273,7 +278,7 @@
     function setTab(next) {
       tab = next;
       document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === next));
-      mainInput.placeholder = next === 'stores' ? 'Місто або вулиця' : 'Я шукаю...';
+      mainInput.placeholder = next === 'stores' ? 'Місто, вулиця або адреса' : 'Я шукаю...';
       render();
     }
 
@@ -281,6 +286,7 @@
       if (tab === 'stores') return renderStores();
       if (tab === 'list') return renderList();
       if (tab === 'cart') return renderCart();
+      if (tab === 'me') return renderMe();
       renderProducts();
     }
 
@@ -289,7 +295,7 @@
       if (!status.connected) return renderAuth(status.authUrl);
 
       el('mcpBadge').innerHTML = `${icon('shop')}MCP «Сільпо» · ${status.toolsCount} tools · ${status.usedTools} у роботі`;
-      loadMe();
+      loadMe().catch(() => {});
       loadCart();
       await loadStores();
 
@@ -323,12 +329,28 @@
     }
 
     async function loadMe() {
-      const data = await fetch('/api/me').then((r) => r.json()).catch(() => ({}));
+      const data = await api('/api/me').catch(() => null);
+      if (!data?.success) return;
+      guest = data;
       const bonus = data?.loyalty?.loyalty?.bonusTotal ?? data?.loyalty?.bonusTotal;
       if (bonus != null) {
         el('bonusChip').classList.remove('hidden');
         el('bonusChip').innerHTML = `${icon('gift')}${Number(bonus).toFixed(2)}`;
       }
+      if (tab === 'me') renderMe();
+    }
+
+    async function loadPersonal() {
+      if (!store) return;
+      const data = await api(`/api/personal?branchId=${encodeURIComponent(store.id)}&seed=${encodeURIComponent(seed || store.id)}`).catch(() => null);
+      if (!data?.success) return;
+      personal = data;
+      if (guest?.family?.zones?.length && layout) {
+        for (const shelf of layout.shelves) {
+          shelf.family = guest.family.zones.includes(shelf.zone);
+        }
+      }
+      if (tab === 'me') renderMe();
     }
 
     function cartLabel() {
@@ -354,19 +376,76 @@
     function renderStores() {
       sheetTitle.textContent = 'Магазини «Сільпо»';
       sheetCount.textContent = `${stores.length} знайдено`;
-      if (!stores.length) {
-        sheetBody.innerHTML = '<p class="empty">Нічого не знайдено.<br>Спробуйте іншу вулицю або місто.</p>';
+      const saved = (guest?.addresses || []).slice(0, 3);
+      const near = saved.length
+        ? `<div class="banner info">Збережені адреси — знайду найближчий магазин і типи доставки.</div>
+           ${saved.map((a, i) => {
+             const title = a.title || a.address || [a.city, a.street, a.house].filter(Boolean).join(', ');
+             return `<button class="card-btn" data-saved="${i}">${icon('pin')}<div>${esc(title)}<span>Найближчі філії до цієї адреси</span></div></button>`;
+           }).join('')}`
+        : '';
+      const list = !stores.length
+        ? '<p class="empty">Нічого не знайдено.<br>Спробуйте вулицю, місто або повну адресу.</p>'
+        : stores.slice(0, 120).map((s, i) => `
+          <div class="store" data-i="${i}">
+            <div class="city">${esc(s.city || 'Магазин')}${s.km != null ? ` · ${s.km} км` : ''}</div>
+            <div class="addr">${esc(s.address)}</div>
+            <div class="flags${s.open ? '' : ' closed'}">${s.open ? 'Працює' : 'Закритий'}${s.hasPickup ? ' · самовивіз' : ''}</div>
+          </div>`).join('');
+      sheetBody.innerHTML = near + list;
+      sheetBody.querySelectorAll('.store').forEach((node) => {
+        node.onclick = () => pickStore(stores[Number(node.dataset.i)]);
+      });
+      sheetBody.querySelectorAll('[data-saved]').forEach((btn) => {
+        btn.onclick = () => nearestFromSaved(guest.addresses[Number(btn.dataset.saved)]);
+      });
+    }
+
+    async function nearestFromQuery(text) {
+      sheetBody.innerHTML = '<p class="empty">Шукаю координати адреси і типи доставки…</p>';
+      const data = await api('/api/nearest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: text })
+      }).catch(() => null);
+      if (!data?.success) {
+        sheetBody.innerHTML = `<div class="banner err">${esc(data?.error || 'Адресу не знайдено')}</div>`;
         return;
       }
-      sheetBody.innerHTML = stores.slice(0, 120).map((s, i) => `
+      stores = data.stores;
+      sheetTitle.textContent = 'Найближчі магазини';
+      sheetCount.textContent = data.stores.length ? `від ${data.stores[0].km} км` : '';
+      const types = data.deliveryTypes.length
+        ? `<div class="banner ok">Доставка сюди: ${esc(data.deliveryTypes.map((t) => t.title).join(', '))}</div>`
+        : '';
+      sheetBody.innerHTML = types + data.stores.map((s, i) => `
         <div class="store" data-i="${i}">
-          <div class="city">${esc(s.city || 'Магазин')}</div>
+          <div class="city">${esc(s.city)} · ${s.km} км</div>
           <div class="addr">${esc(s.address)}</div>
           <div class="flags${s.open ? '' : ' closed'}">${s.open ? 'Працює' : 'Закритий'}${s.hasPickup ? ' · самовивіз' : ''}</div>
         </div>`).join('');
       sheetBody.querySelectorAll('.store').forEach((node) => {
         node.onclick = () => pickStore(stores[Number(node.dataset.i)]);
       });
+    }
+
+    async function nearestFromSaved(addr) {
+      const lat = addr.latitude ?? addr.lat;
+      const lng = addr.longitude ?? addr.lng;
+      if (lat != null && lng != null) {
+        const data = await api('/api/nearest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latitude: lat, longitude: lng })
+        }).catch(() => null);
+        if (data?.success) {
+          stores = data.stores;
+          renderStores();
+          return;
+        }
+      }
+      const title = addr.title || addr.address || [addr.city, addr.street, addr.house].filter(Boolean).join(', ');
+      if (title) nearestFromQuery(title);
     }
 
     async function pickStore(next, newSeed) {
@@ -396,10 +475,15 @@
         if (!shelf) return;
         map.highlight(id);
         map.showRoute(shelf.route);
-        mapHint.textContent = `${shelf.name} · ${shelf.total} товарів у категорії`;
+        const bits = [`${shelf.name} · ${shelf.total} товарів`];
+        if (shelf.popular) bits.push('зараз популярний відділ');
+        if (shelf.family) bits.push('для вашої родини');
+        mapHint.textContent = bits.join(' · ');
         loadOnTheWay(shelf.route, [shelf.id]);
+        openShelf(shelf);
       };
       mapHint.textContent = `${layout.shelves.length} відділів · зал ${layout.floor.width}×${layout.floor.depth} м`;
+      loadPersonal();
       if (tab === 'products') renderProducts();
     }
 
@@ -428,7 +512,19 @@
       if (products[0]) focusProduct(products[0]);
     }
 
-    function productRow(p, index) {
+    function restrictionHit(p) {
+      const hay = `${p.name || ''} ${p.category || ''}`.toLowerCase();
+      return (guest?.restrictions || []).filter((r) => {
+        const key = String(r).toLowerCase();
+        if (/безглютен|gluten/i.test(key)) return /пшен|глютен|хліб|батон|макарон/.test(hay);
+        if (/лактоз|lactos|молоч/i.test(key)) return /молок|сир|йогурт|вершк|масло/.test(hay);
+        if (/веган|vegan/i.test(key)) return /мʼяс|мяс|ковбас|риб|молоч|сир|яйц/.test(hay);
+        return false;
+      });
+    }
+
+    function productRow(p, index, bag = 'products') {
+      const warns = restrictionHit(p);
       return `
         <div class="row">
           ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ''}
@@ -438,12 +534,15 @@
               ${p.displayRatio ? `<span class="pill">${esc(p.displayRatio)}</span>` : ''}
               ${p.shelfName ? `<span class="pill">${esc(p.shelfName)}</span>` : ''}
               ${p.hasPromotion ? '<span class="pill promo">Акція</span>' : ''}
+              ${warns.map((w) => `<span class="pill warn-pill">${esc(w)}</span>`).join('')}
             </div>
           </div>
           <div class="price">${money(p.price)}${p.oldPrice ? `<s>${money(p.oldPrice)}</s>` : ''}</div>
           <div class="acts">
-            <button class="btn btn-ink" data-go="${index}">${icon('route')}Шлях</button>
-            <button class="btn btn-blue" data-cart="${index}">${icon('cart-add')}Кошик</button>
+            <button class="btn btn-ink" data-go="${index}" data-bag="${bag}">${icon('route')}Шлях</button>
+            <button class="btn btn-blue" data-cart="${index}" data-bag="${bag}">${icon('cart-add')}Кошик</button>
+            <button class="btn btn-plain" data-fav="${index}" data-bag="${bag}">${icon('heart')}</button>
+            ${p.slug ? `<button class="btn btn-plain" data-info="${index}" data-bag="${bag}">i</button>` : ''}
           </div>
         </div>`;
     }
@@ -485,11 +584,24 @@
     }
 
     function bindProductActions() {
+      const bagOf = (node) => {
+        const name = node.dataset.bag || 'products';
+        if (name === 'favorites') return personal.favorites;
+        if (name === 'similar') return insight?.similar || [];
+        if (name === 'replacements') return insight?.replacements || [];
+        return products;
+      };
       sheetBody.querySelectorAll('[data-go]').forEach((b) => {
-        b.onclick = () => focusProduct(products[Number(b.dataset.go)]);
+        b.onclick = () => focusProduct(bagOf(b)[Number(b.dataset.go)]);
       });
       sheetBody.querySelectorAll('[data-cart]').forEach((b) => {
-        b.onclick = () => addToCart(products[Number(b.dataset.cart)], b);
+        b.onclick = () => addToCart(bagOf(b)[Number(b.dataset.cart)], b);
+      });
+      sheetBody.querySelectorAll('[data-fav]').forEach((b) => {
+        b.onclick = () => toggleFav(bagOf(b)[Number(b.dataset.fav)], b);
+      });
+      sheetBody.querySelectorAll('[data-info]').forEach((b) => {
+        b.onclick = () => openInsight(bagOf(b)[Number(b.dataset.info)]);
       });
       sheetBody.querySelectorAll('[data-promo-cart]').forEach((b) => {
         b.onclick = (event) => {
@@ -554,6 +666,150 @@
       if (!data?.success || !data.suggestions.length) return;
       promos = { title: data.promoTitle, suggestions: data.suggestions };
       if (tab === 'products') renderProducts();
+    }
+
+    async function toggleFav(product, button) {
+      if (!product?.id || !product.externalProductId) {
+        button.innerHTML = '!';
+        return;
+      }
+      const label = button.innerHTML;
+      button.innerHTML = '…';
+      const data = await api('/api/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id,
+          externalProductId: String(product.externalProductId),
+          toDelete: false
+        })
+      }).catch(() => null);
+      button.innerHTML = data?.success ? icon('check') : label;
+    }
+
+    async function openInsight(product) {
+      if (!store || !product?.slug) return;
+      setTab('products');
+      sheetTitle.textContent = product.name;
+      sheetBody.innerHTML = '<p class="empty">Дивлюсь склад, схожі товари і ризик збірки…</p>';
+      const data = await api('/api/product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          branchId: store.id,
+          slug: product.slug,
+          productId: product.id,
+          companyId: product.companyId,
+          seed
+        })
+      }).catch(() => null);
+      if (!data?.success) {
+        sheetBody.innerHTML = `<div class="banner err">${esc(data?.error || 'Немає деталей')}</div>`;
+        return;
+      }
+      insight = data;
+      const details = data.details || {};
+      const attrs = listText(details.attributes || details.properties || details.nutrition);
+      sheetBody.innerHTML = `
+        ${data.atRisk ? '<div class="banner warn">Збірщик може не знайти цей товар — нижче заміна на іншій полиці.</div>' : ''}
+        ${attrs ? `<div class="banner info">${esc(attrs)}</div>` : ''}
+        ${data.replacements.length ? `<h3 style="font-size:13px;margin:8px 0">Заміна в цьому залі</h3>${data.replacements.map((p, i) => productRow(p, i, 'replacements')).join('')}` : ''}
+        ${data.similar.length ? `<h3 style="font-size:13px;margin:8px 0">Схожі — інший стелаж поряд</h3>${data.similar.map((p, i) => productRow(p, i, 'similar')).join('')}` : '<p class="empty">Схожих у цій філії немає.</p>'}`;
+      bindProductActions();
+      if (data.replacements[0]) focusProduct(data.replacements[0]);
+      else if (product.route) focusProduct(product);
+    }
+
+    function listText(value) {
+      if (!value) return '';
+      if (typeof value === 'string') return value;
+      if (Array.isArray(value)) {
+        return value.map((item) => {
+          if (typeof item === 'string') return item;
+          return [item.name || item.title, item.value].filter(Boolean).join(': ');
+        }).filter(Boolean).slice(0, 8).join(' · ');
+      }
+      return '';
+    }
+
+    async function openShelf(shelf) {
+      if (!store || !shelf.slug) return;
+      api(`/api/shelf?branchId=${encodeURIComponent(store.id)}&slug=${encodeURIComponent(shelf.slug)}`)
+        .then((data) => {
+          if (!data?.success) return;
+          const cat = data.category || {};
+          const extra = cat.visible === false ? ' · у цій філії порожньо' : '';
+          mapHint.textContent = `${shelf.name}${cat.minPrice != null ? ` · від ${money(cat.minPrice)}` : ''}${extra}`;
+        })
+        .catch(() => {});
+    }
+
+    function showPacked(title, data) {
+      products = data.products || [];
+      setTab('products');
+      sheetTitle.textContent = title;
+      sheetCount.textContent = `${data.order?.length || 0} відділів`;
+      map.showRoute(data.route);
+      map.highlight(null);
+      mapHint.textContent = `${title} · вхід → ${data.order?.length || 0} відділів → каси`;
+      sheetBody.innerHTML =
+        (data.order || []).map((s, i) => `<div class="step"><b>${i + 1}</b><span>${esc(s.name)}</span></div>`).join('') +
+        products.map((p, i) => productRow(p, i)).join('');
+      bindProductActions();
+    }
+
+    function renderMe() {
+      sheetTitle.textContent = 'Маршрут під вас';
+      sheetCount.textContent = guest?.premium?.active ? 'Плюхс' : '';
+      if (!store) {
+        sheetBody.innerHTML = '<p class="empty">Оберіть магазин — тоді зберу улюблені, набори й минулі чеки саме цієї філії.</p>';
+        return;
+      }
+      const family = guest?.family;
+      const familyLine = family
+        ? `${family.children ? `${family.children} діт.` : ''}${family.pets ? `${family.children ? ' · ' : ''}${family.pets} улюблен.` : ''}`.trim()
+        : '';
+      sheetBody.innerHTML = `
+        ${guest?.restrictions?.length ? `<div class="banner warn">Обмеження: ${esc(guest.restrictions.join(', '))} — підсвічую ризикові товари в видачі.</div>` : ''}
+        ${familyLine ? `<div class="banner info">Родина: ${esc(familyLine)}. Відділи «дитячі» і «зоо» підсвічені на схемі.</div>` : ''}
+        ${guest?.premium?.active
+          ? `<div class="banner ok">Плюхс активний${guest.premium.shareWebLink ? ` · <a href="${esc(guest.premium.shareWebLink)}" target="_blank" rel="noreferrer">поділитись</a>` : ''}</div>`
+          : guest?.premium
+            ? `<div class="banner info">Плюхс не оформлено${guest.premium.webLink ? ` · <a href="${esc(guest.premium.webLink)}" target="_blank" rel="noreferrer">на сайті</a>` : ''}${guest.premium.mobileLink ? ` · <a href="${esc(guest.premium.mobileLink)}" target="_blank" rel="noreferrer">в застосунку</a>` : ''}</div>`
+            : ''}
+        <button class="card-btn" id="favRoute">${icon('heart')}<div>Маршрут по улюблених<span>${personal.favorites.length} товарів у цій філії</span></div></button>
+        <button class="card-btn" id="offlineRoute">${icon('shop')}<div>Як минулого разу в залі<span>${personal.offlineOrders[0]?.title || 'останній чек за карткою лояльності'}</span></div></button>
+        <button class="card-btn" id="onlineRoute">${icon('basket')}<div>Повторити онлайн-замовлення<span>${personal.onlineOrders[0]?.title || 'останнє доставлене замовлення'}</span></div></button>
+        ${(personal.sets || []).slice(0, 8).map((s, i) => `
+          <button class="card-btn" data-set="${i}">${icon('categories')}<div>${esc(s.title)}<span>готовий набір · маршрут по відділах</span></div></button>
+        `).join('')}
+        ${guest?.coupons?.length ? `<div class="banner warn">Купони: ${guest.coupons.length} шт. Деталі вже підтягнуті з MCP.</div>` : ''}
+        ${guest?.promoCodes?.length ? `<div class="banner ok">Промокоди: ${esc(guest.promoCodes.map((c) => c.code || c.title || c).slice(0, 4).join(', '))}</div>` : ''}
+        ${guest?.certificates?.length ? `<div class="banner info">Сертифікати: ${guest.certificates.length} шт. — застосую в кошику.</div>` : ''}
+      `;
+      el('favRoute').onclick = () => packedRoute('/api/route/favorites', { branchId: store.id, seed }, 'Улюблені');
+      el('offlineRoute').onclick = () => packedRoute('/api/route/repeat', { branchId: store.id, seed, source: 'offline' }, 'Останній чек');
+      el('onlineRoute').onclick = () => packedRoute('/api/route/repeat', { branchId: store.id, seed, source: 'online' }, 'Онлайн-замовлення');
+      sheetBody.querySelectorAll('[data-set]').forEach((btn) => {
+        btn.onclick = () => {
+          const set = personal.sets[Number(btn.dataset.set)];
+          packedRoute('/api/route/set', { branchId: store.id, seed, slug: set.slug }, set.title);
+        };
+      });
+    }
+
+    async function packedRoute(url, body, title) {
+      sheetBody.innerHTML = '<p class="empty">Складаю маршрут…</p>';
+      const data = await api(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }).catch(() => null);
+      if (!data?.success) {
+        sheetBody.innerHTML = `<div class="banner err">${esc(data?.error || 'Немає даних для маршруту')}</div>`;
+        return;
+      }
+      showPacked(title, data);
     }
 
     function renderList() {
@@ -665,7 +921,21 @@
               <button class="btn btn-plain" data-remove="${esc(i.productId)}">${icon('delete')}</button>
             </div>`).join('')
           : '<p class="empty">Кошик порожній. Додайте товари з пошуку —<br>вони одразу з’являться у застосунку «Сільпо».</p>'}
-        <a class="btn btn-blue btn-wide" style="text-decoration:none" href="https://silpo.ua/cart" target="_blank" rel="noreferrer">${icon('basket')}Оформити в «Сільпо»</a>`;
+        <a class="btn btn-blue btn-wide" style="text-decoration:none" href="https://silpo.ua/cart" target="_blank" rel="noreferrer">${icon('basket')}Оформити в «Сільпо»</a>
+        ${cart.items.length ? `<button class="btn btn-plain btn-wide" id="clearCartBtn">${icon('delete')}Очистити кошик</button>` : ''}
+        <div class="listline" style="margin-top:10px">
+          <input id="promoInput" placeholder="Промокод">
+          <button class="btn btn-ink" id="promoBtn">${icon('sale')}Застосувати</button>
+        </div>
+        ${cart.bonusAvailable ? `<button class="btn btn-plain btn-wide" id="bonusBtn">${icon('gift')}Списати ${money(cart.bonusAvailable)} балабонусів</button>` : ''}
+        ${(guest?.certificates || []).slice(0, 3).map((c, i) => `
+          <button class="card-btn" data-cert="${i}">${icon('star')}<div>Сертифікат ${esc(c.barcode || c.code || '')}<span>${c.value ? money(c.value) : 'додати в кошик'}</span></div></button>
+        `).join('')}
+        <div class="listline">
+          <input id="npCity" placeholder="Місто для «Нової пошти»">
+          <button class="btn btn-plain" id="npBtn">НП</button>
+        </div>
+        <div id="npBox"></div>`;
 
       sheetBody.querySelectorAll('[data-remove]').forEach((b) => {
         b.onclick = async () => {
@@ -682,6 +952,81 @@
           }
         };
       });
+      if (el('clearCartBtn')) {
+        el('clearCartBtn').onclick = async (e) => {
+          e.currentTarget.innerHTML = '…';
+          const data = await api('/api/cart/clear', { method: 'POST' }).catch(() => null);
+          if (data?.success) { cart = data.cart; renderCart(); el('cartText').textContent = cartLabel(); }
+        };
+      }
+      if (el('promoBtn')) {
+        el('promoBtn').onclick = async () => {
+          const code = el('promoInput').value.trim();
+          if (!code) return;
+          const data = await api('/api/cart/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ promoCode: code })
+          }).catch(() => null);
+          if (data?.success) { cart = data.cart; renderCart(); }
+          else sheetBody.insertAdjacentHTML('afterbegin', `<div class="banner err">${esc(data?.error || 'Промокод не застосувався')}</div>`);
+        };
+      }
+      if (el('bonusBtn')) {
+        el('bonusBtn').onclick = async () => {
+          const data = await api('/api/cart/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bonusRequested: cart.bonusAvailable })
+          }).catch(() => null);
+          if (data?.success) { cart = data.cart; renderCart(); }
+        };
+      }
+      sheetBody.querySelectorAll('[data-cert]').forEach((btn) => {
+        btn.onclick = async () => {
+          const cert = guest.certificates[Number(btn.dataset.cert)];
+          const data = await api('/api/cart/certificates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              certificatesToAdd: [{ barcode: cert.barcode, pincode: cert.pincode || cert.pin }]
+            })
+          }).catch(() => null);
+          if (data?.success) { cart = data.cart; renderCart(); }
+        };
+      });
+      if (el('npBtn')) {
+        el('npBtn').onclick = async () => {
+          const city = el('npCity').value.trim();
+          if (!city) return;
+          const box = el('npBox');
+          box.innerHTML = '<p class="empty">Шукаю відділення…</p>';
+          const data = await api('/api/novaposhta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ city })
+          }).catch(() => null);
+          if (!data?.success) {
+            box.innerHTML = `<div class="banner err">${esc(data?.error || 'Не знайдено')}</div>`;
+            return;
+          }
+          box.innerHTML = data.offices.map((o, i) => `
+            <button class="card-btn" data-np="${i}">${icon('pin')}<div>${esc(o.title)}<span>№${esc(o.number || '')} · ${esc(o.type || '')}</span></div></button>
+          `).join('') || '<p class="empty">Відділень немає</p>';
+          box.querySelectorAll('[data-np]').forEach((node) => {
+            node.onclick = async () => {
+              const office = data.offices[Number(node.dataset.np)];
+              const applied = await api('/api/novaposhta/apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ office, settlement: data.settlement })
+              }).catch(() => null);
+              if (applied?.success) { cart = applied.cart; renderCart(); }
+              else box.insertAdjacentHTML('afterbegin', `<div class="banner err">${esc(applied?.error || 'Не вдалося змінити доставку')}</div>`);
+            };
+          });
+        };
+      }
     }
 
     document.querySelectorAll('.tab').forEach((b) => { b.onclick = () => setTab(b.dataset.tab); });
@@ -709,7 +1054,10 @@
       if (e.key !== 'Enter') return;
       const value = e.target.value.trim();
       if (!value) return;
-      if (tab === 'stores') loadStores(value);
+      if (tab === 'stores') {
+        if (/[0-9]/.test(value) || value.split(/\s+/).length > 2) nearestFromQuery(value);
+        else loadStores(value);
+      }
       else searchProducts(value);
     });
 

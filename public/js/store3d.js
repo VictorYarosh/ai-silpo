@@ -305,6 +305,10 @@ export class StoreMap3D {
       new THREE.MeshStandardMaterial({ color: zoneColor, roughness: 0.55 })
     );
     header.position.y = shelf.height + 0.15;
+    if (shelf.popular) {
+      header.material.emissive = new THREE.Color(YELLOW);
+      header.material.emissiveIntensity = 0.28;
+    }
     group.add(header);
 
     const sides = shelf.kind === 'wall' || shelf.kind === 'fridge' || shelf.kind === 'counter' ? [1] : [1, -1];
@@ -453,7 +457,8 @@ export class StoreMap3D {
     for (const entry of this.shelves.values()) {
       const active = entry.shelf.id === shelfId;
       entry.header.material.color = new THREE.Color(active ? ORANGE : entry.baseColor);
-      entry.header.material.emissive = new THREE.Color(active ? 0x6b3200 : 0x000000);
+      entry.header.material.emissive = new THREE.Color(active ? 0x6b3200 : entry.shelf.popular ? YELLOW : 0x000000);
+      entry.header.material.emissiveIntensity = active ? 0.6 : entry.shelf.popular ? 0.28 : 0;
       entry.group.scale.setScalar(active ? 1.03 : 1);
     }
   }

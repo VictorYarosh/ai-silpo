@@ -33,18 +33,28 @@
 7. `silpo_get_promotions` + `silpo_get_products` — бере «Цінотижики» і залишає лише ті, що лежать **на маршруті** (геометрія: відстань від полиці до траєкторії < 5 м).
 8. `silpo_add_or_update_cart_products` — додає вибране у справжній кошик Гостя, з яким він іде на касу або оформлює доставку.
 
+Окремі сценарії, які підсилюють ідею навігації, а не роздувають її:
+«як минулого разу в залі» будує маршрут з офлайн-чека, улюблені й продуктові набори — готові проходи по відділах,
+кнопка «i» на товарі тягне деталі / схожі / заміну на іншій полиці, якщо збірщик може не знайти SKU,
+вкладка «Для мене» враховує родину й обмеження в харчуванні, а адреса Гостя знаходить найближчу філію.
+
 Список покупок обробляється так само, але маршрут проходить через усі відділи (порядок —
 nearest-neighbour, кожен перехід прокладає A*) і завершується на касах.
 
 ## Використані tools MCP «Сільпо»
 
-| Область | Tools |
-| --- | --- |
-| Магазини й доставка | `silpo_list_branches`, `silpo_get_time_slots` |
-| Каталог | `silpo_get_categories`, `silpo_get_categories_tree`, `silpo_get_promotions`, `silpo_get_products` |
-| Пошук товарів | `silpo_find_products_batch` |
-| Кошик | `silpo_get_my_shopping_cart`, `silpo_create_shopping_cart`, `silpo_get_shopping_cart_by_id`, `silpo_add_or_update_cart_products`, `silpo_remove_cart_products` |
-| Гість | `silpo_get_my_profile`, `silpo_get_loyalty_info` |
+Усі **40** tools офіційного MCP. Кожен закриває крок навігації, а не «для галочки»:
+
+| Область | Tools | Навігація |
+| --- | --- | --- |
+| Магазин під ногами | `silpo_list_branches`, `silpo_find_address`, `silpo_get_available_delivery_types`, `silpo_get_my_delivery_addresses` | найближча філія до збереженої або введеної адреси |
+| Слот і каталог | `silpo_get_time_slots`, `silpo_get_categories`, `silpo_get_categories_tree`, `silpo_get_category`, `silpo_get_popular_categories` | відділи на 3D-схемі, популярні стелажі підсвічені |
+| Товар → полиця | `silpo_find_products_batch`, `silpo_get_products`, `silpo_get_product_details`, `silpo_get_similar_products`, `silpo_get_replacements` | маршрут, склад, схожі на сусідній полиці, заміна якщо збірщик може не знайти |
+| Готові маршрути | `silpo_get_product_sets`, `silpo_get_my_favorites`, `silpo_add_or_update_favorite_products`, `silpo_get_my_online_orders`, `silpo_get_my_offline_orders` | набір «на сніданок», улюблені, «як минулого разу в залі» |
+| По дорозі | `silpo_get_promotions`, `silpo_get_products` | Цінотижики ближче ніж 5 м до траєкторії |
+| Гість | `silpo_get_my_profile`, `silpo_get_loyalty_info`, `silpo_get_my_family`, `silpo_get_my_food_restrictions`, `silpo_get_my_premium_subscription`, `silpo_get_my_coupons`, `silpo_get_coupon_details`, `silpo_get_my_promos`, `silpo_get_promo_codes`, `silpo_get_my_certificates` | родина (дитячі/зоо відділи), обмеження в видачі, Плюхс, купони |
+| Кошик | `silpo_get_my_shopping_cart`, `silpo_create_shopping_cart`, `silpo_get_shopping_cart_by_id`, `silpo_add_or_update_cart_products`, `silpo_remove_cart_products`, `silpo_clear_shopping_cart`, `silpo_update_shopping_cart`, `silpo_add_or_update_certificates` | той самий кошик, що в застосунку; промокод, балабонуси, сертифікати |
+| Якщо не хоче ходити залом | `silpo_find_nova_poshta_settlements`, `silpo_find_nova_poshta_offices` | альтернатива маршруту — доставка на відділення НП |
 
 Авторизація — **OAuth 2.1 + PKCE з Dynamic Client Registration**, як описано в документації MCP.
 Застосунок ніколи не бачить Silpo JWT: у cookie-сесії живе лише MCP-токен гостя.

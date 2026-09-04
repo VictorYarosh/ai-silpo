@@ -9,23 +9,57 @@ const promoCache = new Map();
 
 const MINUTE = 60 * 1000;
 
-// Tools офіційного MCP «Сільпо», на яких тримається навігатор.
+// Усі 40 tools офіційного MCP «Сільпо» — кожен закриває крок навігації, а не «для галочки».
 export const USED_TOOLS = [
   'silpo_list_branches',
   'silpo_get_time_slots',
   'silpo_get_categories',
   'silpo_get_categories_tree',
+  'silpo_get_category',
+  'silpo_get_popular_categories',
+  'silpo_get_product_sets',
   'silpo_find_products_batch',
   'silpo_get_products',
+  'silpo_get_product_details',
+  'silpo_get_similar_products',
+  'silpo_get_replacements',
   'silpo_get_promotions',
   'silpo_get_my_shopping_cart',
   'silpo_create_shopping_cart',
   'silpo_get_shopping_cart_by_id',
   'silpo_add_or_update_cart_products',
   'silpo_remove_cart_products',
+  'silpo_clear_shopping_cart',
+  'silpo_update_shopping_cart',
+  'silpo_add_or_update_certificates',
   'silpo_get_loyalty_info',
-  'silpo_get_my_profile'
+  'silpo_get_my_profile',
+  'silpo_get_my_family',
+  'silpo_get_my_food_restrictions',
+  'silpo_get_my_favorites',
+  'silpo_add_or_update_favorite_products',
+  'silpo_get_my_coupons',
+  'silpo_get_coupon_details',
+  'silpo_get_my_promos',
+  'silpo_get_promo_codes',
+  'silpo_get_my_certificates',
+  'silpo_get_my_premium_subscription',
+  'silpo_get_my_online_orders',
+  'silpo_get_my_offline_orders',
+  'silpo_get_my_delivery_addresses',
+  'silpo_find_address',
+  'silpo_get_available_delivery_types',
+  'silpo_find_nova_poshta_settlements',
+  'silpo_find_nova_poshta_offices'
 ];
+
+const soft = (promise) => promise.catch(() => null);
+const listOf = (...candidates) => {
+  for (const value of candidates) {
+    if (Array.isArray(value)) return value;
+  }
+  return [];
+};
 
 // «Київ, вулиця Івана Франка» має знаходити «Київ, вул. Івана Франка».
 const STREET_WORDS = ['вулиця', 'вул', 'проспект', 'просп', 'бульвар', 'бул', 'площа', 'пл', 'шосе', 'провулок', 'пров', 'набережна'];
@@ -216,6 +250,21 @@ export async function getLayout(call, branchId, seed = branchId) {
   }
 
   const layout = buildLayout(departments.list, seed);
+
+  // Популярні категорії філії підсвічуємо на схемі — Гість одразу бачить, куди зараз ідуть люди.
+  const ctx = await branchContext(call, branchId).catch(() => null);
+  if (ctx) {
+    const popular = await soft(call('silpo_get_popular_categories', {
+      branchId,
+      deliveryType: ctx.deliveryType
+    }));
+    const slugs = new Set(listOf(popular?.categories, popular?.items, popular?.popularCategories)
+      .map((c) => c.slug || c.categorySlug)
+      .filter(Boolean));
+    for (const shelf of layout.shelves) {
+      if (slugs.has(shelf.slug)) shelf.popular = true;
+    }
+  }
   layoutCache.set(key, { at: Date.now(), layout });
   return layout;
 }
@@ -238,6 +287,7 @@ function normalizeProduct(product) {
     slug: product.slug || null,
     name: product.name || product.title || 'Товар',
     displayRatio: product.displayRatio || null,
+    externalProductId: product.externalProductId || product.lagerId || null,
     price,
     oldPrice: oldPrice && oldPrice !== price ? oldPrice : null,
     specialPrice: special ? { price: special.price, count: special.count } : null,
@@ -397,8 +447,13 @@ function cartSummary(payload) {
     positions: items.length,
     total: calc.totalAfterDiscounts ?? calc.total ?? 0,
     discount: calc.subDiscount ?? 0,
-    bonusAvailable: payload?.loyalty?.bonusAvailable ?? null,
-    bonusTotal: payload?.loyalty?.bonusTotal ?? null,
+    bonusAvailable: payload?.loyalty?.bonusAvailable ?? cart.bonusAvailable ?? null,
+    bonusTotal: payload?.loyalty?.bonusTotal ?? cart.bonusTotal ?? null,
+    certificates: listOf(cart.certificates, payload?.certificates),
+    validations: listOf(cart.validations, payload?.validations),
+    promoCode: cart.promoCode || null,
+    timeslot: cart.timeslot || null,
+    address: cart.address || null,
     items: items.map((p) => ({
       productId: p.productId || p.id,
       name: p.name || '',
@@ -440,10 +495,381 @@ export async function removeFromCart(call, { productId }) {
   return cartSummary(await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id }));
 }
 
+export async function clearCart(call) {
+  const id = await cartId(call);
+  await call('silpo_clear_shopping_cart', { shoppingCartId: id });
+  return cartSummary(await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id }));
+}
+
+async function cartPayload(call) {
+  const id = await cartId(call);
+  const payload = await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id });
+  return { id, payload, cart: payload?.cart || payload || {} };
+}
+
+export async function updateCart(call, patch = {}) {
+  const { id, cart } = await cartPayload(call);
+  if (!cart.timeslot || !cart.address || !cart.shipments) {
+    throw new Error('Кошик ще без адреси чи слота — спочатку оберіть доставку в застосунку «Сільпо»');
+  }
+  const body = {
+    shoppingCartId: id,
+    deliveryType: patch.deliveryType || cart.deliveryType,
+    timeslot: patch.timeslot || cart.timeslot,
+    address: patch.address || cart.address,
+    shipments: cart.shipments
+  };
+  if (patch.branchId) body.branchId = patch.branchId;
+  if (patch.promoCode != null) body.promoCode = patch.promoCode;
+  if (patch.bonusRequested != null) body.bonusRequested = patch.bonusRequested;
+  if (patch.isAdultConfirmed != null) body.isAdultConfirmed = patch.isAdultConfirmed;
+  await call('silpo_update_shopping_cart', body);
+  return cartSummary(await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id }));
+}
+
+export async function applyCertificates(call, { certificatesToAdd = [], certificatesToRemove = [] }) {
+  const id = await cartId(call);
+  await call('silpo_add_or_update_certificates', { shoppingCartId: id, certificatesToAdd, certificatesToRemove });
+  return cartSummary(await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id }));
+}
+
+function routePack(layout, products) {
+  const navigated = withNavigation(products, layout);
+  const shelves = navigated
+    .map((p) => layout.shelves.find((s) => s.id === p.shelfId))
+    .filter(Boolean);
+  const { points, order } = buildMultiRoute(layout, shelves);
+  return { products: navigated, route: points, order };
+}
+
+function restrictionLabels(raw) {
+  const items = listOf(raw?.restrictions, raw?.items, raw?.foodRestrictions, Array.isArray(raw) ? raw : []);
+  return items
+    .map((item) => (typeof item === 'string' ? item : item.title || item.name || item.code || ''))
+    .filter(Boolean);
+}
+
+function familyHints(raw) {
+  const children = listOf(raw?.children, raw?.kids);
+  const pets = listOf(raw?.pets, raw?.animals);
+  const members = listOf(raw?.members, raw?.familyMembers);
+  const hints = [];
+  if (children.length || members.some((m) => /дитин|child|kid/i.test(JSON.stringify(m)))) hints.push('kids');
+  if (pets.length) hints.push('pets');
+  return {
+    members: members.length,
+    children: children.length,
+    pets: pets.length,
+    zones: hints
+  };
+}
+
 export async function readProfile(call) {
-  const [profile, loyalty] = await Promise.all([
-    call('silpo_get_my_profile', {}).catch(() => null),
-    call('silpo_get_loyalty_info', {}).catch(() => null)
+  const [profile, loyalty, family, restrictions, premium, coupons, promos, codes, certificates, addresses] = await Promise.all([
+    soft(call('silpo_get_my_profile', {})),
+    soft(call('silpo_get_loyalty_info', {})),
+    soft(call('silpo_get_my_family', {})),
+    soft(call('silpo_get_my_food_restrictions', {})),
+    soft(call('silpo_get_my_premium_subscription', {})),
+    soft(call('silpo_get_my_coupons', {})),
+    soft(call('silpo_get_my_promos', {})),
+    soft(call('silpo_get_promo_codes', {})),
+    soft(call('silpo_get_my_certificates', { limit: 50, offset: 0 })),
+    soft(call('silpo_get_my_delivery_addresses', {}))
   ]);
-  return { profile, loyalty };
+
+  const couponList = listOf(coupons?.coupons, coupons?.items, coupons?.businessCoupons).slice(0, 3);
+  const couponDetails = await Promise.all(couponList.map((coupon) => {
+    const id = coupon.businessCouponId ?? coupon.id;
+    return id != null
+      ? soft(call('silpo_get_coupon_details', { businessCouponId: Number(id) }))
+      : Promise.resolve(coupon);
+  }));
+
+  const premiumActive = Boolean(
+    premium?.active || premium?.isActive || premium?.subscription?.active || premium?.hasSubscription
+  );
+
+  return {
+    profile,
+    loyalty,
+    family: familyHints(family),
+    familyRaw: family,
+    restrictions: restrictionLabels(restrictions),
+    premium: {
+      active: premiumActive,
+      title: premium?.title || premium?.name || (premiumActive ? 'Плюхс' : 'Плюхс не оформлено'),
+      webLink: premium?.webLink || premium?.subscribeWebLink || null,
+      mobileLink: premium?.mobileLink || premium?.subscribeMobileLink || null,
+      shareWebLink: premium?.shareWebLink || null,
+      shareMobileLink: premium?.shareMobileLink || null
+    },
+    coupons: couponDetails.map((item, i) => item || couponList[i]).filter(Boolean),
+    promos: listOf(promos?.promos, promos?.items, promos?.offers),
+    promoCodes: listOf(codes?.promoCodes, codes?.items, codes?.codes),
+    certificates: listOf(certificates?.certificates, certificates?.items),
+    addresses: listOf(addresses?.addresses, addresses?.items, addresses?.deliveryAddresses)
+  };
+}
+
+export async function personalForStore(call, { branchId, seed }) {
+  const ctx = await branchContext(call, branchId);
+  const layout = await getLayout(call, branchId, seed || branchId);
+  const [favorites, sets, online, offline] = await Promise.all([
+    soft(call('silpo_get_my_favorites', {
+      branchId,
+      deliveryType: ctx.deliveryType,
+      timeslotStart: ctx.timeslotStart,
+      limit: 40
+    })),
+    soft(call('silpo_get_product_sets', { branchId, deliveryType: ctx.deliveryType })),
+    soft(call('silpo_get_my_online_orders', { limit: 5, offset: 0 })),
+    soft(call('silpo_get_my_offline_orders', { ...ctx, limit: 5, offset: 0 }))
+  ]);
+
+  const favProducts = withNavigation(listOf(favorites?.products, favorites?.items, favorites?.favorites), layout);
+  return {
+    favorites: favProducts,
+    sets: listOf(sets?.sets, sets?.items, sets?.productSets).map((set) => ({
+      slug: set.slug,
+      title: set.title || set.name,
+      image: set.image || set.imageUrl || null,
+      total: set.total || set.productsCount || null
+    })).filter((s) => s.slug && s.title),
+    onlineOrders: listOf(online?.orders, online?.items).slice(0, 5).map(summarizeOrder),
+    offlineOrders: listOf(offline?.orders, offline?.items).slice(0, 5).map(summarizeOrder)
+  };
+}
+
+function summarizeOrder(order) {
+  const products = orderLines(order);
+  return {
+    id: order.id || order.orderId || order.chequeId || null,
+    createdAt: order.createdAt || order.date || order.purchasedAt || null,
+    total: order.total || order.amount || order.sum || null,
+    count: products.length,
+    title: products.slice(0, 3).map((p) => p.name || p.title).filter(Boolean).join(', ')
+  };
+}
+
+function orderLines(order) {
+  return listOf(
+    order?.products,
+    order?.items,
+    (order?.shipments || []).flatMap((s) => s.products || [])
+  );
+}
+
+export async function productInsight(call, { branchId, slug, productId, companyId, seed }) {
+  if (!slug) throw new Error('Потрібен slug товару з каталогу');
+  const ctx = await branchContext(call, branchId);
+  const layout = await getLayout(call, branchId, seed || branchId);
+  const [details, similar, replacements] = await Promise.all([
+    call('silpo_get_product_details', { ...ctx, slug }),
+    soft(call('silpo_get_similar_products', {
+      branchId,
+      slug,
+      deliveryType: ctx.deliveryType,
+      limit: 8
+    })),
+    productId && companyId
+      ? soft(call('silpo_get_replacements', {
+        branchId,
+        companyId,
+        productIds: [productId],
+        deliveryType: ctx.deliveryType
+      }))
+      : null
+  ]);
+
+  const similarProducts = withNavigation(listOf(similar?.products, similar?.items, similar?.similar), layout);
+  const replacementProducts = withNavigation(
+    listOf(replacements?.items, replacements?.products, replacements?.replacements)
+      .flatMap((item) => listOf(item?.candidates, item?.products, item?.replacements, item ? [item] : []))
+      .filter((p) => p?.id || p?.name),
+    layout
+  );
+
+  return {
+    details: details?.product || details,
+    similar: similarProducts,
+    replacements: replacementProducts,
+    atRisk: Boolean(replacementProducts.length)
+  };
+}
+
+export async function shelfDetails(call, { branchId, categorySlug }) {
+  const ctx = await branchContext(call, branchId);
+  const data = await call('silpo_get_category', {
+    branchId,
+    deliveryType: ctx.deliveryType,
+    categorySlug
+  });
+  return { category: data?.category || data };
+}
+
+export async function toggleFavorite(call, { productId, externalProductId, toDelete = false }) {
+  if (!productId || !externalProductId) throw new Error('Потрібні productId і externalProductId');
+  await call('silpo_add_or_update_favorite_products', {
+    actions: [{ productId, externalProductId, toDelete: Boolean(toDelete) }]
+  });
+  return { ok: true, toDelete: Boolean(toDelete) };
+}
+
+export async function routeFromSet(call, { branchId, slug, seed }) {
+  const ctx = await branchContext(call, branchId);
+  const [layout, data] = await Promise.all([
+    getLayout(call, branchId, seed || branchId),
+    call('silpo_get_products', { ...ctx, set: slug, limit: 40, inStock: true })
+  ]);
+  return { title: slug, ...routePack(layout, listOf(data?.products, data?.items)) };
+}
+
+export async function routeFromFavorites(call, { branchId, seed }) {
+  const ctx = await branchContext(call, branchId);
+  const [layout, data] = await Promise.all([
+    getLayout(call, branchId, seed || branchId),
+    call('silpo_get_my_favorites', {
+      branchId,
+      deliveryType: ctx.deliveryType,
+      timeslotStart: ctx.timeslotStart,
+      limit: 40
+    })
+  ]);
+  return { title: 'Улюблені', ...routePack(layout, listOf(data?.products, data?.items, data?.favorites)) };
+}
+
+export async function routeFromOrder(call, { branchId, seed, source = 'offline' }) {
+  const ctx = await branchContext(call, branchId);
+  const layout = await getLayout(call, branchId, seed || branchId);
+  let products = [];
+
+  if (source === 'online') {
+    const data = await call('silpo_get_my_online_orders', { limit: 3, offset: 0 });
+    const order = listOf(data?.orders, data?.items)[0];
+    if (!order) throw new Error('Онлайн-замовлень ще немає');
+    products = orderLines(order).map((line) => line.catalogProduct || line).filter((p) => p?.id || p?.name);
+  } else {
+    const data = await call('silpo_get_my_offline_orders', { ...ctx, limit: 3, offset: 0 });
+    const order = listOf(data?.orders, data?.items)[0];
+    if (!order) throw new Error('Покупок у залі за карткою ще немає');
+    const resolved = [];
+    const missing = [];
+    for (const line of orderLines(order)) {
+      if (line.catalogProduct) resolved.push(line.catalogProduct);
+      else missing.push(String(line.lagerId || line.externalProductId || line.name || '').trim());
+    }
+    const queries = missing.filter(Boolean).slice(0, 30);
+    if (queries.length) {
+      const found = await call('silpo_find_products_batch', { ...ctx, products: queries, limit: 1 });
+      for (const q of found?.queries || []) {
+        if (q.products?.[0]) resolved.push(q.products[0]);
+      }
+    }
+    products = resolved;
+  }
+
+  return { title: source === 'online' ? 'Останнє онлайн-замовлення' : 'Останній чек у залі', ...routePack(layout, products) };
+}
+
+function haversine(a, b) {
+  if (a.lat == null || a.lng == null || b.lat == null || b.lng == null) return Infinity;
+  const toRad = (v) => (v * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+}
+
+export async function nearestStores(call, { address, latitude, longitude } = {}) {
+  let lat = latitude != null ? Number(latitude) : null;
+  let lng = longitude != null ? Number(longitude) : null;
+  let resolved = null;
+
+  if ((lat == null || lng == null) && address) {
+    const found = await call('silpo_find_address', { address });
+    resolved = listOf(found?.addresses, found?.items)[0] || null;
+    lat = Number(resolved?.latitude ?? resolved?.lat);
+    lng = Number(resolved?.longitude ?? resolved?.lng);
+  }
+
+  if (lat == null || lng == null || Number.isNaN(lat) || Number.isNaN(lng)) {
+    throw new Error('Не вдалося визначити координати адреси');
+  }
+
+  const [delivery, all] = await Promise.all([
+    soft(call('silpo_get_available_delivery_types', { latitude: lat, longitude: lng })),
+    listStores(call)
+  ]);
+
+  const here = { lat, lng };
+  const stores = all.stores
+    .map((store) => ({
+      ...store,
+      km: store.latitude && store.longitude
+        ? Math.round(haversine(here, { lat: store.latitude, lng: store.longitude }) * 10) / 10
+        : null
+    }))
+    .filter((s) => s.km != null)
+    .sort((a, b) => a.km - b.km);
+
+  const types = listOf(delivery?.deliveryTypes, delivery?.items, delivery?.types);
+  return {
+    latitude: lat,
+    longitude: lng,
+    resolved,
+    deliveryTypes: types.map((t) => ({
+      type: t.deliveryType || t.type || t.id,
+      branchId: t.branchId || null,
+      title: t.title || t.name || t.deliveryType || t.type
+    })),
+    stores: stores.slice(0, 12)
+  };
+}
+
+export async function novaPoshtaOffices(call, { city, query }) {
+  const settlements = await call('silpo_find_nova_poshta_settlements', { title: city });
+  const settlement = listOf(settlements?.settlements, settlements?.items)[0];
+  if (!settlement?.id) throw new Error('Місто для «Нової пошти» не знайдено');
+  const offices = await call('silpo_find_nova_poshta_offices', {
+    settlementId: settlement.id,
+    title: query || undefined
+  });
+  return {
+    settlement: { id: settlement.id, title: settlement.title || settlement.name || city },
+    offices: listOf(offices?.offices, offices?.items).slice(0, 20).map((office) => ({
+      id: office.id,
+      number: office.number,
+      title: office.title || office.address || `Відділення ${office.number}`,
+      type: office.type,
+      latitude: office.latitude,
+      longitude: office.longitude
+    }))
+  };
+}
+
+export async function setNovaPoshta(call, { office, settlement }) {
+  const { id, cart } = await cartPayload(call);
+  if (!cart.timeslot || !cart.shipments) {
+    throw new Error('У кошику ще немає слота — оберіть доставку в застосунку «Сільпо»');
+  }
+  await call('silpo_update_shopping_cart', {
+    shoppingCartId: id,
+    deliveryType: 'NovaPoshta',
+    timeslot: cart.timeslot,
+    shipments: cart.shipments,
+    address: {
+      ...(cart.address || {}),
+      addressType: 'NovaPoshta',
+      settlementId: settlement.id,
+      id: office.id,
+      number: office.number,
+      type: office.type,
+      latitude: office.latitude,
+      longitude: office.longitude,
+      title: office.title
+    }
+  });
+  return cartSummary(await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id }));
 }

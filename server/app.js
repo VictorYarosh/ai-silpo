@@ -6,14 +6,27 @@ import { commitSession, readSession } from './session.js';
 import {
   USED_TOOLS,
   addToCart,
+  applyCertificates,
+  clearCart,
   getLayout,
   listStores,
+  nearestStores,
+  novaPoshtaOffices,
+  personalForStore,
+  productInsight,
   promosOnTheWay,
   readCart,
   readProfile,
   removeFromCart,
+  routeFromFavorites,
+  routeFromOrder,
+  routeFromSet,
   searchList,
-  searchProduct
+  searchProduct,
+  setNovaPoshta,
+  shelfDetails,
+  toggleFavorite,
+  updateCart
 } from './silpo.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -148,6 +161,54 @@ export function createApp() {
 
   app.get('/api/me', route(({ call }) => readProfile(call)));
 
+  app.get('/api/personal', route(({ req, call }) => {
+    const branchId = String(req.query.branchId || '');
+    if (!branchId) throw new Error('Потрібен branchId');
+    return personalForStore(call, { branchId, seed: req.query.seed });
+  }));
+
+  app.post('/api/nearest', route(({ req, call }) => {
+    const { address, latitude, longitude } = req.body || {};
+    if (!address && (latitude == null || longitude == null)) throw new Error('Потрібна адреса або координати');
+    return nearestStores(call, { address, latitude, longitude });
+  }));
+
+  app.post('/api/product', route(({ req, call }) => {
+    const { branchId, slug, productId, companyId, seed } = req.body || {};
+    if (!branchId || !slug) throw new Error('Потрібні branchId і slug');
+    return productInsight(call, { branchId, slug, productId, companyId, seed });
+  }));
+
+  app.get('/api/shelf', route(({ req, call }) => {
+    const branchId = String(req.query.branchId || '');
+    const categorySlug = String(req.query.slug || '');
+    if (!branchId || !categorySlug) throw new Error('Потрібні branchId і slug відділу');
+    return shelfDetails(call, { branchId, categorySlug });
+  }));
+
+  app.post('/api/favorites', route(({ req, call }) => {
+    const { productId, externalProductId, toDelete } = req.body || {};
+    return toggleFavorite(call, { productId, externalProductId, toDelete });
+  }));
+
+  app.post('/api/route/set', route(({ req, call }) => {
+    const { branchId, slug, seed } = req.body || {};
+    if (!branchId || !slug) throw new Error('Потрібні branchId і slug набору');
+    return routeFromSet(call, { branchId, slug, seed });
+  }));
+
+  app.post('/api/route/favorites', route(({ req, call }) => {
+    const { branchId, seed } = req.body || {};
+    if (!branchId) throw new Error('Потрібен branchId');
+    return routeFromFavorites(call, { branchId, seed });
+  }));
+
+  app.post('/api/route/repeat', route(({ req, call }) => {
+    const { branchId, seed, source } = req.body || {};
+    if (!branchId) throw new Error('Потрібен branchId');
+    return routeFromOrder(call, { branchId, seed, source });
+  }));
+
   app.get('/api/cart', route(async ({ call }) => ({ cart: await readCart(call) })));
 
   app.post('/api/cart/add', route(async ({ req, call }) => {
@@ -160,6 +221,30 @@ export function createApp() {
     const { productId } = req.body || {};
     if (!productId) throw new Error('Потрібен productId');
     return { cart: await removeFromCart(call, { productId }) };
+  }));
+
+  app.post('/api/cart/clear', route(async ({ call }) => ({ cart: await clearCart(call) })));
+
+  app.post('/api/cart/update', route(async ({ req, call }) => {
+    const { promoCode, bonusRequested, isAdultConfirmed, deliveryType } = req.body || {};
+    return { cart: await updateCart(call, { promoCode, bonusRequested, isAdultConfirmed, deliveryType }) };
+  }));
+
+  app.post('/api/cart/certificates', route(async ({ req, call }) => {
+    const { certificatesToAdd, certificatesToRemove } = req.body || {};
+    return { cart: await applyCertificates(call, { certificatesToAdd, certificatesToRemove }) };
+  }));
+
+  app.post('/api/novaposhta', route(({ req, call }) => {
+    const { city, query } = req.body || {};
+    if (!city) throw new Error('Потрібна назва міста');
+    return novaPoshtaOffices(call, { city, query });
+  }));
+
+  app.post('/api/novaposhta/apply', route(async ({ req, call }) => {
+    const { office, settlement } = req.body || {};
+    if (!office?.id || !settlement?.id) throw new Error('Оберіть відділення «Нової пошти»');
+    return { cart: await setNovaPoshta(call, { office, settlement }) };
   }));
 
   return app;
