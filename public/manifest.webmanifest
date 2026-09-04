@@ -1,0 +1,11 @@
+{
+  "name": "Сільпо Навігатор",
+  "short_name": "Навігатор",
+  "description": "3D-навігація по магазину Сільпо на базі офіційного MCP",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF7EA",
+  "theme_color": "#FE860F",
+  "orientation": "portrait",
+  "lang": "uk"
+}

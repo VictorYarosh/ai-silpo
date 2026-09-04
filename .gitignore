@@ -6,3 +6,4 @@ dist
 .cache
 .vercel
 .env*
+.idea
