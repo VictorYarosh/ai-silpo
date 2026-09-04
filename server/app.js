@@ -22,7 +22,9 @@ export function createApp() {
   const app = express();
 
   app.use(express.json());
-  app.use(express.static(join(__dirname, '../public'), { maxAge: '1h' }));
+  app.use(express.static(join(__dirname, '../public'), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0
+  }));
 
   const redirectUrl = (req) => {
     const base = process.env.PUBLIC_URL

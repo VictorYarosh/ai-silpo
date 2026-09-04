@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#FE860F">
+  <meta name="theme-color" content="#2358D1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="description" content="AI-навігатор по магазину Сільпо на офіційному MCP: 3D-схема залу, маршрут до товару та Цінотижики по дорозі.">
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/css/silpo.css">
   <title>Сільпо Навігатор — маршрут до товару</title>
   <style>
     :root {
-      --orange: #FE860F;
-      --orange-dark: #DB5800;
-      --yellow: #FFD939;
-      --blue: #317DE9;
-      --ink: #221812;
-      --muted-fg: #6B5A4D;
-      --cream: #FFF7EA;
-      --muted: #F9F1E3;
-      --secondary: #FBECD9;
-      --border: #E6DCD0;
-      --danger: #E60016;
+      --blue: #2358D1;
+      --blue-dark: #1B47AA;
+      --blue-soft: #EAF0FD;
+      --red: #DA291C;
+      --yellow: #FBBB5E;
+      --yellow-soft: #FFE2AD;
+      --orange: #FE8522;
+      --green: #07B324;
+      --ink: #202124;
+      --muted: #6E7480;
+      --bg: #F2F4F9;
       --card: #FFFFFF;
+      --border: #DEDFE0;
       --radius: 16px;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
@@ -29,9 +31,10 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; overscroll-behavior: none; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--cream); color: var(--ink); display: flex; flex-direction: column;
+      font-family: 'Silpo Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--ink); display: flex; flex-direction: column;
     }
+    button, input { font-family: inherit; }
     .hidden { display: none !important; }
 
     .side { display: flex; flex-direction: column; min-height: 0; }
@@ -39,101 +42,131 @@
       background: var(--card); border-bottom: 1px solid var(--border);
       padding: calc(10px + var(--safe-t)) 14px 10px; display: flex; align-items: center; gap: 8px;
     }
-    .logo { font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
-    .logo b { color: var(--orange); }
+    .logo { font-weight: 800; font-size: 17px; letter-spacing: -0.4px; }
+    .logo span { color: var(--red); }
     .chip {
-      background: var(--yellow); color: var(--ink); padding: 5px 10px;
-      border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px; border: 0;
+      padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;
     }
-    .chip.cart { background: var(--orange); color: #fff; margin-left: auto; border: 0; }
-    .icon-btn { background: var(--muted); border: 1px solid var(--border); color: var(--ink); width: 32px; height: 32px; border-radius: 999px; font-size: 14px; }
+    .chip.bonus { background: var(--yellow-soft); color: #7A5416; }
+    .chip.cart { background: var(--blue); color: #fff; margin-left: auto; }
+    .chip.cart:active { background: var(--blue-dark); }
+    .icon-btn {
+      background: var(--bg); border: 1px solid var(--border); color: var(--muted);
+      width: 34px; height: 34px; border-radius: 999px; font-size: 15px; display: grid; place-items: center;
+    }
 
     .searchbar { background: var(--card); padding: 0 14px 12px; border-bottom: 1px solid var(--border); }
-    .searchbar input {
-      width: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
-      font-size: 16px; background: var(--muted); color: var(--ink);
+    .field { position: relative; }
+    .field .si {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 17px; pointer-events: none;
     }
-    .searchbar input:focus { outline: 2px solid var(--orange); background: #fff; }
+    .field input {
+      width: 100%; border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px 13px 42px;
+      font-size: 16px; background: var(--bg); color: var(--ink);
+    }
+    .field input:focus { outline: none; border-color: var(--blue); background: #fff; }
     .storechip {
       display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px;
-      color: var(--muted-fg); background: var(--secondary); padding: 8px 12px; border-radius: 12px;
+      color: var(--muted); background: var(--bg); padding: 9px 12px; border-radius: 14px;
     }
+    .storechip .si { color: var(--red); font-size: 15px; }
     .storechip strong { color: var(--ink); }
-    .storechip button { margin-left: auto; background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 5px 12px; font-size: 11px; font-weight: 700; }
+    .storechip button { margin-left: auto; background: var(--blue); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; font-size: 11px; font-weight: 700; }
 
     main { flex: 1; position: relative; min-height: 0; }
     canvas#map { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
     .map-hint {
-      position: absolute; left: 12px; top: 12px; background: rgba(255,255,255,.94);
-      border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px;
-      font-size: 12px; color: var(--muted-fg); max-width: 62%;
+      position: absolute; left: 12px; top: 12px; background: rgba(255,255,255,.95);
+      border: 1px solid var(--border); border-radius: 14px; padding: 9px 12px;
+      font-size: 12px; color: var(--muted); max-width: 60%; line-height: 1.4;
     }
     .zoom { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .zoom button { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border); background: #fff; font-size: 15px; }
+    .zoom button {
+      width: 40px; height: 40px; border-radius: 14px; border: 1px solid var(--border);
+      background: #fff; color: var(--ink); font-size: 16px; display: grid; place-items: center;
+    }
+    .zoom button:active { background: var(--blue-soft); }
     .mcp-badge {
       position: absolute; left: 12px; bottom: 12px; background: var(--ink); color: #fff;
-      border-radius: 999px; padding: 6px 12px; font-size: 11px; font-weight: 600; opacity: .9;
+      border-radius: 999px; padding: 7px 12px; font-size: 11px; font-weight: 600; opacity: .92;
+      display: inline-flex; align-items: center; gap: 6px;
     }
 
     .sheet {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--card);
-      border-radius: 20px 20px 0 0; box-shadow: 0 -6px 24px rgba(34,24,18,.14);
+      border-radius: 20px 20px 0 0; box-shadow: 0 -6px 24px rgba(32,33,36,.12);
       max-height: 74%; display: flex; flex-direction: column;
       padding-bottom: var(--safe-b); transition: transform .25s ease;
     }
-    .sheet.collapsed { transform: translateY(calc(100% - 92px)); }
+    .sheet.collapsed { transform: translateY(calc(100% - 96px)); }
     .grabber { padding: 10px; display: flex; justify-content: center; }
     .grabber i { width: 42px; height: 4px; background: var(--border); border-radius: 999px; display: block; }
     .tabs { display: flex; gap: 6px; padding: 0 12px 10px; }
-    .tab { flex: 1; border: 1px solid var(--border); background: var(--muted); color: var(--muted-fg); padding: 9px 4px; border-radius: 10px; font-size: 12px; font-weight: 700; }
-    .tab.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .tab {
+      flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+      padding: 10px 4px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    }
+    .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
     .sheet-head { display: flex; align-items: baseline; gap: 8px; padding: 0 16px 10px; }
-    .sheet-head h2 { font-size: 15px; font-weight: 800; }
-    .sheet-head .count { color: var(--muted-fg); font-size: 12px; }
+    .sheet-head h2 { font-size: 16px; font-weight: 800; }
+    .sheet-head .count { color: var(--muted); font-size: 12px; }
     .sheet-body { overflow: auto; padding: 0 12px 16px; -webkit-overflow-scrolling: touch; }
 
-    .row { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: var(--radius); background: #fff; border: 1px solid var(--border); margin-bottom: 8px; }
-    .row img { width: 52px; height: 52px; object-fit: contain; border-radius: 10px; background: var(--muted); }
+    .row {
+      display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: var(--radius);
+      background: var(--card); border: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .row img { width: 54px; height: 54px; object-fit: contain; border-radius: 10px; background: var(--bg); }
     .row .info { flex: 1; min-width: 0; }
-    .row .name { font-size: 13px; font-weight: 700; line-height: 1.3; }
-    .row .sub { font-size: 11px; color: var(--muted-fg); margin-top: 4px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-    .pill { background: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: 10px; color: var(--muted-fg); }
-    .pill.promo { background: var(--yellow); border-color: var(--yellow); color: var(--ink); font-weight: 800; }
-    .price { font-weight: 800; font-size: 14px; white-space: nowrap; text-align: right; }
-    .price s { display: block; font-weight: 500; font-size: 10px; color: var(--muted-fg); }
+    .row .name { font-size: 13px; font-weight: 600; line-height: 1.35; }
+    .row .sub { font-size: 11px; color: var(--muted); margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+    .pill { background: var(--bg); border-radius: 999px; padding: 3px 9px; font-size: 10px; color: var(--muted); }
+    .pill.promo { background: var(--yellow); color: #4A3208; font-weight: 800; }
+    .price { font-weight: 800; font-size: 15px; white-space: nowrap; text-align: right; }
+    .price s { display: block; font-weight: 400; font-size: 10px; color: var(--muted); }
     .acts { display: flex; flex-direction: column; gap: 6px; }
-    .btn { border: 0; border-radius: 10px; padding: 9px 10px; font-size: 11px; font-weight: 800; min-width: 62px; }
-    .btn-orange { background: var(--orange); color: #fff; }
+    .btn {
+      border: 0; border-radius: 999px; padding: 9px 12px; font-size: 11px; font-weight: 700;
+      min-width: 68px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .btn .si { font-size: 13px; }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn-blue:active { background: var(--blue-dark); }
     .btn-ink { background: var(--ink); color: #fff; }
-    .btn-plain { background: var(--muted); color: var(--ink); border: 1px solid var(--border); }
-    .btn-wide { width: 100%; padding: 13px; font-size: 14px; margin-top: 8px; }
+    .btn-plain { background: var(--bg); color: var(--ink); border: 1px solid var(--border); }
+    .btn-wide { width: 100%; padding: 14px; font-size: 14px; margin-top: 8px; }
 
-    .promo-block { border: 1px dashed var(--orange); background: #FFFCF5; border-radius: var(--radius); padding: 10px; margin-bottom: 10px; }
+    .promo-block { border: 1px solid var(--yellow); background: #FFFBF2; border-radius: var(--radius); padding: 10px; margin-bottom: 10px; }
     .promo-block h3 { font-size: 12px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-    .promo-block h3 span { background: var(--yellow); border-radius: 999px; padding: 2px 8px; font-size: 10px; }
-    .promo-row { display: flex; gap: 10px; align-items: center; padding: 8px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 6px; }
-    .promo-row img { width: 42px; height: 42px; object-fit: contain; border-radius: 8px; background: var(--muted); }
+    .promo-block h3 .si { color: var(--orange); font-size: 15px; }
+    .promo-block h3 b { background: var(--yellow); border-radius: 999px; padding: 3px 9px; font-size: 10px; color: #4A3208; }
+    .promo-row { display: flex; gap: 10px; align-items: center; padding: 8px; background: #fff; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 6px; }
+    .promo-row img { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; background: var(--bg); }
     .promo-row .info { flex: 1; min-width: 0; }
-    .promo-row .name { font-size: 12px; font-weight: 700; }
-    .promo-row .meta { font-size: 10px; color: var(--muted-fg); margin-top: 3px; }
-    .save { background: var(--danger); color: #fff; border-radius: 999px; padding: 2px 7px; font-size: 10px; font-weight: 800; }
+    .promo-row .name { font-size: 12px; font-weight: 600; }
+    .promo-row .meta { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .save { background: var(--red); color: #fff; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 800; text-align: center; }
 
-    .store { padding: 12px; border-bottom: 1px solid var(--border); }
-    .store:active { background: var(--muted); }
+    .store { padding: 12px; border-radius: 14px; margin-bottom: 6px; background: var(--card); border: 1px solid var(--border); }
+    .store:active { background: var(--blue-soft); }
     .store .city { font-size: 13px; font-weight: 800; }
-    .store .addr { font-size: 12px; color: var(--muted-fg); margin-top: 2px; }
-    .store .flags { font-size: 10px; color: var(--muted-fg); margin-top: 4px; }
+    .store .addr { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .store .flags { font-size: 10px; color: var(--green); margin-top: 5px; font-weight: 600; }
+    .store .flags.closed { color: var(--muted); }
 
-    .empty { text-align: center; color: var(--muted-fg); font-size: 12px; padding: 22px 12px; line-height: 1.5; }
-    .banner { margin: 0 0 10px; padding: 12px; border-radius: 12px; font-size: 12px; line-height: 1.45; }
-    .banner.warn { background: var(--secondary); color: var(--ink); }
-    .banner.err { background: #FFECEE; color: var(--danger); }
-    .banner.ok { background: #EAF7EE; color: #1C7A3E; }
+    .empty { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 12px; line-height: 1.55; }
+    .banner { margin: 0 0 10px; padding: 12px; border-radius: 14px; font-size: 12px; line-height: 1.5; }
+    .banner.warn { background: var(--yellow-soft); color: #7A5416; }
+    .banner.err { background: #FDECEA; color: var(--red); }
+    .banner.ok { background: #E8F8EC; color: #0A7A25; }
+    .banner.info { background: var(--blue-soft); color: var(--blue-dark); }
     .listline { display: flex; gap: 8px; padding: 0 0 10px; }
-    .listline input { flex: 1; border: 1px solid var(--border); border-radius: 12px; padding: 11px 12px; font-size: 14px; background: var(--muted); }
-    .step { display: flex; gap: 10px; align-items: center; padding: 10px 12px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 6px; font-size: 12px; }
-    .step b { width: 22px; height: 22px; border-radius: 999px; background: var(--orange); color: #fff; font-size: 11px; display: grid; place-items: center; flex: none; }
-    .total { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--secondary); border-radius: 12px; font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+    .listline input { flex: 1; border: 1px solid var(--border); border-radius: 14px; padding: 12px; font-size: 14px; background: var(--bg); }
+    .step { display: flex; gap: 10px; align-items: center; padding: 11px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 6px; font-size: 12px; }
+    .step b { width: 24px; height: 24px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 11px; display: grid; place-items: center; flex: none; }
+    .total { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--blue-soft); border-radius: 14px; font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--blue-dark); }
 
     @media (min-width: 900px) {
       body { flex-direction: row; }
@@ -155,15 +188,19 @@
 <body>
   <div class="side">
     <header>
-      <div class="logo">Сільпо <b>Навігатор</b></div>
-      <div class="chip hidden" id="bonusChip"></div>
-      <button class="chip cart hidden" id="cartChip">Кошик</button>
-      <button class="icon-btn" id="reloadBtn" title="Оновити">⟳</button>
+      <div class="logo"><span>Сільпо</span> Навігатор</div>
+      <div class="chip bonus hidden" id="bonusChip"></div>
+      <button class="chip cart hidden" id="cartChip"><i class="si si-cart"></i><span id="cartText">Кошик</span></button>
+      <button class="icon-btn" id="reloadBtn" title="Оновити"><i class="si si-refresh"></i></button>
     </header>
 
     <div class="searchbar">
-      <input id="mainInput" type="search" placeholder="Знайти товар у магазині" enterkeyhint="search">
+      <div class="field">
+        <i class="si si-search"></i>
+        <input id="mainInput" type="search" placeholder="Я шукаю..." enterkeyhint="search">
+      </div>
       <div class="storechip">
+        <i class="si si-location"></i>
         <span id="storeChipText">Магазин не обрано</span>
         <button id="changeStoreBtn">Змінити</button>
       </div>
@@ -189,12 +226,12 @@
     <canvas id="map"></canvas>
     <div class="map-hint" id="mapHint">Оберіть магазин, щоб побудувати 3D-схему залу</div>
     <div class="zoom">
-      <button id="zoomIn">＋</button>
-      <button id="zoomOut">－</button>
-      <button id="zoomReset">⤢</button>
-      <button id="shuffleBtn" title="Інша планіровка">🎲</button>
+      <button id="zoomIn" title="Ближче"><i class="si si-plus"></i></button>
+      <button id="zoomOut" title="Далі"><i class="si si-minus"></i></button>
+      <button id="zoomReset" title="Весь зал"><i class="si si-zoom-out"></i></button>
+      <button id="shuffleBtn" title="Інша планіровка"><i class="si si-routes"></i></button>
     </div>
-    <div class="mcp-badge" id="mcpBadge">MCP «Сільпо»</div>
+    <div class="mcp-badge" id="mcpBadge"><i class="si si-shop"></i>MCP «Сільпо»</div>
   </main>
 
   <script type="module">
@@ -221,6 +258,7 @@
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const money = (v) => (v == null ? '' : `${Number(v).toFixed(2).replace('.00', '')} ₴`);
+    const icon = (name) => `<i class="si si-${name}"></i>`;
 
     async function api(url, options) {
       const res = await fetch(url, options);
@@ -235,7 +273,7 @@
     function setTab(next) {
       tab = next;
       document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === next));
-      mainInput.placeholder = next === 'stores' ? 'Місто або вулиця магазину' : 'Знайти товар у магазині';
+      mainInput.placeholder = next === 'stores' ? 'Місто або вулиця' : 'Я шукаю...';
       render();
     }
 
@@ -250,7 +288,7 @@
       const status = await fetch('/api/mcp/status').then((r) => r.json()).catch(() => ({}));
       if (!status.connected) return renderAuth(status.authUrl);
 
-      el('mcpBadge').textContent = `MCP «Сільпо» · ${status.toolsCount} tools · ${status.usedTools} у роботі`;
+      el('mcpBadge').innerHTML = `${icon('shop')}MCP «Сільпо» · ${status.toolsCount} tools · ${status.usedTools} у роботі`;
       loadMe();
       loadCart();
       await loadStores();
@@ -262,17 +300,17 @@
 
     function renderAuth(authUrl) {
       setTab('products');
-      sheetTitle.textContent = 'Вхід у Сільпо';
+      sheetTitle.textContent = 'Вхід у «Сільпо»';
       sheetCount.textContent = '';
       sheetBody.innerHTML = `
-        <div class="banner warn">Навігатор працює від імені гостя через офіційний MCP «Сільпо»: магазини, категорії, товари, акції та кошик — реальні. Увійдіть у свій акаунт, щоб почати.</div>
-        <button class="btn btn-orange btn-wide" id="loginBtn">Увійти через Сільпо</button>
+        <div class="banner info">Навігатор працює від імені гостя через офіційний MCP «Сільпо»: магазини, категорії, товари, акції та кошик — реальні. Увійдіть у свій акаунт, щоб почати.</div>
+        <button class="btn btn-blue btn-wide" id="loginBtn">${icon('user')}Увійти через «Сільпо»</button>
         <button class="btn btn-plain btn-wide" id="recheckBtn">Я вже увійшов — перевірити</button>`;
 
       el('loginBtn').onclick = async () => {
         const data = authUrl ? { authUrl } : await fetch('/api/mcp/auth', { method: 'POST' }).then((r) => r.json());
         if (data.authUrl) window.open(data.authUrl, '_blank', 'noopener');
-        el('loginBtn').textContent = 'Очікую підтвердження…';
+        el('loginBtn').innerHTML = `${icon('clock')}Очікую підтвердження…`;
         const timer = setInterval(async () => {
           const st = await fetch('/api/mcp/status').then((r) => r.json()).catch(() => ({}));
           if (st.connected) {
@@ -289,17 +327,20 @@
       const bonus = data?.loyalty?.loyalty?.bonusTotal ?? data?.loyalty?.bonusTotal;
       if (bonus != null) {
         el('bonusChip').classList.remove('hidden');
-        el('bonusChip').textContent = `${Number(bonus).toFixed(2)} балабонусів`;
+        el('bonusChip').innerHTML = `${icon('gift')}${Number(bonus).toFixed(2)}`;
       }
+    }
+
+    function cartLabel() {
+      return cart?.count ? `${cart.count} · ${money(cart.total)}` : 'Кошик';
     }
 
     async function loadCart() {
       const data = await api('/api/cart').catch(() => null);
       if (!data?.success) return;
       cart = data.cart;
-      const chip = el('cartChip');
-      chip.classList.remove('hidden');
-      chip.textContent = cart.count ? `Кошик · ${cart.count} · ${money(cart.total)}` : 'Кошик порожній';
+      el('cartChip').classList.remove('hidden');
+      el('cartText').textContent = cartLabel();
       if (tab === 'cart') renderCart();
     }
 
@@ -308,21 +349,20 @@
       if (!data?.success) return;
       stores = data.stores;
       if (tab === 'stores') renderStores();
-      else sheetCount.textContent = '';
     }
 
     function renderStores() {
       sheetTitle.textContent = 'Магазини «Сільпо»';
       sheetCount.textContent = `${stores.length} знайдено`;
       if (!stores.length) {
-        sheetBody.innerHTML = '<p class="empty">Нічого не знайдено. Спробуйте іншу вулицю або місто.</p>';
+        sheetBody.innerHTML = '<p class="empty">Нічого не знайдено.<br>Спробуйте іншу вулицю або місто.</p>';
         return;
       }
       sheetBody.innerHTML = stores.slice(0, 120).map((s, i) => `
         <div class="store" data-i="${i}">
           <div class="city">${esc(s.city || 'Магазин')}</div>
           <div class="addr">${esc(s.address)}</div>
-          <div class="flags">${s.open ? 'Працює' : 'Закритий'}${s.hasPickup ? ' · самовивіз' : ''}</div>
+          <div class="flags${s.open ? '' : ' closed'}">${s.open ? 'Працює' : 'Закритий'}${s.hasPickup ? ' · самовивіз' : ''}</div>
         </div>`).join('');
       sheetBody.querySelectorAll('.store').forEach((node) => {
         node.onclick = () => pickStore(stores[Number(node.dataset.i)]);
@@ -355,19 +395,12 @@
         const shelf = layout.shelves.find((s) => s.id === id);
         if (!shelf) return;
         map.highlight(id);
-        map.showRoute(routeTo(shelf));
+        map.showRoute(shelf.route);
         mapHint.textContent = `${shelf.name} · ${shelf.total} товарів у категорії`;
+        loadOnTheWay(shelf.route, [shelf.id]);
       };
       mapHint.textContent = `${layout.shelves.length} відділів · зал ${layout.floor.width}×${layout.floor.depth} м`;
       if (tab === 'products') renderProducts();
-    }
-
-    function routeTo(shelf) {
-      return [
-        { x: layout.entrance.x, z: layout.entrance.z },
-        { x: layout.entrance.x, z: layout.frontAisleZ },
-        ...shelf.path
-      ];
     }
 
     async function searchProducts(query) {
@@ -409,8 +442,8 @@
           </div>
           <div class="price">${money(p.price)}${p.oldPrice ? `<s>${money(p.oldPrice)}</s>` : ''}</div>
           <div class="acts">
-            <button class="btn btn-ink" data-go="${index}">Шлях</button>
-            <button class="btn btn-orange" data-cart="${index}">+ кошик</button>
+            <button class="btn btn-ink" data-go="${index}">${icon('route')}Шлях</button>
+            <button class="btn btn-blue" data-cart="${index}">${icon('cart-add')}Кошик</button>
           </div>
         </div>`;
     }
@@ -434,9 +467,9 @@
       if (!promos.suggestions.length) return '';
       return `
         <div class="promo-block">
-          <h3>По дорозі <span>${esc(promos.title)}</span></h3>
+          <h3>${icon('sale')}По дорозі <b>${esc(promos.title)}</b></h3>
           ${promos.suggestions.map((s, i) => `
-            <div class="promo-row">
+            <div class="promo-row" data-promo-go="${i}">
               ${s.product.image ? `<img src="${esc(s.product.image)}" alt="" loading="lazy">` : ''}
               <div class="info">
                 <div class="name">${esc(s.product.name)}</div>
@@ -445,7 +478,7 @@
               <div class="price">${money(s.product.price)}<s>${money(s.product.oldPrice)}</s></div>
               <div class="acts">
                 <span class="save">−${s.discountPercent}%</span>
-                <button class="btn btn-orange" data-promo-cart="${i}">+ кошик</button>
+                <button class="btn btn-blue" data-promo-cart="${i}">${icon('cart-add')}</button>
               </div>
             </div>`).join('')}
         </div>`;
@@ -459,14 +492,25 @@
         b.onclick = () => addToCart(products[Number(b.dataset.cart)], b);
       });
       sheetBody.querySelectorAll('[data-promo-cart]').forEach((b) => {
-        b.onclick = () => addToCart(promos.suggestions[Number(b.dataset.promoCart)].product, b);
+        b.onclick = (event) => {
+          event.stopPropagation();
+          addToCart(promos.suggestions[Number(b.dataset.promoCart)].product, b);
+        };
+      });
+      sheetBody.querySelectorAll('[data-promo-go]').forEach((node) => {
+        node.onclick = () => {
+          const suggestion = promos.suggestions[Number(node.dataset.promoGo)];
+          map.highlight(suggestion.shelfId);
+          map.showRoute(suggestion.product.route);
+          mapHint.textContent = `${suggestion.product.name} → ${suggestion.shelfName}`;
+        };
       });
     }
 
     async function addToCart(product, button) {
       if (!product || !store) return;
-      const label = button.textContent;
-      button.textContent = '…';
+      const label = button.innerHTML;
+      button.innerHTML = '…';
       const data = await api('/api/cart/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -479,16 +523,15 @@
       }).catch(() => null);
 
       if (!data?.success) {
-        button.textContent = 'помилка';
-        setTimeout(() => { button.textContent = label; }, 2000);
-        if (data?.error) alert(data.error);
+        button.innerHTML = 'помилка';
+        setTimeout(() => { button.innerHTML = label; }, 2000);
         return;
       }
 
       cart = data.cart;
-      button.textContent = '✓ додано';
-      el('cartChip').textContent = `Кошик · ${cart.count} · ${money(cart.total)}`;
-      setTimeout(() => { button.textContent = label; }, 2000);
+      button.innerHTML = icon('check');
+      el('cartText').textContent = cartLabel();
+      setTimeout(() => { button.innerHTML = label; }, 1800);
     }
 
     async function focusProduct(p) {
@@ -525,24 +568,24 @@
               <div class="sub">${p.shelfName ? `<span class="pill">${esc(p.shelfName)}</span>` : ''}</div>
             </div>
             <div class="price">${money(p.price)}</div>
-            <button class="btn btn-plain" data-del="${i}">✕</button>
+            <button class="btn btn-plain" data-del="${i}">${icon('close')}</button>
           </div>`).join('')
-        : '<p class="empty">Введіть список через кому — прокладу маршрут через усі відділи до кас<br>і додам знайдене в кошик Сільпо.</p>';
+        : '<p class="empty">Введіть список через кому — прокладу маршрут через усі відділи до кас<br>і додам знайдене в кошик «Сільпо».</p>';
 
       sheetBody.innerHTML = `
         <div class="listline">
           <input id="bulkInput" placeholder="молоко, хліб, банани, кава">
-          <button class="btn btn-ink" id="bulkBtn">Маршрут</button>
+          <button class="btn btn-ink" id="bulkBtn">${icon('route')}Маршрут</button>
         </div>
         ${items}
-        ${shoppingList.length ? '<button class="btn btn-orange btn-wide" id="listToCartBtn">Додати весь список у кошик</button>' : ''}`;
+        ${shoppingList.length ? `<button class="btn btn-blue btn-wide" id="listToCartBtn">${icon('cart-add')}Додати весь список у кошик</button>` : ''}`;
 
       el('bulkBtn').onclick = () => bulkRoute(el('bulkInput').value);
       el('bulkInput').onkeydown = (e) => { if (e.key === 'Enter') bulkRoute(e.target.value); };
       sheetBody.querySelectorAll('[data-del]').forEach((b) => {
         b.onclick = () => { shoppingList.splice(Number(b.dataset.del), 1); renderList(); };
       });
-      if (el('listToCartBtn')) el('listToCartBtn').onclick = (e) => addListToCart(e.target);
+      if (el('listToCartBtn')) el('listToCartBtn').onclick = (e) => addListToCart(e.currentTarget);
     }
 
     async function bulkRoute(raw) {
@@ -575,14 +618,14 @@
         data.order.map((s, i) => `<div class="step"><b>${i + 1}</b><span>${esc(s.name)}</span></div>`).join('') +
         (missing.length ? `<div class="banner warn">Не знайшли в цьому магазині: ${esc(missing.join(', '))}</div>` : '') +
         shoppingList.map(productRow).join('') +
-        '<button class="btn btn-orange btn-wide" id="listToCartBtn">Додати весь список у кошик</button>';
+        `<button class="btn btn-blue btn-wide" id="listToCartBtn">${icon('cart-add')}Додати весь список у кошик</button>`;
 
       bindProductActions();
-      el('listToCartBtn').onclick = (e) => addListToCart(e.target);
+      el('listToCartBtn').onclick = (e) => addListToCart(e.currentTarget);
     }
 
     async function addListToCart(button) {
-      button.textContent = 'Додаю…';
+      button.innerHTML = 'Додаю…';
       for (const product of shoppingList) {
         await api('/api/cart/add', {
           method: 'POST',
@@ -596,7 +639,7 @@
         }).catch(() => null);
       }
       await loadCart();
-      button.textContent = `✓ у кошику · ${money(cart?.total)}`;
+      button.innerHTML = `${icon('check')}У кошику · ${money(cart?.total)}`;
     }
 
     async function renderCart() {
@@ -619,14 +662,14 @@
                 <div class="sub"><span class="pill">${i.quantity} шт</span></div>
               </div>
               <div class="price">${money(i.price)}</div>
-              <button class="btn btn-plain" data-remove="${esc(i.productId)}">✕</button>
+              <button class="btn btn-plain" data-remove="${esc(i.productId)}">${icon('delete')}</button>
             </div>`).join('')
-          : '<p class="empty">Кошик порожній. Додайте товари з пошуку — вони одразу з’являться у застосунку «Сільпо».</p>'}
-        <a class="btn btn-orange btn-wide" style="display:block;text-align:center;text-decoration:none" href="https://silpo.ua/cart" target="_blank" rel="noreferrer">Оформити в «Сільпо»</a>`;
+          : '<p class="empty">Кошик порожній. Додайте товари з пошуку —<br>вони одразу з’являться у застосунку «Сільпо».</p>'}
+        <a class="btn btn-blue btn-wide" style="text-decoration:none" href="https://silpo.ua/cart" target="_blank" rel="noreferrer">${icon('basket')}Оформити в «Сільпо»</a>`;
 
       sheetBody.querySelectorAll('[data-remove]').forEach((b) => {
         b.onclick = async () => {
-          b.textContent = '…';
+          b.innerHTML = '…';
           const data = await api('/api/cart/remove', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -635,7 +678,7 @@
           if (data?.success) {
             cart = data.cart;
             renderCart();
-            el('cartChip').textContent = cart.count ? `Кошик · ${cart.count} · ${money(cart.total)}` : 'Кошик порожній';
+            el('cartText').textContent = cartLabel();
           }
         };
       });

@@ -1,0 +1,77 @@
+/* Фірмові шрифти та іконки «Сільпо» (ті самі, що на silpo.ua). */
+@font-face {
+  font-family: 'Silpo Text';
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/SilpoText-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Silpo Text';
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/SilpoText-Medium.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Silpo Text';
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/SilpoText-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Silpo Text';
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/SilpoText-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Silpo Text';
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/SilpoText-ExtraBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'ecomui-icons';
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+  src: url('/fonts/ecomui-icons.woff2') format('woff2');
+}
+
+.si {
+  font-family: 'ecomui-icons';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  speak: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.si-search::before { content: '\f145'; }
+.si-cart::before { content: '\f218'; }
+.si-cart-add::before { content: '\f219'; }
+.si-basket::before { content: '\f22c'; }
+.si-location::before { content: '\f1a0'; }
+.si-pin::before { content: '\f16f'; }
+.si-shop::before { content: '\f13b'; }
+.si-route::before { content: '\f150'; }
+.si-routes::before { content: '\f14f'; }
+.si-sale::before { content: '\f14d'; }
+.si-discount::before { content: '\f1e3'; }
+.si-products::before { content: '\f161'; }
+.si-categories::before { content: '\f215'; }
+.si-plus::before { content: '\f16a'; }
+.si-minus::before { content: '\f198'; }
+.si-close::before { content: '\f201'; }
+.si-delete::before { content: '\f1e9'; }
+.si-refresh::before { content: '\f157'; }
+.si-check::before { content: '\f20c'; }
+.si-clock::before { content: '\f202'; }
+.si-user::before { content: '\f112'; }
+.si-gift::before { content: '\f1bb'; }
+.si-star::before { content: '\f130'; }
+.si-heart::before { content: '\f1b6'; }
+.si-zoom-in::before { content: '\f102'; }
+.si-zoom-out::before { content: '\f101'; }
+.si-expand::before { content: '\f1d0'; }
+.si-arrow-right::before { content: '\f23c'; }
+.si-chevron-right::before { content: '\f209'; }
