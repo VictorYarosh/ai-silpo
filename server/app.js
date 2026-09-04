@@ -29,7 +29,7 @@ export function createApp() {
       || (req.headers['x-forwarded-host']
         ? `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers['x-forwarded-host']}`
         : `${req.protocol}://${req.headers.host}`);
-    return `${base.replace(/\/$/, '')}/oauth/callback`;
+    return `${base.replace(/\/$/, '')}/api/oauth/callback`;
   };
 
   /** Кожен запит працює у власній cookie-сесії гостя: сервер стану не тримає. */
@@ -90,7 +90,7 @@ export function createApp() {
     }
   });
 
-  app.get('/oauth/callback', async (req, res) => {
+  app.get('/api/oauth/callback', async (req, res) => {
     const session = readSession(req);
     const page = (title, text, ok) => `<!doctype html><meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">

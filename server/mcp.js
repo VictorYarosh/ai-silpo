@@ -48,6 +48,13 @@ export function createProvider(session, redirectUrl) {
 
 export async function connect(session, redirectUrl) {
   const provider = createProvider(session, redirectUrl);
+
+  // Без токенів не стартуємо OAuth самі: інакше кожен запит згенерував би новий
+  // code_verifier і зламав уже відкриту сторінку входу (PKCE).
+  if (!provider.hasTokens()) {
+    throw new NeedsAuthError(session.data.authUrl);
+  }
+
   const key = poolKey(provider.tokens()?.access_token);
   const cached = key && pool.get(key);
 
@@ -93,6 +100,11 @@ export async function finishAuth(session, redirectUrl, code) {
   const provider = createProvider(session, redirectUrl);
   const transport = new StreamableHTTPClientTransport(new URL(MCP_URL), { authProvider: provider });
   await transport.finishAuth(code);
+
+  delete session.data.authUrl;
+  delete session.data.verifier;
+  session.dirty = true;
+
   const key = poolKey(provider.tokens()?.access_token);
   if (key) pool.delete(key);
 }
@@ -109,7 +121,9 @@ export async function startAuth(session, redirectUrl) {
     await client.connect(transport);
     return null;
   } catch (error) {
-    if (provider.authorizationUrl) return provider.authorizationUrl;
-    throw error;
+    if (!provider.authorizationUrl) throw error;
+    session.data.authUrl = provider.authorizationUrl;
+    session.dirty = true;
+    return provider.authorizationUrl;
   }
 }
