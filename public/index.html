@@ -34,7 +34,7 @@
       font-family: 'Silpo Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg); color: var(--ink); display: flex; flex-direction: column;
     }
-    button, input { font-family: inherit; }
+    button, input { font-family: inherit; line-height: 1; }
     .hidden { display: none !important; }
 
     .side { display: flex; flex-direction: column; min-height: 0; }
@@ -45,8 +45,8 @@
     .logo { font-weight: 800; font-size: 17px; letter-spacing: -0.4px; }
     .logo span { color: var(--red); }
     .chip {
-      display: inline-flex; align-items: center; gap: 6px; border: 0;
-      padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0;
+      padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; line-height: 1;
     }
     .chip.bonus { background: var(--yellow-soft); color: #7A5416; }
     .chip.cart { background: var(--blue); color: #fff; margin-left: auto; }
@@ -55,6 +55,12 @@
       background: var(--bg); border: 1px solid var(--border); color: var(--muted);
       width: 34px; height: 34px; border-radius: 999px; font-size: 15px; display: grid; place-items: center;
     }
+    .icon-btn .si,
+    .zoom button .si,
+    .btn-icon .si {
+      width: 1em; height: 1em; font-size: 15px; line-height: 1; transform: none;
+    }
+    .si-heart { transform: translate(1.5px, 2px); }
 
     .searchbar { background: var(--card); padding: 0 14px 12px; border-bottom: 1px solid var(--border); }
     .field { position: relative; }
@@ -75,7 +81,11 @@
     .storechip .si { color: var(--red); font-size: 15px; flex: none; }
     .storechip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .storechip strong { color: var(--ink); }
-    .storechip button { margin-left: auto; flex: none; background: var(--blue); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; font-size: 11px; font-weight: 700; }
+    .storechip button {
+      margin-left: auto; flex: none; display: inline-flex; align-items: center; justify-content: center;
+      background: var(--blue); color: #fff; border: 0; border-radius: 999px; padding: 7px 12px;
+      font-size: 11px; font-weight: 700; line-height: 1;
+    }
 
     main { flex: 1; position: relative; min-height: 0; overflow: hidden; }
     canvas#map { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
@@ -104,9 +114,10 @@
     .h-scroll::-webkit-scrollbar { display: none; }
     .dept-strip { padding-bottom: 2px; }
     .dept-chip {
-      flex: none; border: 1px solid var(--border); background: rgba(255,255,255,.96);
+      flex: none; display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); background: rgba(255,255,255,.96);
       color: var(--ink); border-radius: 999px; padding: 8px 12px; font-size: 11px; font-weight: 700;
-      white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; line-height: 1; max-width: 200px; overflow: hidden; text-overflow: ellipsis;
     }
     .dept-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
     .dept-chip:active { background: var(--blue-soft); }
@@ -145,8 +156,9 @@
     }
     .tabs::-webkit-scrollbar { display: none; }
     .tab {
-      flex: none; border: 1px solid var(--border); background: var(--bg); color: var(--muted);
-      padding: 9px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap;
+      flex: none; display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+      padding: 9px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; line-height: 1;
     }
     .card-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
     .card-btn span { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 3px; }
@@ -177,21 +189,29 @@
     .row .sub::-webkit-scrollbar { display: none; }
     .row .price { grid-area: price; }
     .row .acts { grid-area: acts; }
-    .pill { flex: none; background: var(--bg); border-radius: 999px; padding: 3px 9px; font-size: 10px; color: var(--muted); white-space: nowrap; }
+    .pill {
+      flex: none; display: inline-flex; align-items: center; justify-content: center;
+      background: var(--bg); border-radius: 999px; padding: 4px 9px; font-size: 10px;
+      color: var(--muted); white-space: nowrap; line-height: 1;
+    }
     .pill.promo { background: var(--yellow); color: #4A3208; font-weight: 800; }
     .price { font-weight: 800; font-size: 15px; white-space: nowrap; text-align: right; }
     .price s { display: block; font-weight: 400; font-size: 10px; color: var(--muted); }
     .acts {
-      display: flex; flex-direction: row; gap: 6px;
+      display: flex; flex-direction: row; align-items: center; gap: 6px;
       overflow-x: auto; overflow-y: hidden; touch-action: pan-x;
       -webkit-overflow-scrolling: touch; scrollbar-width: none; min-width: 0;
     }
     .acts::-webkit-scrollbar { display: none; }
     .btn {
       border: 0; border-radius: 999px; padding: 9px 12px; font-size: 11px; font-weight: 700;
-      min-width: 68px; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      min-width: 68px; min-height: 34px; flex: none;
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px; line-height: 1;
     }
-    .btn .si { font-size: 13px; }
+    .btn .si { font-size: 13px; width: 1em; height: 1em; }
+    .btn-icon {
+      width: 34px; height: 34px; min-width: 34px; min-height: 34px; padding: 0; gap: 0;
+    }
     .btn:disabled { opacity: .6; }
     .btn-blue { background: var(--blue); color: #fff; }
     .btn-blue:active { background: var(--blue-dark); }
@@ -202,7 +222,11 @@
     .promo-block { border: 1px solid var(--yellow); background: #FFFBF2; border-radius: var(--radius); padding: 10px; margin-bottom: 10px; }
     .promo-block h3 { font-size: 12px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
     .promo-block h3 .si { color: var(--orange); font-size: 15px; }
-    .promo-block h3 b { background: var(--yellow); border-radius: 999px; padding: 3px 9px; font-size: 10px; color: #4A3208; }
+    .promo-block h3 b {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--yellow); border-radius: 999px; padding: 4px 9px; font-size: 10px;
+      color: #4A3208; line-height: 1;
+    }
     .promo-row {
       display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; gap: 8px;
       align-items: center; padding: 8px; background: #fff; border: 1px solid var(--border);
@@ -212,7 +236,11 @@
     .promo-row .info { min-width: 0; }
     .promo-row .name { font-size: 12px; font-weight: 600; }
     .promo-row .meta { font-size: 10px; color: var(--muted); margin-top: 3px; }
-    .save { background: var(--red); color: #fff; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 800; text-align: center; }
+    .save {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 44px; height: 28px; padding: 0 10px; background: var(--red); color: #fff;
+      border-radius: 999px; font-size: 11px; font-weight: 800; line-height: 1; letter-spacing: 0;
+    }
 
     .store { padding: 12px; border-radius: 14px; margin-bottom: 6px; background: var(--card); border: 1px solid var(--border); }
     .store:active { background: var(--blue-soft); }
@@ -231,7 +259,7 @@
     .listline input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 14px; padding: 12px; font-size: 14px; background: var(--bg); }
     .listline .btn { flex: none; }
     .step { display: flex; gap: 10px; align-items: center; padding: 11px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 6px; font-size: 12px; }
-    .step b { width: 24px; height: 24px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 11px; display: grid; place-items: center; flex: none; }
+    .step b { width: 24px; height: 24px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 11px; display: grid; place-items: center; flex: none; line-height: 1; }
     .total { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--blue-soft); border-radius: 14px; font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--blue-dark); }
 
     @media (min-width: 900px) {
@@ -698,8 +726,8 @@
           <div class="acts">
             <button class="btn btn-ink" data-go="${index}" data-bag="${bag}">${icon('route')}Шлях</button>
             <button class="btn btn-blue" data-cart="${index}" data-bag="${bag}">${icon('cart-add')}Кошик</button>
-            <button class="btn btn-plain" data-fav="${index}" data-bag="${bag}">${icon('heart')}</button>
-            ${p.slug ? `<button class="btn btn-plain" data-info="${index}" data-bag="${bag}">i</button>` : ''}
+            <button class="btn btn-plain btn-icon" data-fav="${index}" data-bag="${bag}">${icon('heart')}</button>
+            ${p.slug ? `<button class="btn btn-plain btn-icon" data-info="${index}" data-bag="${bag}">i</button>` : ''}
           </div>
         </div>`;
     }
@@ -1000,7 +1028,7 @@
               <div class="sub">${p.shelfName ? `<span class="pill">${esc(p.shelfName)}</span>` : ''}</div>
             </div>
             <div class="price">${money(p.price)}</div>
-            <button class="btn btn-plain" data-del="${i}">${icon('close')}</button>
+            <button class="btn btn-plain btn-icon" data-del="${i}">${icon('close')}</button>
           </div>`).join('')
         : '<p class="empty">Введіть список через кому — прокладу маршрут через усі відділи до кас<br>і додам знайдене в кошик «Сільпо».</p>';
 
@@ -1133,7 +1161,7 @@
                 <div class="sub"><span class="pill">${i.quantity} шт</span></div>
               </div>
               <div class="price">${money(i.price)}</div>
-              <button class="btn btn-plain" data-remove="${esc(i.productId)}">${icon('delete')}</button>
+              <button class="btn btn-plain btn-icon" data-remove="${esc(i.productId)}">${icon('delete')}</button>
             </div>`).join('')
           : '<p class="empty">Кошик порожній. Додайте товари з пошуку —<br>вони одразу з’являться у застосунку «Сільпо».</p>'}
         ${(cart.validations || []).map((v) => {

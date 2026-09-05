@@ -43,7 +43,14 @@
   font-weight: normal;
   line-height: 1;
   speak: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   -webkit-font-smoothing: antialiased;
+}
+.si::before {
+  display: block;
+  line-height: 1;
 }
 
 .si-search::before { content: '\f145'; }
