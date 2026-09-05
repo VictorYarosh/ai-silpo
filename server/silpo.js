@@ -698,14 +698,27 @@ export async function productInsight(call, { branchId, slug, productId, companyI
   };
 }
 
-export async function shelfDetails(call, { branchId, categorySlug }) {
+export async function shelfDetails(call, { branchId, categorySlug, seed }) {
   const ctx = await branchContext(call, branchId);
-  const data = await call('silpo_get_category', {
-    branchId,
-    deliveryType: ctx.deliveryType,
-    categorySlug
-  });
-  return { category: data?.category || data };
+  const [layout, data, products] = await Promise.all([
+    getLayout(call, branchId, seed || branchId),
+    call('silpo_get_category', {
+      branchId,
+      deliveryType: ctx.deliveryType,
+      categorySlug
+    }),
+    soft(call('silpo_get_products', {
+      ...ctx,
+      category: categorySlug,
+      inStock: true,
+      limit: 24,
+      sortBy: 'popularity'
+    }))
+  ]);
+  return {
+    category: data?.category || data,
+    products: withNavigation(listOf(products?.products, products?.items), layout)
+  };
 }
 
 export async function toggleFavorite(call, { productId, externalProductId, toDelete = false }) {

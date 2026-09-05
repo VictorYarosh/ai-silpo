@@ -70,12 +70,14 @@
     .storechip {
       display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px;
       color: var(--muted); background: var(--bg); padding: 9px 12px; border-radius: 14px;
+      min-width: 0;
     }
-    .storechip .si { color: var(--red); font-size: 15px; }
+    .storechip .si { color: var(--red); font-size: 15px; flex: none; }
+    .storechip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .storechip strong { color: var(--ink); }
-    .storechip button { margin-left: auto; background: var(--blue); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; font-size: 11px; font-weight: 700; }
+    .storechip button { margin-left: auto; flex: none; background: var(--blue); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; font-size: 11px; font-weight: 700; }
 
-    main { flex: 1; position: relative; min-height: 0; }
+    main { flex: 1; position: relative; min-height: 0; overflow: hidden; }
     canvas#map { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
     .map-hint {
       position: absolute; left: 12px; top: 12px; background: rgba(255,255,255,.95);
@@ -89,23 +91,48 @@
     }
     .zoom button:active { background: var(--blue-soft); }
     .mcp-badge {
-      position: absolute; left: 12px; bottom: 56px; background: var(--ink); color: #fff;
+      position: absolute; left: 12px; bottom: calc(108px + var(--safe-b)); background: var(--ink); color: #fff;
       border-radius: 999px; padding: 7px 12px; font-size: 11px; font-weight: 600; opacity: .92;
-      display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; gap: 6px; z-index: 2;
     }
-    .dept-strip {
-      position: absolute; left: 12px; right: 64px; bottom: 12px;
-      display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-      padding-bottom: 2px; scrollbar-width: none;
+    .map-dock {
+      position: absolute; left: 12px; right: 64px; top: 64px; z-index: 2;
+      display: flex; flex-direction: column; gap: 8px; min-width: 0; max-width: calc(100% - 76px);
+      pointer-events: none;
     }
-    .dept-strip::-webkit-scrollbar { display: none; }
+    .map-dock > * { pointer-events: auto; min-width: 0; }
+    .h-scroll {
+      display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden;
+      touch-action: pan-x; -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain; scrollbar-width: none;
+    }
+    .h-scroll::-webkit-scrollbar { display: none; }
+    .dept-strip { padding-bottom: 2px; }
     .dept-chip {
       flex: none; border: 1px solid var(--border); background: rgba(255,255,255,.96);
       color: var(--ink); border-radius: 999px; padding: 8px 12px; font-size: 11px; font-weight: 700;
-      white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;
     }
     .dept-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
     .dept-chip:active { background: var(--blue-soft); }
+    .shelf-rail { padding-bottom: 2px; }
+    .shelf-card {
+      flex: none; width: 108px; border: 1px solid var(--border); background: rgba(255,255,255,.97);
+      border-radius: 14px; padding: 8px; text-align: left; color: var(--ink);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .shelf-card img, .shelf-ph {
+      width: 100%; height: 64px; object-fit: contain; border-radius: 10px; background: var(--bg);
+    }
+    .shelf-ph { display: block; }
+    .shelf-card .shelf-name {
+      font-size: 10px; font-weight: 700; line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      min-height: 26px;
+    }
+    .shelf-card .shelf-price { font-size: 12px; font-weight: 800; color: var(--blue-dark); }
+    .shelf-card .shelf-price i { font-style: normal; color: var(--red); font-size: 9px; margin-left: 4px; }
+    .shelf-card:active { background: var(--blue-soft); }
 
     .sheet {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--card);
@@ -116,8 +143,16 @@
     .sheet.collapsed { transform: translateY(calc(100% - 96px)); }
     .grabber { padding: 10px; display: flex; justify-content: center; }
     .grabber i { width: 42px; height: 4px; background: var(--border); border-radius: 999px; display: block; }
-    .tabs { display: flex; gap: 6px; padding: 0 12px 10px; }
-    .tab { flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--muted); padding: 9px 2px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .tabs {
+      display: flex; gap: 6px; padding: 0 12px 10px;
+      overflow-x: auto; overflow-y: hidden; touch-action: pan-x;
+      -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex: none; border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+      padding: 9px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap;
+    }
     .card-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
     .card-btn span { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 3px; }
     .card-btn .si { font-size: 18px; color: var(--blue); }
@@ -129,21 +164,37 @@
     .sheet-body { overflow: auto; padding: 0 12px 16px; -webkit-overflow-scrolling: touch; }
 
     .row {
-      display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: var(--radius);
-      background: var(--card); border: 1px solid var(--border); margin-bottom: 8px;
+      display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; grid-template-areas: "img info price" "img acts acts";
+      gap: 8px 10px; align-items: center; padding: 10px; border-radius: var(--radius);
+      background: var(--card); border: 1px solid var(--border); margin-bottom: 8px; min-width: 0;
     }
-    .row img { width: 54px; height: 54px; object-fit: contain; border-radius: 10px; background: var(--bg); }
-    .row .info { flex: 1; min-width: 0; }
-    .row .name { font-size: 13px; font-weight: 600; line-height: 1.35; }
-    .row .sub { font-size: 11px; color: var(--muted); margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-    .pill { background: var(--bg); border-radius: 999px; padding: 3px 9px; font-size: 10px; color: var(--muted); }
+    .row img { grid-area: img; width: 54px; height: 54px; object-fit: contain; border-radius: 10px; background: var(--bg); }
+    .row .info { grid-area: info; min-width: 0; }
+    .row .name {
+      font-size: 13px; font-weight: 600; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .row .sub {
+      font-size: 11px; color: var(--muted); margin-top: 5px; display: flex; gap: 5px;
+      align-items: center; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+      touch-action: pan-x; scrollbar-width: none; min-width: 0;
+    }
+    .row .sub::-webkit-scrollbar { display: none; }
+    .row .price { grid-area: price; }
+    .row .acts { grid-area: acts; }
+    .pill { flex: none; background: var(--bg); border-radius: 999px; padding: 3px 9px; font-size: 10px; color: var(--muted); white-space: nowrap; }
     .pill.promo { background: var(--yellow); color: #4A3208; font-weight: 800; }
     .price { font-weight: 800; font-size: 15px; white-space: nowrap; text-align: right; }
     .price s { display: block; font-weight: 400; font-size: 10px; color: var(--muted); }
-    .acts { display: flex; flex-direction: column; gap: 6px; }
+    .acts {
+      display: flex; flex-direction: row; gap: 6px;
+      overflow-x: auto; overflow-y: hidden; touch-action: pan-x;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none; min-width: 0;
+    }
+    .acts::-webkit-scrollbar { display: none; }
     .btn {
       border: 0; border-radius: 999px; padding: 9px 12px; font-size: 11px; font-weight: 700;
-      min-width: 68px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      min-width: 68px; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
     }
     .btn .si { font-size: 13px; }
     .btn-blue { background: var(--blue); color: #fff; }
@@ -156,9 +207,13 @@
     .promo-block h3 { font-size: 12px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
     .promo-block h3 .si { color: var(--orange); font-size: 15px; }
     .promo-block h3 b { background: var(--yellow); border-radius: 999px; padding: 3px 9px; font-size: 10px; color: #4A3208; }
-    .promo-row { display: flex; gap: 10px; align-items: center; padding: 8px; background: #fff; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 6px; }
+    .promo-row {
+      display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; gap: 8px;
+      align-items: center; padding: 8px; background: #fff; border: 1px solid var(--border);
+      border-radius: 14px; margin-bottom: 6px; min-width: 0;
+    }
     .promo-row img { width: 44px; height: 44px; object-fit: contain; border-radius: 10px; background: var(--bg); }
-    .promo-row .info { flex: 1; min-width: 0; }
+    .promo-row .info { min-width: 0; }
     .promo-row .name { font-size: 12px; font-weight: 600; }
     .promo-row .meta { font-size: 10px; color: var(--muted); margin-top: 3px; }
     .save { background: var(--red); color: #fff; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 800; text-align: center; }
@@ -176,8 +231,9 @@
     .banner.err { background: #FDECEA; color: var(--red); }
     .banner.ok { background: #E8F8EC; color: #0A7A25; }
     .banner.info { background: var(--blue-soft); color: var(--blue-dark); }
-    .listline { display: flex; gap: 8px; padding: 0 0 10px; }
-    .listline input { flex: 1; border: 1px solid var(--border); border-radius: 14px; padding: 12px; font-size: 14px; background: var(--bg); }
+    .listline { display: flex; gap: 8px; padding: 0 0 10px; min-width: 0; }
+    .listline input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 14px; padding: 12px; font-size: 14px; background: var(--bg); }
+    .listline .btn { flex: none; }
     .step { display: flex; gap: 10px; align-items: center; padding: 11px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 6px; font-size: 12px; }
     .step b { width: 24px; height: 24px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 11px; display: grid; place-items: center; flex: none; }
     .total { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--blue-soft); border-radius: 14px; font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--blue-dark); }
@@ -188,6 +244,8 @@
       .sheet { position: static; z-index: auto; max-height: none; flex: 1; box-shadow: none; border-radius: 0; transform: none !important; }
       .grabber { display: none; }
       main { flex: 1; }
+      .map-dock { top: auto; bottom: 16px; }
+      .mcp-badge { bottom: 16px; }
     }
   </style>
   <script type="importmap">
@@ -247,7 +305,10 @@
       <button id="shuffleBtn" title="Інша планіровка"><i class="si si-routes"></i></button>
     </div>
     <div class="mcp-badge" id="mcpBadge"><i class="si si-shop"></i>MCP «Сільпо»</div>
-    <div class="dept-strip hidden" id="deptStrip"></div>
+    <div class="map-dock hidden" id="mapDock">
+      <div class="shelf-rail h-scroll hidden" id="shelfRail"></div>
+      <div class="dept-strip h-scroll" id="deptStrip"></div>
+    </div>
   </main>
 
   <script type="module">
@@ -274,10 +335,59 @@
     let guest = null;
     let personal = { favorites: [], sets: [], onlineOrders: [], offlineOrders: [] };
     let insight = null;
+    let railItems = [];
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const money = (v) => (v == null ? '' : `${Number(v).toFixed(2).replace('.00', '')} ₴`);
     const icon = (name) => `<i class="si si-${name}"></i>`;
+
+    function walkLabel(points) {
+      if (!points || points.length < 2) return '';
+      let meters = 0;
+      for (let i = 1; i < points.length; i += 1) {
+        meters += Math.hypot(points[i].x - points[i - 1].x, points[i].z - points[i - 1].z);
+      }
+      const distance = Math.max(1, Math.round(meters));
+      const minutes = Math.max(1, Math.round(distance / 70));
+      return `${distance} м · ~${minutes} хв`;
+    }
+
+    function bindHScroll(node) {
+      if (!node || node.dataset.scrollBound) return;
+      node.dataset.scrollBound = '1';
+      node.addEventListener('pointerdown', (e) => e.stopPropagation());
+      node.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+      node.addEventListener('wheel', (e) => {
+        if (node.scrollWidth <= node.clientWidth) return;
+        node.scrollLeft += e.deltaY + e.deltaX;
+        e.preventDefault();
+      }, { passive: false });
+    }
+
+    function renderShelfRail(items) {
+      const rail = el('shelfRail');
+      railItems = items || [];
+      if (!railItems.length) {
+        rail.classList.add('hidden');
+        rail.innerHTML = '';
+        return;
+      }
+      rail.classList.remove('hidden');
+      rail.innerHTML = railItems.slice(0, 24).map((p, i) => `
+        <button class="shelf-card" type="button" data-rail="${i}">
+          ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : '<span class="shelf-ph"></span>'}
+          <span class="shelf-name">${esc(p.name)}</span>
+          <span class="shelf-price">${money(p.price)}${p.hasPromotion ? '<i>акція</i>' : ''}</span>
+        </button>`).join('');
+      rail.querySelectorAll('[data-rail]').forEach((btn) => {
+        btn.onclick = () => {
+          const product = railItems[Number(btn.dataset.rail)];
+          if (product) focusProduct(product);
+        };
+      });
+      bindHScroll(rail);
+      rail.scrollLeft = 0;
+    }
 
     async function api(url, options) {
       const res = await fetch(url, options);
@@ -291,7 +401,11 @@
 
     function setTab(next) {
       tab = next;
-      document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === next));
+      document.querySelectorAll('.tab').forEach((b) => {
+        const on = b.dataset.tab === next;
+        b.classList.toggle('active', on);
+        if (on) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      });
       mainInput.placeholder = next === 'stores' ? 'Місто, вулиця або адреса' : 'Я шукаю...';
       render();
     }
@@ -483,6 +597,7 @@
 
       layout = data.layout;
       promos = { title: '', suggestions: [] };
+      renderShelfRail([]);
       map.loadLayout(layout);
       map.onShelfTap = (id) => selectShelf(id);
       renderDeptStrip();
@@ -492,24 +607,30 @@
     }
 
     function renderDeptStrip() {
+      const dock = el('mapDock');
       const strip = el('deptStrip');
       if (!layout?.shelves?.length) {
-        strip.classList.add('hidden');
+        dock.classList.add('hidden');
         strip.innerHTML = '';
+        renderShelfRail([]);
         return;
       }
+      dock.classList.remove('hidden');
       strip.classList.remove('hidden');
       strip.innerHTML = layout.shelves.map((s) =>
-        `<button class="dept-chip" data-shelf="${esc(s.id)}" title="${esc(s.name)}">${esc(s.name)}</button>`
+        `<button class="dept-chip" type="button" data-shelf="${esc(s.id)}" title="${esc(s.name)}">${esc(s.name)}</button>`
       ).join('');
       strip.querySelectorAll('[data-shelf]').forEach((btn) => {
         btn.onclick = () => selectShelf(btn.dataset.shelf);
       });
+      bindHScroll(strip);
     }
 
     function markDeptChip(id) {
       el('deptStrip').querySelectorAll('.dept-chip').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.shelf === id);
+        const on = btn.dataset.shelf === id;
+        btn.classList.toggle('active', on);
+        if (on) btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
       });
     }
 
@@ -519,7 +640,9 @@
       map.highlight(id);
       map.showRoute(shelf.route);
       markDeptChip(id);
+      const walk = walkLabel(shelf.route);
       const bits = [`${shelf.name} · ${shelf.total} товарів`];
+      if (walk) bits.push(walk);
       if (shelf.popular) bits.push('зараз популярний відділ');
       if (shelf.family) bits.push('для вашої родини');
       mapHint.textContent = bits.join(' · ');
@@ -548,6 +671,7 @@
       products = data.products;
       promos = { title: '', suggestions: [] };
       sheetCount.textContent = `${data.totalFound} у магазині`;
+      renderShelfRail(products);
       renderProducts();
       if (products[0]) focusProduct(products[0]);
     }
@@ -691,7 +815,8 @@
       map.highlight(p.shelfId);
       map.showRoute(p.route);
       markDeptChip(p.shelfId);
-      mapHint.textContent = `${p.name} → ${p.shelfName || 'стелаж'}`;
+      const walk = walkLabel(p.route);
+      mapHint.textContent = `${p.name} → ${p.shelfName || 'стелаж'}${walk ? ` · ${walk}` : ''}`;
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
       await loadOnTheWay(p.route, [p.shelfId]);
     }
@@ -775,14 +900,28 @@
 
     async function openShelf(shelf) {
       if (!store || !shelf.slug) return;
-      api(`/api/shelf?branchId=${encodeURIComponent(store.id)}&slug=${encodeURIComponent(shelf.slug)}`)
-        .then((data) => {
-          if (!data?.success) return;
-          const cat = data.category || {};
-          const extra = cat.visible === false ? ' · у цій філії порожньо' : '';
-          mapHint.textContent = `${shelf.name}${cat.minPrice != null ? ` · від ${money(cat.minPrice)}` : ''}${extra}`;
-        })
-        .catch(() => {});
+      const data = await api(
+        `/api/shelf?branchId=${encodeURIComponent(store.id)}&slug=${encodeURIComponent(shelf.slug)}&seed=${encodeURIComponent(seed || store.id)}`
+      ).catch(() => null);
+      if (!data?.success) return;
+      const cat = data.category || {};
+      const extra = cat.visible === false ? ' · у цій філії порожньо' : '';
+      const walk = walkLabel(shelf.route);
+      mapHint.textContent = [
+        shelf.name,
+        cat.minPrice != null ? `від ${money(cat.minPrice)}` : '',
+        walk,
+        extra.trim()
+      ].filter(Boolean).join(' · ');
+      if (data.products?.length) {
+        products = data.products;
+        renderShelfRail(products);
+        if (tab === 'products') {
+          sheetTitle.textContent = shelf.name;
+          sheetCount.textContent = `${products.length} на полиці`;
+          renderProducts();
+        }
+      }
     }
 
     function showPacked(title, data) {
@@ -793,7 +932,9 @@
       map.showRoute(data.route);
       map.highlight(null);
       markDeptChip(null);
-      mapHint.textContent = `${title} · вхід → ${data.order?.length || 0} відділів → каси`;
+      renderShelfRail(products);
+      const walk = walkLabel(data.route);
+      mapHint.textContent = `${title} · вхід → ${data.order?.length || 0} відділів → каси${walk ? ` · ${walk}` : ''}`;
       sheetBody.innerHTML =
         (data.order || []).map((s, i) => `<div class="step"><b>${i + 1}</b><span>${esc(s.name)}</span></div>`).join('') +
         products.map((p, i) => productRow(p, i)).join('');
@@ -908,9 +1049,11 @@
       map.showRoute(data.route);
       map.highlight(null);
       markDeptChip(null);
+      renderShelfRail(shoppingList);
       sheetTitle.textContent = 'Маршрут по списку';
       sheetCount.textContent = `${data.order.length} відділів`;
-      mapHint.textContent = `Вхід → ${data.order.length} відділів → каси`;
+      const walk = walkLabel(data.route);
+      mapHint.textContent = `Вхід → ${data.order.length} відділів → каси${walk ? ` · ${walk}` : ''}`;
 
       const missing = data.results.filter((r) => !r.best).map((r) => r.query);
       sheetBody.innerHTML =
@@ -1079,7 +1222,8 @@
     el('reloadBtn').onclick = boot;
     el('zoomIn').onclick = () => map.camera.position.multiplyScalar(0.85);
     el('zoomOut').onclick = () => map.camera.position.multiplyScalar(1.18);
-    el('zoomReset').onclick = () => { map.clearRoute(); map.highlight(null); markDeptChip(null); map.frameAll(); };
+    el('zoomReset').onclick = () => { map.clearRoute(); map.highlight(null); markDeptChip(null); renderShelfRail([]); map.frameAll(); };
+    bindHScroll(document.querySelector('.tabs'));
     el('shuffleBtn').onclick = () => {
       if (!store) return;
       products = [];

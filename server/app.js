@@ -183,7 +183,11 @@ export function createApp() {
     const branchId = String(req.query.branchId || '');
     const categorySlug = String(req.query.slug || '');
     if (!branchId || !categorySlug) throw new Error('Потрібні branchId і slug відділу');
-    return shelfDetails(call, { branchId, categorySlug });
+    return shelfDetails(call, {
+      branchId,
+      categorySlug,
+      seed: req.query.seed
+    });
   }));
 
   app.post('/api/favorites', route(({ req, call }) => {
