@@ -454,6 +454,7 @@ function cartSummary(payload) {
     promoCode: cart.promoCode || null,
     timeslot: cart.timeslot || null,
     address: cart.address || null,
+    checkoutUrl: cart.checkoutUrl || cart.webLink || cart.webUrl || payload?.checkoutUrl || 'https://silpo.ua/cart',
     items: items.map((p) => ({
       productId: p.productId || p.id,
       name: p.name || '',
@@ -885,4 +886,89 @@ export async function setNovaPoshta(call, { office, settlement }) {
     }
   });
   return cartSummary(await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id }));
+}
+
+function validationText(item) {
+  if (!item) return '';
+  if (typeof item === 'string') return item;
+  return item.message || item.text || item.title || item.description || '';
+}
+
+export async function prepareCheckout(call, { branchId, companyId } = {}) {
+  const current = await readCart(call);
+  if (!current.count) throw new Error('Кошик порожній — спочатку додайте товари');
+
+  try {
+    await ensurePickupReady(call, { branchId, companyId });
+  } catch (error) {
+    return {
+      cart: await readCart(call).catch(() => current),
+      checkoutUrl: current.checkoutUrl || 'https://silpo.ua/cart',
+      ready: false,
+      blockers: [error.message]
+    };
+  }
+
+  const cart = await readCart(call);
+  const blockers = cart.validations.map(validationText).filter(Boolean);
+  return {
+    cart,
+    checkoutUrl: cart.checkoutUrl || 'https://silpo.ua/cart',
+    ready: blockers.length === 0,
+    blockers
+  };
+}
+
+async function ensurePickupReady(call, { branchId, companyId } = {}) {
+  const { id, cart } = await cartPayload(call);
+  if (cart.address && cart.timeslot?.start && cart.shipments?.length) return;
+
+  const store = storesCache.stores.find((s) => s.id === (branchId || cart.shipments?.[0]?.branchId));
+  const pickupId = store?.id || branchId || cart.shipments?.[0]?.branchId;
+  const pickupCompany = store?.companyId || companyId || cart.shipments?.[0]?.companyId;
+  if (!pickupId || !pickupCompany) {
+    throw new Error('Оберіть магазин — поставлю самовивіз і відкрию оформлення');
+  }
+
+  let timeslot = cart.timeslot?.start ? cart.timeslot : null;
+  if (!timeslot) {
+    const data = await call('silpo_get_time_slots', {
+      branchId: pickupId,
+      deliveryTypes: ['SelfPickup'],
+      limit: 20
+    });
+    const slots = Array.isArray(data?.slots) ? data.slots : [];
+    const slot = slots.find((s) => s.available) || slots[0];
+    if (!slot?.start || !slot?.end) {
+      throw new Error('Немає вільного слота самовивозу. Довершіть оформлення на silpo.ua');
+    }
+    timeslot = { start: slot.start, end: slot.end };
+  }
+
+  const address = cart.address?.addressType
+    ? cart.address
+    : {
+        addressType: 'self-pickup',
+        city: store?.city || '',
+        locality: store?.address || store?.city || '',
+        street: store?.address || '',
+        latitude: store?.latitude != null ? String(store.latitude) : undefined,
+        longitude: store?.longitude != null ? String(store.longitude) : undefined
+      };
+
+  const shipments = cart.shipments?.length
+    ? cart.shipments.map((s) => ({
+        companyId: s.companyId || pickupCompany,
+        branchId: s.branchId || pickupId
+      }))
+    : [{ companyId: pickupCompany, branchId: pickupId }];
+
+  await call('silpo_update_shopping_cart', {
+    shoppingCartId: id,
+    deliveryType: cart.deliveryType || 'SelfPickup',
+    timeslot,
+    address,
+    shipments,
+    isAdultConfirmed: true
+  });
 }

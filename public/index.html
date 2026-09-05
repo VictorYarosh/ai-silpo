@@ -197,6 +197,7 @@
       min-width: 68px; flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
     }
     .btn .si { font-size: 13px; }
+    .btn:disabled { opacity: .6; }
     .btn-blue { background: var(--blue); color: #fff; }
     .btn-blue:active { background: var(--blue-dark); }
     .btn-ink { background: var(--ink); color: #fff; }
@@ -1084,6 +1085,42 @@
       button.innerHTML = `${icon('check')}У кошику · ${money(cart?.total)}`;
     }
 
+    function openCheckoutPage(url) {
+      const href = url || 'https://silpo.ua/cart';
+      const popup = window.open(href, '_blank', 'noopener');
+      if (!popup) window.location.assign(href);
+    }
+
+    async function startCheckout(button) {
+      if (!cart?.items?.length) {
+        sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Кошик порожній — спочатку додайте товари.</div>');
+        return;
+      }
+      const label = button.innerHTML;
+      button.innerHTML = 'Готую замовлення…';
+      button.disabled = true;
+      const data = await api('/api/cart/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ branchId: store?.id || cart.branchId, companyId: store?.companyId })
+      }).catch(() => null);
+      button.disabled = false;
+      button.innerHTML = label;
+      if (!data?.success) {
+        sheetBody.insertAdjacentHTML('afterbegin', `<div class="banner err">${esc(data?.error || 'Не вдалося підготувати замовлення — відкриваю silpo.ua')}</div>`);
+        openCheckoutPage('https://silpo.ua/cart');
+        return;
+      }
+      if (data.cart) {
+        cart = data.cart;
+        el('cartText').textContent = cartLabel();
+      }
+      if (data.blockers?.length) {
+        sheetBody.insertAdjacentHTML('afterbegin', `<div class="banner warn">${esc(data.blockers.join(' · '))}</div>`);
+      }
+      openCheckoutPage(data.checkoutUrl);
+    }
+
     async function renderCart() {
       sheetTitle.textContent = 'Кошик «Сільпо»';
       if (!cart) {
@@ -1107,7 +1144,14 @@
               <button class="btn btn-plain" data-remove="${esc(i.productId)}">${icon('delete')}</button>
             </div>`).join('')
           : '<p class="empty">Кошик порожній. Додайте товари з пошуку —<br>вони одразу з’являться у застосунку «Сільпо».</p>'}
-        <a class="btn btn-blue btn-wide" style="text-decoration:none" href="https://silpo.ua/cart" target="_blank" rel="noreferrer">${icon('basket')}Оформити в «Сільпо»</a>
+        ${(cart.validations || []).map((v) => {
+          const text = typeof v === 'string' ? v : (v.message || v.text || v.title || '');
+          return text ? `<div class="banner warn">${esc(text)}</div>` : '';
+        }).join('')}
+        ${cart.items.length
+          ? `<button class="btn btn-blue btn-wide" id="checkoutBtn">${icon('basket')}Оформити замовлення</button>
+             <p class="empty" style="padding:8px 4px 0">Оплата лише на silpo.ua. Тут поставлю самовивіз з обраного магазину і відкрию оформлення.</p>`
+          : ''}
         ${cart.items.length ? `<button class="btn btn-plain btn-wide" id="clearCartBtn">${icon('delete')}Очистити кошик</button>` : ''}
         <div class="listline" style="margin-top:10px">
           <input id="promoInput" placeholder="Промокод">
@@ -1138,6 +1182,9 @@
           }
         };
       });
+      if (el('checkoutBtn')) {
+        el('checkoutBtn').onclick = () => startCheckout(el('checkoutBtn'));
+      }
       if (el('clearCartBtn')) {
         el('clearCartBtn').onclick = async (e) => {
           e.currentTarget.innerHTML = '…';

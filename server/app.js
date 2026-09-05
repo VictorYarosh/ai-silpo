@@ -9,6 +9,7 @@ import {
   applyCertificates,
   clearCart,
   getLayout,
+  prepareCheckout,
   listStores,
   nearestStores,
   novaPoshtaOffices,
@@ -237,6 +238,11 @@ export function createApp() {
   app.post('/api/cart/certificates', route(async ({ req, call }) => {
     const { certificatesToAdd, certificatesToRemove } = req.body || {};
     return { cart: await applyCertificates(call, { certificatesToAdd, certificatesToRemove }) };
+  }));
+
+  app.post('/api/cart/checkout', route(async ({ req, call }) => {
+    const { branchId, companyId } = req.body || {};
+    return prepareCheckout(call, { branchId, companyId });
   }));
 
   app.post('/api/novaposhta', route(({ req, call }) => {
