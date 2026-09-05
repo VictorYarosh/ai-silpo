@@ -80,24 +80,19 @@
     main { flex: 1; position: relative; min-height: 0; overflow: hidden; }
     canvas#map { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
     .map-hint {
-      position: absolute; left: 12px; top: 12px; background: rgba(255,255,255,.95);
+      position: absolute; left: 12px; top: 12px; z-index: 2; background: rgba(255,255,255,.95);
       border: 1px solid var(--border); border-radius: 14px; padding: 9px 12px;
-      font-size: 12px; color: var(--muted); max-width: 60%; line-height: 1.4;
+      font-size: 12px; color: var(--muted); max-width: 58%; line-height: 1.4;
     }
-    .zoom { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .zoom { position: absolute; right: 12px; top: 12px; z-index: 2; display: flex; flex-direction: column; gap: 8px; }
     .zoom button {
       width: 40px; height: 40px; border-radius: 14px; border: 1px solid var(--border);
       background: #fff; color: var(--ink); font-size: 16px; display: grid; place-items: center;
     }
     .zoom button:active { background: var(--blue-soft); }
-    .mcp-badge {
-      position: absolute; left: 12px; bottom: calc(108px + var(--safe-b)); background: var(--ink); color: #fff;
-      border-radius: 999px; padding: 7px 12px; font-size: 11px; font-weight: 600; opacity: .92;
-      display: inline-flex; align-items: center; gap: 6px; z-index: 2;
-    }
     .map-dock {
-      position: absolute; left: 12px; right: 64px; top: 64px; z-index: 2;
-      display: flex; flex-direction: column; gap: 8px; min-width: 0; max-width: calc(100% - 76px);
+      position: absolute; left: 12px; right: 12px; bottom: calc(108px + var(--safe-b)); z-index: 2;
+      display: flex; flex-direction: column; gap: 8px; min-width: 0;
       pointer-events: none;
     }
     .map-dock > * { pointer-events: auto; min-width: 0; }
@@ -245,8 +240,7 @@
       .sheet { position: static; z-index: auto; max-height: none; flex: 1; box-shadow: none; border-radius: 0; transform: none !important; }
       .grabber { display: none; }
       main { flex: 1; }
-      .map-dock { top: auto; bottom: 16px; }
-      .mcp-badge { bottom: 16px; }
+      .map-dock { bottom: 16px; right: 64px; }
     }
   </style>
   <script type="importmap">
@@ -305,7 +299,6 @@
       <button id="zoomReset" title="Весь зал"><i class="si si-zoom-out"></i></button>
       <button id="shuffleBtn" title="Інша планіровка"><i class="si si-routes"></i></button>
     </div>
-    <div class="mcp-badge" id="mcpBadge"><i class="si si-shop"></i>MCP «Сільпо»</div>
     <div class="map-dock hidden" id="mapDock">
       <div class="shelf-rail h-scroll hidden" id="shelfRail"></div>
       <div class="dept-strip h-scroll" id="deptStrip"></div>
@@ -423,7 +416,6 @@
       const status = await fetch('/api/mcp/status').then((r) => r.json()).catch(() => ({}));
       if (!status.connected) return renderAuth(status.authUrl);
 
-      el('mcpBadge').innerHTML = `${icon('shop')}MCP «Сільпо» · ${status.toolsCount} tools · ${status.usedTools} у роботі`;
       loadMe().catch(() => {});
       loadCart();
       await loadStores();
