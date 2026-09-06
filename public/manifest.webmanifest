@@ -7,5 +7,22 @@
   "background_color": "#F2F4F9",
   "theme_color": "#2358D1",
   "orientation": "portrait",
-  "lang": "uk"
+  "lang": "uk",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/favicon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    }
+  ]
 }

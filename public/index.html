@@ -7,6 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="description" content="AI-навігатор по магазину Сільпо на офіційному MCP: 3D-схема залу, маршрут до товару та Цінотижики по дорозі.">
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/silpo.css">
   <title>Сільпо Навігатор — маршрут до товару</title>
   <style>
@@ -146,10 +149,11 @@
     .sheet {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--card);
       border-radius: 20px 20px 0 0; box-shadow: 0 -6px 24px rgba(32,33,36,.12);
-      max-height: 74%; display: flex; flex-direction: column;
+      max-height: 74%; display: flex; flex-direction: column; min-height: 0; overflow: hidden;
       padding-bottom: var(--safe-b); transition: transform .25s ease;
     }
     .sheet.collapsed { transform: translateY(calc(100% - 96px)); }
+    header, .searchbar, .grabber, .tabs { flex: none; }
     .grabber { padding: 10px; display: flex; justify-content: center; }
     .grabber i { width: 42px; height: 4px; background: var(--border); border-radius: 999px; display: block; }
     .tabs {
@@ -168,10 +172,19 @@
     .card-btn .si { font-size: 18px; color: var(--blue); }
     .warn-pill { background: #FDECEA; color: var(--red); }
     .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
-    .sheet-head { display: flex; align-items: baseline; gap: 8px; padding: 0 16px 10px; }
+    .sheet-head { display: flex; align-items: baseline; gap: 8px; padding: 0 16px 10px; flex: none; }
     .sheet-head h2 { font-size: 16px; font-weight: 800; }
     .sheet-head .count { color: var(--muted); font-size: 12px; }
-    .sheet-body { overflow: auto; padding: 0 12px 16px; -webkit-overflow-scrolling: touch; }
+    .sheet-body {
+      flex: 1; min-height: 0; overflow: auto; padding: 0 12px 16px;
+      display: flex; flex-direction: column;
+      -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    }
+    .product-list {
+      flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto;
+      -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+      padding-bottom: 4px;
+    }
 
     .row {
       display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; grid-template-areas: "img info price" "img acts acts";
@@ -222,7 +235,7 @@
     .btn-plain { background: var(--bg); color: var(--ink); border: 1px solid var(--border); }
     .btn-wide { width: 100%; padding: 14px; font-size: 14px; margin-top: 8px; }
 
-    .promo-block { border: 1px solid var(--yellow); background: #FFFBF2; border-radius: var(--radius); padding: 10px; margin-bottom: 10px; }
+    .promo-block { flex: none; border: 1px solid var(--yellow); background: #FFFBF2; border-radius: var(--radius); padding: 10px; margin-bottom: 10px; }
     .promo-block h3 { font-size: 12px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
     .promo-block h3 .si { color: var(--orange); font-size: 15px; }
     .promo-block h3 b {
@@ -266,11 +279,19 @@
     .total { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--blue-soft); border-radius: 14px; font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--blue-dark); }
 
     @media (min-width: 900px) {
+      html, body { overflow: hidden; }
       body { flex-direction: row; }
-      .side { width: 420px; background: var(--card); border-right: 1px solid var(--border); box-shadow: none; }
-      .sheet { position: static; z-index: auto; max-height: none; flex: 1; box-shadow: none; border-radius: 0; transform: none !important; border-top: 0; padding-top: 6px; }
+      .side {
+        width: 420px; height: 100%; max-height: 100dvh; overflow: hidden;
+        background: var(--card); border-right: 1px solid var(--border); box-shadow: none;
+      }
+      .sheet {
+        position: static; z-index: auto; max-height: none; flex: 1; min-height: 0;
+        overflow: hidden; box-shadow: none; border-radius: 0; transform: none !important;
+        border-top: 0; padding-top: 6px;
+      }
       .grabber { display: none; }
-      main { flex: 1; }
+      main { flex: 1; min-width: 0; min-height: 0; }
       .map-dock { bottom: 16px; right: 64px; }
     }
   </style>
@@ -746,7 +767,7 @@
         return;
       }
 
-      sheetBody.innerHTML = promoBlock() + products.map(productRow).join('');
+      sheetBody.innerHTML = `${promoBlock()}<div class="product-list">${products.map(productRow).join('')}</div>`;
       bindProductActions();
     }
 
