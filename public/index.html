@@ -37,10 +37,13 @@
     button, input { font-family: inherit; line-height: 1; }
     .hidden { display: none !important; }
 
-    .side { display: flex; flex-direction: column; min-height: 0; }
+    .side {
+      display: flex; flex-direction: column; min-height: 0; background: var(--card);
+      position: relative; z-index: 4; box-shadow: 0 10px 28px rgba(32,33,36,.08);
+    }
     header {
-      background: var(--card); border-bottom: 1px solid var(--border);
-      padding: calc(10px + var(--safe-t)) 14px 10px; display: flex; align-items: center; gap: 8px;
+      background: var(--card); border-bottom: 0;
+      padding: calc(14px + var(--safe-t)) 16px 4px; display: flex; align-items: center; gap: 8px;
     }
     .logo { font-weight: 800; font-size: 17px; letter-spacing: -0.4px; }
     .logo span { color: var(--red); }
@@ -62,19 +65,19 @@
     }
     .si-heart { transform: translate(1.5px, 2px); }
 
-    .searchbar { background: var(--card); padding: 0 14px 12px; border-bottom: 1px solid var(--border); }
+    .searchbar { background: var(--card); padding: 12px 16px 16px; border-bottom: 0; }
     .field { position: relative; }
     .field .si {
       position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
       color: var(--muted); font-size: 17px; pointer-events: none;
     }
     .field input {
-      width: 100%; border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px 13px 42px;
+      width: 100%; border: 0; border-radius: 14px; padding: 14px 14px 14px 42px;
       font-size: 16px; background: var(--bg); color: var(--ink);
     }
-    .field input:focus { outline: none; border-color: var(--blue); background: #fff; }
+    .field input:focus { outline: none; box-shadow: 0 0 0 2px var(--blue-soft); background: #fff; }
     .storechip {
-      display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px;
+      display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px;
       color: var(--muted); background: var(--bg); padding: 9px 12px; border-radius: 14px;
       min-width: 0;
     }
@@ -264,8 +267,8 @@
 
     @media (min-width: 900px) {
       body { flex-direction: row; }
-      .side { width: 420px; background: var(--card); border-right: 1px solid var(--border); }
-      .sheet { position: static; z-index: auto; max-height: none; flex: 1; box-shadow: none; border-radius: 0; transform: none !important; }
+      .side { width: 420px; background: var(--card); border-right: 1px solid var(--border); box-shadow: none; }
+      .sheet { position: static; z-index: auto; max-height: none; flex: 1; box-shadow: none; border-radius: 0; transform: none !important; border-top: 0; padding-top: 6px; }
       .grabber { display: none; }
       main { flex: 1; }
       .map-dock { bottom: 16px; right: 64px; }
@@ -1168,6 +1171,8 @@
           const text = typeof v === 'string' ? v : (v.message || v.text || v.title || '');
           return text ? `<div class="banner warn">${esc(text)}</div>` : '';
         }).join('')}
+        ${layout ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Маршрут до каси самообслуговування</button>
+          <p class="empty" style="padding:8px 4px 4px">Живої черги в MCP немає. Веду до каси самообслуговування — зазвичай швидше за касира.</p>` : ''}
         ${cart.items.length
           ? `<button class="btn btn-blue btn-wide" id="checkoutBtn">${icon('basket')}Оформити замовлення</button>
              <p class="empty" style="padding:8px 4px 0">Оплата лише на silpo.ua. Тут поставлю самовивіз з обраного магазину і відкрию оформлення.</p>`
@@ -1180,12 +1185,7 @@
         ${cart.bonusAvailable ? `<button class="btn btn-plain btn-wide" id="bonusBtn">${icon('gift')}Списати ${money(cart.bonusAvailable)} балабонусів</button>` : ''}
         ${(guest?.certificates || []).slice(0, 3).map((c, i) => `
           <button class="card-btn" data-cert="${i}">${icon('star')}<div>Сертифікат ${esc(c.barcode || c.code || '')}<span>${c.value ? money(c.value) : 'додати в кошик'}</span></div></button>
-        `).join('')}
-        <div class="listline">
-          <input id="npCity" placeholder="Місто для «Нової пошти»">
-          <button class="btn btn-plain" id="npBtn">НП</button>
-        </div>
-        <div id="npBox"></div>`;
+        `).join('')}`;
 
       sheetBody.querySelectorAll('[data-remove]').forEach((b) => {
         b.onclick = async () => {
@@ -1202,6 +1202,7 @@
           }
         };
       });
+      if (el('tillBtn')) el('tillBtn').onclick = routeToCheckout;
       if (el('checkoutBtn')) {
         el('checkoutBtn').onclick = () => startCheckout(el('checkoutBtn'));
       }
@@ -1248,38 +1249,24 @@
           if (data?.success) { cart = data.cart; renderCart(); }
         };
       });
-      if (el('npBtn')) {
-        el('npBtn').onclick = async () => {
-          const city = el('npCity').value.trim();
-          if (!city) return;
-          const box = el('npBox');
-          box.innerHTML = '<p class="empty">Шукаю відділення…</p>';
-          const data = await api('/api/novaposhta', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ city })
-          }).catch(() => null);
-          if (!data?.success) {
-            box.innerHTML = `<div class="banner err">${esc(data?.error || 'Не знайдено')}</div>`;
-            return;
-          }
-          box.innerHTML = data.offices.map((o, i) => `
-            <button class="card-btn" data-np="${i}">${icon('pin')}<div>${esc(o.title)}<span>№${esc(o.number || '')} · ${esc(o.type || '')}</span></div></button>
-          `).join('') || '<p class="empty">Відділень немає</p>';
-          box.querySelectorAll('[data-np]').forEach((node) => {
-            node.onclick = async () => {
-              const office = data.offices[Number(node.dataset.np)];
-              const applied = await api('/api/novaposhta/apply', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ office, settlement: data.settlement })
-              }).catch(() => null);
-              if (applied?.success) { cart = applied.cart; renderCart(); }
-              else box.insertAdjacentHTML('afterbegin', `<div class="banner err">${esc(applied?.error || 'Не вдалося змінити доставку')}</div>`);
-            };
-          });
-        };
+    }
+
+    function routeToCheckout() {
+      const sco = layout?.registers?.find((r) => r.recommended)
+        || layout?.registers?.find((r) => r.kind === 'sco')
+        || layout?.registers?.[0];
+      const points = sco?.route || layout?.checkoutRoute;
+      if (!points?.length) {
+        sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Спочатку оберіть магазин — тоді намалюю шлях до каси.</div>');
+        return;
       }
+      map.showRoute(points);
+      map.highlight(null);
+      const walk = walkLabel(points);
+      mapHint.textContent = sco?.kind === 'sco'
+        ? `Каса самообслуговування ${sco.n}${sco.recommended ? ' · рекомендую' : ''} · ${walk}. Живої черги в MCP немає.`
+        : `Маршрут до каси ${sco?.n || ''} · ${walk}`;
+      if (window.innerWidth < 900) sheet.classList.add('collapsed');
     }
 
     document.querySelectorAll('.tab').forEach((b) => { b.onclick = () => setTab(b.dataset.tab); });

@@ -261,24 +261,37 @@ export class StoreMap3D {
 
   _registers({ registers, checkout }) {
     const deskMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
+    const scoMat = new THREE.MeshStandardMaterial({ color: 0xeaf0fd, roughness: 0.65 });
     const beltMat = new THREE.MeshStandardMaterial({ color: 0x33373d, roughness: 0.85 });
     const screenMat = new THREE.MeshStandardMaterial({ color: INK, emissive: 0x0a1a3a, emissiveIntensity: 0.4 });
+    const freeMat = new THREE.MeshStandardMaterial({ color: 0x07b324, emissive: 0x07b324, emissiveIntensity: 0.35, roughness: 0.5 });
 
     for (const register of registers || []) {
-      const desk = new THREE.Mesh(new THREE.BoxGeometry(register.width, 1, register.depth), deskMat);
-      desk.position.set(register.x, 0.5, register.z);
+      const sco = register.kind === 'sco';
+      const desk = new THREE.Mesh(new THREE.BoxGeometry(register.width, sco ? 1.15 : 1, register.depth), sco ? scoMat : deskMat);
+      desk.position.set(register.x, sco ? 0.58 : 0.5, register.z);
       this.group.add(desk);
 
-      const belt = new THREE.Mesh(new THREE.BoxGeometry(register.width - 0.3, 0.06, 0.5), beltMat);
-      belt.position.set(register.x, 1.03, register.z + 0.1);
-      this.group.add(belt);
+      if (!sco) {
+        const belt = new THREE.Mesh(new THREE.BoxGeometry(register.width - 0.3, 0.06, 0.5), beltMat);
+        belt.position.set(register.x, 1.03, register.z + 0.1);
+        this.group.add(belt);
+      }
 
-      const screen = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.34, 0.08), screenMat);
-      screen.position.set(register.x + register.width / 2 - 0.4, 1.3, register.z - 0.2);
+      const screen = new THREE.Mesh(
+        new THREE.BoxGeometry(sco ? 0.42 : 0.5, sco ? 0.5 : 0.34, 0.08),
+        register.recommended ? freeMat : screenMat
+      );
+      screen.position.set(register.x + register.width / 2 - 0.35, sco ? 1.45 : 1.3, register.z - 0.2);
       this.group.add(screen);
+
+      const title = sco
+        ? (register.recommended ? `SCO ${register.n} вільніше` : `SCO ${register.n}`)
+        : `Каса ${register.n}`;
+      this.group.add(this._label(title, register.x, sco ? 2.2 : 2, register.z - 1.1, register.recommended ? 'free' : 'checkout'));
     }
 
-    if (checkout) this.group.add(this._label('Каси', checkout.x, 2, checkout.z, 'checkout'));
+    if (checkout && !registers?.length) this.group.add(this._label('Каси', checkout.x, 2, checkout.z, 'checkout'));
   }
 
   _promoIsland(island) {
@@ -470,8 +483,8 @@ export class StoreMap3D {
   _drawLabel(sprite) {
     const { canvas, text, variant } = sprite.userData;
     const ctx = canvas.getContext('2d');
-    const fill = variant === 'entrance' ? '#FBBB5E' : variant === 'checkout' ? '#FE8522' : 'rgba(32,33,36,0.9)';
-    const color = variant === 'entrance' ? '#202124' : '#ffffff';
+    const fill = variant === 'entrance' ? '#FBBB5E' : variant === 'checkout' ? '#FE8522' : variant === 'free' ? '#07B324' : 'rgba(32,33,36,0.9)';
+    const color = variant === 'entrance' || variant === 'free' ? '#202124' : '#ffffff';
     const label = String(text).length > 26 ? `${String(text).slice(0, 25)}…` : String(text);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);

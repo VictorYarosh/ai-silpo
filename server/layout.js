@@ -216,13 +216,21 @@ function layoutSlots({ rng, width, depth, entranceSide, bandCount, bandSplit, fi
   // Прикасова зона: вхід з одного боку, каси з іншого, промо-острови між ними.
   const entrance = { x: entranceSide * (width / 2 - 3.2), z: frontZ - 1.6 };
   const registerCount = pick(rng, 4, 6);
+  const scoCount = Math.min(3, registerCount - 1);
   const registers = [];
   for (let i = 0; i < registerCount; i += 1) {
+    const sco = i >= registerCount - scoCount;
+    const x = -entranceSide * (width / 2 - 4.2 - i * 3.6);
+    const z = frontZ - 2.6;
     registers.push({
-      x: -entranceSide * (width / 2 - 4.2 - i * 3.6),
-      z: frontZ - 2.6,
-      width: 2.4,
-      depth: 0.9
+      id: sco ? `sco-${i + 1}` : `till-${i + 1}`,
+      n: i + 1,
+      kind: sco ? 'sco' : 'staff',
+      x,
+      z,
+      width: sco ? 1.8 : 2.4,
+      depth: 0.9,
+      approach: { x, z: z - 1.6 }
     });
   }
   const checkout = {
@@ -571,6 +579,12 @@ export function buildLayout(departments = [], seed = 'silpo') {
   for (const shelf of shelves) {
     shelf.route = findPath(nav, layout.entrance, shelf.approach);
   }
+  for (const register of layout.registers) {
+    register.route = findPath(nav, layout.entrance, register.approach);
+  }
+  const firstSco = layout.registers.find((r) => r.kind === 'sco') || layout.registers[0];
+  if (firstSco) firstSco.recommended = true;
+  layout.checkoutRoute = firstSco?.route || findPath(nav, layout.entrance, layout.checkout);
 
   return layout;
 }
@@ -653,7 +667,9 @@ export function buildMultiRoute(layout, shelves) {
     current = next.approach;
   }
 
-  points.push(...findPath(layout.nav, current, layout.checkout).slice(1));
+  const till = layout.registers.find((r) => r.recommended) || layout.registers.find((r) => r.kind === 'sco');
+  const tillPoint = till?.approach || layout.checkout;
+  points.push(...findPath(layout.nav, current, tillPoint).slice(1));
   return { points: dedupe(points), order };
 }
 

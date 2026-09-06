@@ -239,7 +239,7 @@ async function fetchDepartments(call, branchId) {
 }
 
 export async function getLayout(call, branchId, seed = branchId) {
-  const key = `${branchId}:${seed}`;
+  const key = `${branchId}:${seed}:v2`;
   const cached = layoutCache.get(key);
   if (cached && Date.now() - cached.at < 30 * MINUTE) return cached.layout;
 
