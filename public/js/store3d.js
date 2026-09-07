@@ -128,9 +128,17 @@ export class StoreMap3D {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.target.set(0, 0.5, 0);
     this.controls.enableDamping = true;
+    this.controls.enablePan = true;
+    this.controls.screenSpacePanning = true;
+    this.controls.panSpeed = 1.15;
     this.controls.maxPolarAngle = Math.PI / 2.02;
     this.controls.minDistance = 1.1;
     this.controls.maxDistance = 90;
+    this.controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+    this.controls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+    this.controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+    this.controls.touches.ONE = THREE.TOUCH.PAN;
+    this.controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
     this.eyeMode = false;
     this.walkMode = false;
     this.onArrive = null;
@@ -153,12 +161,16 @@ export class StoreMap3D {
     this._pointerDown = null;
     canvas.addEventListener('pointerdown', (e) => {
       this._pointerDown = { x: e.clientX, y: e.clientY };
+      if (e.button === 0) canvas.style.cursor = 'grabbing';
     });
-    canvas.addEventListener('pointerup', (e) => this._pick(e));
+    canvas.addEventListener('pointerup', (e) => {
+      canvas.style.cursor = 'grab';
+      this._pick(e);
+    });
     canvas.addEventListener('pointerleave', () => {
       this._pointerDown = null;
       this._hoverId = null;
-      canvas.style.cursor = '';
+      canvas.style.cursor = 'grab';
     });
     canvas.addEventListener('pointermove', (e) => this._hover(e));
 
@@ -181,6 +193,7 @@ export class StoreMap3D {
     this.renderer.setAnimationLoop(() => {
       const dt = Math.min(clock.getDelta(), 0.05);
       this.controls.update();
+      this._clampPan();
       this._animateWalker(dt);
       this._syncWalkPins();
       this.renderer.render(this.scene, this.camera);
@@ -263,12 +276,18 @@ export class StoreMap3D {
   setWalkMode(on) {
     this.walkMode = Boolean(on);
     this.eyeMode = this.walkMode;
+    this.controls.enablePan = true;
+    this.controls.screenSpacePanning = true;
     if (this.walkMode) {
       this.controls.enableRotate = false;
       this.controls.minPolarAngle = 0;
       this.controls.maxPolarAngle = 0.12;
-      this.controls.minDistance = 10;
+      this.controls.minDistance = 8;
       this.controls.maxDistance = 90;
+      this.controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+      this.controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+      this.controls.touches.ONE = THREE.TOUCH.PAN;
+      this.controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
       if (this.curve) this._frameRoute(this.curve.getPoints(8));
       else this.frameAll();
     } else {
@@ -277,6 +296,10 @@ export class StoreMap3D {
       this.controls.maxPolarAngle = Math.PI / 2.02;
       this.controls.minDistance = 1.1;
       this.controls.maxDistance = 90;
+      this.controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+      this.controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+      this.controls.touches.ONE = THREE.TOUCH.PAN;
+      this.controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
       if (this.curve) this._frameRoute(this.curve.getPoints(8));
       else this.frameAll();
     }
@@ -284,6 +307,16 @@ export class StoreMap3D {
     if (this.youDot) this.youDot.visible = this.walkMode;
     if (this._lastCards?.length) this.pinShelfCards(this._lastCards);
     else this._setWalkPins([]);
+  }
+
+  _clampPan() {
+    if (!this.layout?.floor) return;
+    const { width, depth } = this.layout.floor;
+    const t = this.controls.target;
+    const pad = 6;
+    t.x = Math.min(width / 2 + pad, Math.max(-width / 2 - pad, t.x));
+    t.z = Math.min(depth / 2 + pad, Math.max(-depth / 2 - pad, t.z));
+    t.y = this.walkMode ? 0 : 0.5;
   }
 
   _floor({ floor }) {
