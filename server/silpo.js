@@ -414,13 +414,20 @@ async function weeklyPromos(call, branchId) {
   const ctx = await branchContext(call, branchId);
   const promotions = await call('silpo_get_promotions', ctx);
   const list = promotions?.promotions || promotions?.items || [];
-  const weekly = list.find((p) => /цінотиж/i.test(p.title || '')) || list[0];
-  if (!weekly?.code) return { at: Date.now(), title: 'Акції', products: [] };
+  const weekly = list.find((p) => String(p.code || '').toLowerCase() === 'cinotyzhyky')
+    || list.find((p) => /цінот|ціна\s*тиж/i.test(`${p.title || ''} ${p.code || ''}`));
+  if (!weekly?.code) return { at: Date.now(), title: 'Цінотижики', products: [] };
 
-  const data = await call('silpo_get_products', { ...ctx, promotionCode: weekly.code, limit: 100 });
+  const data = await call('silpo_get_products', {
+    ...ctx,
+    promotionCode: weekly.code,
+    inStock: true,
+    limit: 100,
+    sortBy: 'promotion'
+  });
   const entry = {
     at: Date.now(),
-    title: weekly.title || 'Ціна тижня',
+    title: weekly.title || 'Цінотижики',
     products: (data?.products || data?.items || []).map(normalizeProduct)
   };
   promoCache.set(branchId, entry);
@@ -444,40 +451,42 @@ function distanceToRoute(point, route) {
 export async function promosOnTheWay(call, { branchId, seed, route, skipShelfIds = [] }) {
   const layout = await getLayout(call, branchId, seed || branchId);
   const promo = await weeklyPromos(call, branchId);
+  const skip = new Set(skipShelfIds);
+  const discountOf = (p) => (p.oldPrice && p.price ? p.oldPrice - p.price : 0);
 
-  const byShelf = new Map();
+  const bestByShelf = new Map();
   for (const product of promo.products) {
     const shelf = matchShelf(product, layout.shelves);
     if (!shelf) continue;
-    if (!byShelf.has(shelf.id)) byShelf.set(shelf.id, []);
-    byShelf.get(shelf.id).push(product);
+    const distance = distanceToRoute(shelf.approach || { x: shelf.x, z: shelf.z }, route);
+    const prev = bestByShelf.get(shelf.id);
+    if (!prev || discountOf(product) > discountOf(prev.product) || (discountOf(product) === discountOf(prev.product) && distance < prev.distance)) {
+      bestByShelf.set(shelf.id, { product, shelf, distance });
+    }
   }
 
-  const discountOf = (p) => (p.oldPrice && p.price ? p.oldPrice - p.price : 0);
-  const suggestions = [];
+  const ranked = [...bestByShelf.values()].sort((a, b) => a.distance - b.distance);
+  const along = ranked.filter((row) => row.distance <= 8);
+  const pool = (along.length ? along : ranked.filter((row) => row.distance <= 14));
+  const away = pool.filter((row) => !skip.has(row.shelf.id));
+  const chosen = (away.length ? away : pool)
+    .sort((a, b) => discountOf(b.product) - discountOf(a.product) || a.distance - b.distance)
+    .slice(0, 4);
 
-  for (const shelf of layout.shelves) {
-    if (skipShelfIds.includes(shelf.id)) continue;
-    const distance = distanceToRoute(shelf.approach, route);
-    if (distance > 5) continue;
-
-    const items = (byShelf.get(shelf.id) || []).sort((a, b) => discountOf(b) - discountOf(a));
-    if (!items.length) continue;
-
-    const product = items[0];
-    const discount = discountOf(product);
-    suggestions.push({
-      shelfId: shelf.id,
-      shelfName: shelf.name,
-      detourMeters: Math.round(distance * 10) / 10,
-      discount: Math.round(discount * 100) / 100,
-      discountPercent: product.oldPrice ? Math.round((discount / product.oldPrice) * 100) : 0,
-      product: { ...product, shelfName: shelf.name, route: buildRoute(layout, shelf) }
-    });
-  }
-
-  suggestions.sort((a, b) => b.discount - a.discount);
-  return { promoTitle: promo.title, suggestions: suggestions.slice(0, 4) };
+  return {
+    promoTitle: promo.title || 'Цінотижики',
+    suggestions: chosen.map(({ product, shelf, distance }) => {
+      const discount = discountOf(product);
+      return {
+        shelfId: shelf.id,
+        shelfName: shelf.name,
+        detourMeters: Math.round(distance * 10) / 10,
+        discount: Math.round(discount * 100) / 100,
+        discountPercent: product.oldPrice ? Math.round((discount / product.oldPrice) * 100) : 0,
+        product: { ...product, shelfName: shelf.name, route: buildRoute(layout, shelf) }
+      };
+    })
+  };
 }
 
 function cartSummary(payload) {

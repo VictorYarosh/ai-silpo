@@ -70,6 +70,7 @@ export class StoreMap3D {
     this.shelves = new Map();
     this.labels = [];
     this.routeGroup = null;
+    this.promoGroup = null;
     this.walker = null;
     this.curve = null;
     this.curveLength = 1;
@@ -490,7 +491,7 @@ export class StoreMap3D {
     const scale = variant === 'shelf' ? [3.2, 0.8] : [2.4, 0.6];
     sprite.scale.set(scale[0], scale[1], 1);
     sprite.userData = { canvas, text, variant };
-    this.labels.push(sprite);
+    if (variant !== 'promo') this.labels.push(sprite);
     this._drawLabel(sprite);
     return sprite;
   }
@@ -504,8 +505,10 @@ export class StoreMap3D {
         ? '#FE8522'
         : variant === 'free'
           ? '#07B324'
-          : 'rgba(32,33,36,0.92)';
-    const color = variant === 'entrance' || variant === 'free' ? '#202124' : '#ffffff';
+          : variant === 'promo'
+            ? '#FBBB5E'
+            : 'rgba(32,33,36,0.92)';
+    const color = variant === 'entrance' || variant === 'free' || variant === 'promo' ? '#202124' : '#ffffff';
     const raw = String(text || '');
     const label = variant === 'shelf' && raw.length > 14
       ? `${raw.slice(0, 13)}…`
@@ -597,6 +600,38 @@ export class StoreMap3D {
 
     this.group.add(this.routeGroup);
     if (opts.focus !== false && !this.eyeMode) this._frameRoute(verts);
+    if (opts.promos?.length) this.markWeeklyPromos(opts.promos);
+  }
+
+  markWeeklyPromos(suggestions) {
+    if (!this.routeGroup) return;
+    if (this.promoGroup) {
+      this.routeGroup.remove(this.promoGroup);
+      this.promoGroup = null;
+    }
+    if (!suggestions?.length) return;
+
+    this.promoGroup = new THREE.Group();
+    const yellow = new THREE.MeshStandardMaterial({
+      color: YELLOW,
+      emissive: YELLOW,
+      emissiveIntensity: 0.35,
+      roughness: 0.45
+    });
+
+    for (const item of suggestions) {
+      const shelf = this.shelves.get(item.shelfId)?.shelf;
+      if (!shelf) continue;
+      const x = shelf.approach?.x ?? shelf.x;
+      const z = shelf.approach?.z ?? shelf.z;
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.08, 20), yellow);
+      pad.position.set(x, 0.16, z);
+      this.promoGroup.add(pad);
+      const title = item.discountPercent ? `−${item.discountPercent}%` : 'Ціна';
+      this.promoGroup.add(this._label(title, x, 2.2, z, 'promo'));
+    }
+
+    this.routeGroup.add(this.promoGroup);
   }
 
   /** Покупець із кошиком: ноги й руки крокують, корпус повертається за маршрутом. */
@@ -715,6 +750,7 @@ export class StoreMap3D {
       this.routeGroup = null;
     }
     this.walker = null;
+    this.promoGroup = null;
     this.curve = null;
   }
 }
