@@ -1,0 +1,14 @@
+---
+description: Після кожного оновлення коду комітити і пушити в GitHub
+alwaysApply: true
+---
+
+# Пуш після оновлення
+
+Коли зміна в проєкті готова (фіча, фікс, UI):
+
+1. Зроби git commit українською, у стилі репозиторію (навіщо, не що).
+2. Відразу `git push origin HEAD` на GitHub (`VictorYarosh/ai-silpo`).
+3. Не чекай окремого «залий на github» — Vercel підхопить `main` сам.
+
+Не коміть `.env`, секрети й `node_modules`.
