@@ -129,9 +129,12 @@
     .dept-chip:active { background: var(--blue-soft); }
     .promo-strip { padding-bottom: 2px; }
     .promo-chip {
-      flex: none; width: 148px; border: 1px solid var(--yellow); background: #FFFBF2;
+      flex: none; width: 132px; border: 1px solid var(--yellow); background: #FFFBF2;
       border-radius: 14px; padding: 8px; text-align: left; color: var(--ink);
       display: flex; flex-direction: column; gap: 2px;
+    }
+    .promo-chip img {
+      width: 100%; height: 72px; object-fit: contain; border-radius: 10px; background: #fff;
     }
     .promo-chip b { font-size: 10px; color: #7A5416; font-weight: 800; }
     .promo-chip span { font-size: 11px; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -937,6 +940,7 @@
       strip.classList.remove('hidden');
       strip.innerHTML = promos.suggestions.map((s, i) => `
         <button class="promo-chip" type="button" data-promo="${i}">
+          ${s.product.image ? `<img src="${esc(s.product.image)}" alt="" loading="lazy">` : ''}
           <b>${esc(promos.title || 'Цінотижики')}</b>
           <span>${esc(s.product.name)}</span>
           <i>${s.discountPercent ? `−${s.discountPercent}%` : money(s.product.price)} · ${esc(s.shelfName)}</i>
