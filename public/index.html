@@ -349,18 +349,15 @@
     .peek span { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
     .peek i { display: block; font-style: normal; font-size: 15px; font-weight: 800; color: var(--red); margin-top: 4px; }
     .peek .peek-acts { display: flex; flex-direction: column; gap: 6px; flex: none; }
-    #shuffleBtn { display: none; }
-    body.walk-mode .map-hint { max-width: 72%; }
+    #shuffleBtn,
+    #peek,
+    #promoStrip,
+    #shelfRail { display: none !important; }
+    body.walk-mode .map-hint { max-width: calc(100% - 68px); }
     body.walk-mode #zoomIn,
     body.walk-mode #zoomOut { display: none; }
-    body.walk-mode .map-trust,
-    body.walk-mode .shelf-rail,
-    body.walk-mode #peekHere { display: none !important; }
+    body.walk-mode .map-trust { display: none !important; }
     body.walk-mode:not(.here-armed) .dept-strip { display: none !important; }
-    body.walk-mode .promo-chip b { display: none; }
-    body.walk-mode .promo-chip { width: 120px; }
-    body.walk-mode .promo-chip img { height: 58px; }
-    .peek:not(.hidden) + .map-dock { bottom: calc(196px + var(--safe-b)); }
 
     @media (min-width: 900px) {
       html, body { overflow: hidden; }
@@ -377,8 +374,6 @@
       .grabber { display: none; }
       main { flex: 1; min-width: 0; min-height: 0; }
       .map-dock { bottom: 16px; right: 64px; }
-      .peek { right: 64px; bottom: 16px; }
-      .peek:not(.hidden) + .map-dock { bottom: 96px; right: 64px; }
     }
   </style>
   <script type="importmap">
@@ -469,14 +464,6 @@
     const el = (id) => document.getElementById(id);
     const map = new StoreMap3D(el('map'));
     map.setWalkMode(true);
-    map.onWalkPin = (item) => {
-      if (!item?.product) return;
-      focusProduct({
-        ...item.product,
-        shelfId: item.shelfId,
-        shelfName: item.shelfName
-      });
-    };
     window.map = map;
     const sheet = el('sheet');
     const sheetBody = el('sheetBody');
@@ -1131,37 +1118,8 @@
       return Math.max(0, Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100));
     }
 
-    function shelfCards() {
-      const cards = [];
-      const used = new Set();
-      if (pinnedProduct?.shelfId) {
-        cards.push({
-          kind: 'dest',
-          shelfId: pinnedProduct.shelfId,
-          product: pinnedProduct,
-          title: discountPercent(pinnedProduct) ? 'Ціна тижня' : 'Товар',
-          discountPercent: discountPercent(pinnedProduct)
-        });
-        used.add(pinnedProduct.shelfId);
-      }
-      for (const suggestion of promos.suggestions) {
-        if (!suggestion?.shelfId || !suggestion.product || used.has(suggestion.shelfId)) continue;
-        cards.push({
-          kind: 'deal',
-          shelfId: suggestion.shelfId,
-          product: suggestion.product,
-          title: promos.title || 'Ціна тижня',
-          discountPercent: suggestion.discountPercent || discountPercent(suggestion.product),
-          shelfName: suggestion.shelfName
-        });
-        used.add(suggestion.shelfId);
-      }
-      return cards;
-    }
-
     function refreshPins() {
-      map.pinShelfCards(shelfCards());
-      renderPeek();
+      map.pinShelfCards();
     }
 
     function renderPeek() {

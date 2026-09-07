@@ -52,41 +52,6 @@ function rngFrom(seed) {
   };
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  const radius = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(x, y, w, h, radius);
-  else ctx.rect(x, y, w, h);
-}
-
-function wrapLines(ctx, text, maxWidth, maxLines) {
-  const words = String(text || '').split(/\s+/).filter(Boolean);
-  const lines = [];
-  let line = '';
-  for (const word of words) {
-    const next = line ? `${line} ${word}` : word;
-    if (ctx.measureText(next).width <= maxWidth) {
-      line = next;
-    } else {
-      if (line) lines.push(line);
-      line = word;
-      if (lines.length >= maxLines) break;
-    }
-  }
-  if (line && lines.length < maxLines) lines.push(line);
-  if (lines.length === maxLines) {
-    let last = lines[maxLines - 1] || '';
-    while (last && ctx.measureText(`${last}…`).width > maxWidth) last = last.slice(0, -1);
-    lines[maxLines - 1] = last ? `${last}…` : '';
-  }
-  return lines.filter(Boolean);
-}
-
-function uah(value) {
-  if (value == null || Number.isNaN(Number(value))) return '';
-  return `${Number(value).toFixed(2).replace('.', ',')} ₴`;
-}
-
 function tint(hex, rng, amount = 0.22) {
   const color = new THREE.Color(hex);
   const hsl = {};
@@ -108,7 +73,6 @@ export class StoreMap3D {
     this.promoGroup = null;
     this.hereGroup = null;
     this.youDot = null;
-    this._promoGen = 0;
     this.walker = null;
     this.walkMode = false;
     this.curve = null;
@@ -174,15 +138,6 @@ export class StoreMap3D {
     });
     canvas.addEventListener('pointermove', (e) => this._hover(e));
 
-    this.pinLayer = document.createElement('div');
-    this.pinLayer.className = 'walk-pins hidden';
-    canvas.parentElement?.appendChild(this.pinLayer);
-    this._walkPinData = [];
-    this._walkPinsDirty = false;
-    this._pinNdc = new THREE.Vector3();
-    this._lastCards = [];
-    this.onWalkPin = null;
-
     window.addEventListener('resize', () => this.resize());
     this.resize();
 
@@ -195,7 +150,6 @@ export class StoreMap3D {
       this.controls.update();
       this._clampPan();
       this._animateWalker(dt);
-      this._syncWalkPins();
       this.renderer.render(this.scene, this.camera);
     });
   }
@@ -305,8 +259,7 @@ export class StoreMap3D {
     }
     if (this.walker) this.walker.visible = !this.walkMode && !this.walkDone;
     if (this.youDot) this.youDot.visible = this.walkMode;
-    if (this._lastCards?.length) this.pinShelfCards(this._lastCards);
-    else this._setWalkPins([]);
+    this.pinShelfCards();
   }
 
   _clampPan() {
@@ -731,27 +684,10 @@ export class StoreMap3D {
     this.group.add(this.routeGroup);
     if (opts.focus !== false && !this.eyeMode) this._frameRoute(verts);
     if (this.walkMode) this._frameRoute(verts);
-    if (opts.cards?.length) this.pinShelfCards(opts.cards);
-    else if (opts.promos?.length) this.markWeeklyPromos(opts.promos);
   }
 
-  markWeeklyPromos(suggestions) {
-    this.pinShelfCards((suggestions || []).map((s) => ({
-      shelfId: s.shelfId,
-      product: s.product,
-      title: 'Ціна тижня',
-      discountPercent: s.discountPercent
-    })));
-  }
-
-  pinShelfCards(cards) {
-    this._lastCards = cards || [];
-    if (!this.routeGroup) {
-      this._setWalkPins([]);
-      return;
-    }
-    this._promoGen += 1;
-    if (this.promoGroup) {
+  pinShelfCards() {
+    if (this.promoGroup && this.routeGroup) {
       this.routeGroup.remove(this.promoGroup);
       this.promoGroup.traverse((obj) => {
         obj.geometry?.dispose();
@@ -760,221 +696,6 @@ export class StoreMap3D {
       });
       this.promoGroup = null;
     }
-    if (!cards?.length) {
-      this._setWalkPins([]);
-      return;
-    }
-
-    this.promoGroup = new THREE.Group();
-    const yellow = new THREE.MeshStandardMaterial({
-      color: YELLOW,
-      emissive: YELLOW,
-      emissiveIntensity: 0.4,
-      roughness: 0.4
-    });
-
-    if (this.walkMode) {
-      const pins = [];
-      for (const item of cards) {
-        if (item.kind === 'dest' || !item.product) continue;
-        const shelf = this.shelves.get(item.shelfId)?.shelf;
-        if (!shelf) continue;
-        const towardX = (shelf.approach?.x ?? shelf.x) - shelf.x;
-        const towardZ = (shelf.approach?.z ?? shelf.z) - shelf.z;
-        const x = shelf.x + towardX * 0.62;
-        const z = shelf.z + towardZ * 0.62;
-        const pad = new THREE.Mesh(
-          new THREE.CircleGeometry(0.9, 22),
-          new THREE.MeshBasicMaterial({ color: YELLOW })
-        );
-        pad.rotation.x = -Math.PI / 2;
-        pad.position.set(x, 0.07, z);
-        this.promoGroup.add(pad);
-        pins.push({ ...item, x, z });
-        if (pins.length >= 5) break;
-      }
-      this.routeGroup.add(this.promoGroup);
-      this._setWalkPins(pins);
-      return;
-    }
-
-    this._setWalkPins([]);
-    for (const item of cards) {
-      const shelf = this.shelves.get(item.shelfId)?.shelf;
-      if (!shelf || !item.product) continue;
-      const towardX = (shelf.approach?.x ?? shelf.x) - shelf.x;
-      const towardZ = (shelf.approach?.z ?? shelf.z) - shelf.z;
-      const x = shelf.x + towardX * 0.28;
-      const z = shelf.z + towardZ * 0.28;
-      const height = shelf.kind === 'counter' ? 1.35 : 2.05;
-      const stemH = 0.95;
-      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, stemH, 8), yellow);
-      stem.position.set(x, height + 0.28 + stemH / 2, z);
-      this.promoGroup.add(stem);
-      this.promoGroup.add(this._promoCard(item, x, height + 0.28 + stemH + 1.22, z));
-    }
-
-    this.routeGroup.add(this.promoGroup);
-  }
-
-  _setWalkPins(pins) {
-    this._walkPinData = pins || [];
-    this._walkPinsDirty = true;
-    this._syncWalkPins();
-  }
-
-  _syncWalkPins() {
-    const layer = this.pinLayer;
-    if (!layer) return;
-    const show = this.walkMode && this._walkPinData.length;
-    layer.classList.toggle('hidden', !show);
-    if (!show) {
-      if (layer.childElementCount) layer.innerHTML = '';
-      return;
-    }
-
-    if (this._walkPinsDirty) {
-      this._walkPinsDirty = false;
-      const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
-      }[c]));
-      layer.innerHTML = this._walkPinData.map((item, i) => {
-        const product = item.product || {};
-        const off = item.discountPercent ? `−${item.discountPercent}%` : '';
-        return `<button class="walk-pin" type="button" data-i="${i}">
-          ${product.image ? `<img src="${esc(product.image)}" alt="">` : ''}
-          <span>
-            ${off ? `<b class="off">${esc(off)}</b>` : ''}
-            <i>${esc(uah(product.price))}</i>
-          </span>
-        </button>`;
-      }).join('');
-      layer.querySelectorAll('.walk-pin').forEach((btn) => {
-        btn.onclick = (event) => {
-          event.stopPropagation();
-          const item = this._walkPinData[Number(btn.dataset.i)];
-          if (item) this.onWalkPin?.(item);
-        };
-      });
-    }
-
-    const rect = this.canvas.getBoundingClientRect();
-    const nodes = layer.children;
-    for (let i = 0; i < this._walkPinData.length; i += 1) {
-      const item = this._walkPinData[i];
-      const node = nodes[i];
-      if (!node) continue;
-      const v = this._pinNdc.set(item.x, 0.2, item.z).project(this.camera);
-      const x = (v.x * 0.5 + 0.5) * rect.width;
-      const y = (-v.y * 0.5 + 0.5) * rect.height;
-      const hidden = v.z > 1 || x < 12 || y < 12 || x > rect.width - 12 || y > rect.height * 0.7;
-      node.hidden = hidden;
-      node.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(-50%, -110%)`;
-    }
-  }
-
-  _promoCard(item, x, y, z) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 384;
-    canvas.height = 512;
-    const sprite = new THREE.Sprite(
-      new THREE.SpriteMaterial({
-        map: new THREE.CanvasTexture(canvas),
-        transparent: true,
-        depthWrite: false
-      })
-    );
-    sprite.position.set(x, y, z);
-    sprite.scale.set(1.9, 2.53, 1);
-    sprite.renderOrder = 4;
-    sprite.userData = { canvas, item };
-    this._drawPromoCard(sprite, null);
-
-    const url = item.product?.image;
-    if (url) {
-      const gen = this._promoGen;
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        if (this._promoGen !== gen || !sprite.parent) return;
-        this._drawPromoCard(sprite, img);
-      };
-      img.src = url;
-    }
-    return sprite;
-  }
-
-  _drawPromoCard(sprite, img) {
-    const { canvas, item } = sprite.userData;
-    const ctx = canvas.getContext('2d');
-    const product = item.product || {};
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = 'rgba(32,33,36,0.16)';
-    roundRect(ctx, 22, 26, 348, 470, 36);
-    ctx.fill();
-
-    ctx.fillStyle = '#FBBB5E';
-    roundRect(ctx, 12, 12, 360, 488, 34);
-    ctx.fill();
-
-    ctx.fillStyle = '#FFFFFF';
-    roundRect(ctx, 12, 86, 360, 414, 34);
-    ctx.fill();
-    ctx.fillRect(12, 86, 360, 40);
-
-    ctx.fillStyle = '#202124';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = "800 28px 'Silpo Text', -apple-system, sans-serif";
-    ctx.fillText(item.title || 'Товар', 192, 50);
-
-    ctx.fillStyle = '#F2F4F9';
-    roundRect(ctx, 44, 108, 296, 236, 22);
-    ctx.fill();
-
-    if (img) {
-      const maxW = 268;
-      const maxH = 212;
-      const scale = Math.min(maxW / img.width, maxH / img.height);
-      const dw = img.width * scale;
-      const dh = img.height * scale;
-      ctx.drawImage(img, 192 - dw / 2, 226 - dh / 2, dw, dh);
-    }
-
-    if (item.discountPercent) {
-      ctx.fillStyle = '#DA291C';
-      roundRect(ctx, 230, 96, 126, 44, 22);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = "800 22px 'Silpo Text', -apple-system, sans-serif";
-      ctx.fillText(`−${item.discountPercent}%`, 293, 118);
-    }
-
-    ctx.fillStyle = '#202124';
-    ctx.font = "700 22px 'Silpo Text', -apple-system, sans-serif";
-    const names = wrapLines(ctx, product.name || 'Товар', 300, 2);
-    names.forEach((line, i) => ctx.fillText(line, 192, 368 + i * 26));
-
-    const priceY = 368 + names.length * 26 + 28;
-    ctx.fillStyle = '#DA291C';
-    ctx.font = "800 32px 'Silpo Text', -apple-system, sans-serif";
-    ctx.fillText(uah(product.price), 192, priceY);
-    if (product.oldPrice) {
-      ctx.fillStyle = '#6E7480';
-      ctx.font = "600 20px 'Silpo Text', -apple-system, sans-serif";
-      const old = uah(product.oldPrice);
-      ctx.fillText(old, 192, priceY + 28);
-      const width = ctx.measureText(old).width;
-      ctx.strokeStyle = '#DA291C';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(192 - width / 2 - 4, priceY + 28);
-      ctx.lineTo(192 + width / 2 + 4, priceY + 28);
-      ctx.stroke();
-    }
-
-    sprite.material.map.needsUpdate = true;
   }
 
   /** Покупець із кошиком: ноги й руки крокують, корпус повертається за маршрутом. */
@@ -1127,6 +848,5 @@ export class StoreMap3D {
     this.youDot = null;
     this.promoGroup = null;
     this.curve = null;
-    this._setWalkPins([]);
   }
 }
