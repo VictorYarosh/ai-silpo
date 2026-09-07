@@ -682,15 +682,16 @@ export function buildRoute(layout, shelf) {
   return findPath(layout.nav, layout.entrance, shelf.approach);
 }
 
-export function buildMultiRoute(layout, shelves) {
+export function buildMultiRoute(layout, shelves, startPoint = null) {
   const stops = [];
   for (const shelf of shelves) {
     if (shelf && !stops.some((s) => s.id === shelf.id)) stops.push(shelf);
   }
 
-  const points = [layout.entrance];
+  const origin = startPoint || layout.entrance;
+  const points = [origin];
   const order = [];
-  let current = layout.entrance;
+  let current = origin;
   const left = [...stops];
 
   // Найближчий наступний відділ по прямій, а самі переходи вже прокладає A*.
@@ -710,6 +711,11 @@ export function buildMultiRoute(layout, shelves) {
   const tillPoint = till?.approach || layout.checkout;
   points.push(...findPath(layout.nav, current, tillPoint).slice(1));
   return { points: dedupe(points), order };
+}
+
+export function buildPath(layout, from, to) {
+  if (!layout?.nav || !from || !to) return from && to ? [from, to] : [];
+  return findPath(layout.nav, from, to);
 }
 
 export { ZONE_ORDER };

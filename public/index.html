@@ -290,6 +290,49 @@
     .step b { width: 24px; height: 24px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 11px; display: grid; place-items: center; flex: none; line-height: 1; }
     .total { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--blue-soft); border-radius: 14px; font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--blue-dark); }
 
+    .mode-switch {
+      position: absolute; left: 12px; top: 56px; z-index: 3;
+      display: flex; background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    }
+    .mode-switch button {
+      border: 0; background: #fff; color: var(--ink); padding: 9px 12px;
+      font-size: 11px; font-weight: 800; line-height: 1;
+    }
+    .mode-switch button.active { background: var(--blue); color: #fff; }
+    .map-trust {
+      position: absolute; left: 12px; top: 140px; z-index: 3;
+      background: rgba(255,255,255,.94); border: 1px solid var(--border); border-radius: 12px;
+      padding: 6px 10px; font-size: 10px; font-weight: 700; color: var(--muted); max-width: 58%;
+    }
+    .here-fab {
+      position: absolute; left: 12px; top: 96px; z-index: 3;
+      border: 1px solid var(--border); background: #fff; color: var(--ink);
+      border-radius: 14px; padding: 9px 12px; font-size: 11px; font-weight: 800; line-height: 1;
+      max-width: 58%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .here-fab.armed { background: var(--yellow); border-color: var(--yellow); color: #4A3208; }
+    .here-fab.set { background: var(--blue-soft); border-color: var(--blue); color: var(--blue-dark); }
+    .peek {
+      position: absolute; left: 12px; right: 12px; bottom: calc(108px + var(--safe-b));
+      z-index: 5; display: flex; align-items: center; gap: 10px;
+      background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 10px;
+    }
+    .peek.hidden { display: none !important; }
+    .peek img {
+      width: 64px; height: 64px; object-fit: contain; border-radius: 12px; background: var(--bg); flex: none;
+    }
+    .peek .peek-info { min-width: 0; flex: 1; }
+    .peek b { display: block; font-size: 13px; font-weight: 800; line-height: 1.3; }
+    .peek span { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .peek i { display: block; font-style: normal; font-size: 15px; font-weight: 800; color: var(--red); margin-top: 4px; }
+    .peek .peek-acts { display: flex; flex-direction: column; gap: 6px; flex: none; }
+    #shuffleBtn { display: none; }
+    body.walk-mode .map-hint { max-width: 72%; }
+    body.walk-mode #zoomIn,
+    body.walk-mode #zoomOut { display: none; }
+    body.walk-mode .map-dock { bottom: calc(196px + var(--safe-b)); }
+    .peek:not(.hidden) + .map-dock { bottom: calc(196px + var(--safe-b)); }
+
     @media (min-width: 900px) {
       html, body { overflow: hidden; }
       body { flex-direction: row; }
@@ -305,6 +348,9 @@
       .grabber { display: none; }
       main { flex: 1; min-width: 0; min-height: 0; }
       .map-dock { bottom: 16px; right: 64px; }
+      .peek { right: 64px; bottom: 16px; }
+      body.walk-mode .map-dock,
+      .peek:not(.hidden) + .map-dock { bottom: 96px; right: 64px; }
     }
   </style>
   <script type="importmap">
@@ -316,7 +362,7 @@
     }
   </script>
 </head>
-<body>
+<body class="walk-mode">
   <div class="side">
     <header>
       <div class="logo"><span>Сільпо</span> Навігатор</div>
@@ -328,7 +374,7 @@
     <div class="searchbar">
       <div class="field">
         <i class="si si-search"></i>
-        <input id="mainInput" type="search" placeholder="Я шукаю..." enterkeyhint="search">
+        <input id="mainInput" type="search" placeholder="Назва товару" enterkeyhint="search">
       </div>
       <div class="storechip">
         <i class="si si-location"></i>
@@ -343,7 +389,6 @@
         <button class="tab active" data-tab="products">Товари</button>
         <button class="tab" data-tab="list">Список</button>
         <button class="tab" data-tab="me">Для мене</button>
-        <button class="tab" data-tab="stores">Магазини</button>
         <button class="tab" data-tab="cart">Кошик</button>
       </div>
       <div class="sheet-head">
@@ -356,12 +401,30 @@
 
   <main>
     <canvas id="map"></canvas>
-    <div class="map-hint" id="mapHint">Оберіть магазин, щоб побудувати 3D-схему залу</div>
+    <div class="map-hint" id="mapHint">Оберіть магазин кнопкою «Змінити»</div>
+    <div class="mode-switch" id="modeSwitch">
+      <button type="button" data-mode="look">Огляд 3D</button>
+      <button type="button" class="active" data-mode="walk">Прохід</button>
+    </div>
+    <button type="button" class="here-fab" id="hereBtn">Я тут</button>
+    <div class="map-trust" id="mapTrust">Схема залу, не точний план цієї філії</div>
     <div class="zoom">
       <button id="zoomIn" title="Ближче"><i class="si si-plus"></i></button>
       <button id="zoomOut" title="Далі"><i class="si si-minus"></i></button>
       <button id="zoomReset" title="Весь зал"><i class="si si-zoom-out"></i></button>
       <button id="shuffleBtn" title="Інша планіровка"><i class="si si-routes"></i></button>
+    </div>
+    <div class="peek hidden" id="peek">
+      <img id="peekImg" alt="">
+      <div class="peek-info">
+        <b id="peekTitle">Товар</b>
+        <span id="peekStep"></span>
+        <i id="peekPrice"></i>
+      </div>
+      <div class="peek-acts">
+        <button class="btn btn-plain" type="button" id="peekHere">Я тут</button>
+        <button class="btn btn-blue" type="button" id="peekCart">У кошик</button>
+      </div>
     </div>
     <div class="map-dock hidden" id="mapDock">
       <div class="promo-strip h-scroll hidden" id="promoStrip"></div>
@@ -375,6 +438,7 @@
 
     const el = (id) => document.getElementById(id);
     const map = new StoreMap3D(el('map'));
+    map.setWalkMode(true);
     window.map = map;
     const sheet = el('sheet');
     const sheetBody = el('sheetBody');
@@ -390,6 +454,7 @@
     let seed = null;
     let products = [];
     let promos = { title: '', suggestions: [] };
+    let pinnedProduct = null;
     let shoppingList = [];
     let cart = null;
     let guest = null;
@@ -398,6 +463,10 @@
     let railItems = [];
     let shelfView = { shelf: null };
     let atShelfId = null;
+    let walkMode = true;
+    let armHere = false;
+    let hereShelf = null;
+    let searchGen = 0;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const money = (v) => (v == null ? '' : `${Number(v).toFixed(2).replace('.00', '')} ₴`);
@@ -410,7 +479,7 @@
         meters += Math.hypot(points[i].x - points[i - 1].x, points[i].z - points[i - 1].z);
       }
       const distance = Math.max(1, Math.round(meters));
-      const minutes = Math.max(1, Math.round(distance / 70));
+      const minutes = Math.max(1, Math.round(distance / 50));
       return `${distance} м · ~${minutes} хв`;
     }
 
@@ -468,7 +537,7 @@
         b.classList.toggle('active', on);
         if (on) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
       });
-      mainInput.placeholder = next === 'stores' ? 'Місто, вулиця або адреса' : 'Я шукаю...';
+      mainInput.placeholder = next === 'stores' ? 'Місто, вулиця або адреса' : 'Назва товару';
       render();
     }
 
@@ -498,7 +567,7 @@
       sheetTitle.textContent = 'Вхід у «Сільпо»';
       sheetCount.textContent = '';
       sheetBody.innerHTML = `
-        <div class="banner info">Навігатор працює від імені гостя через офіційний MCP «Сільпо»: магазини, категорії, товари, акції та кошик — реальні. Увійдіть у свій акаунт, щоб почати.</div>
+        <div class="banner info">У залі це займає хвилину: увійдіть тим самим акаунтом, що в застосунку «Сільпо». Після входу відкриється схема залу, ціни й кошик.</div>
         <button class="btn btn-blue btn-wide" id="loginBtn">${icon('user')}Увійти через «Сільпо»</button>
         <button class="btn btn-plain btn-wide" id="recheckBtn">Я вже увійшов — перевірити</button>`;
 
@@ -658,14 +727,22 @@
 
       layout = data.layout;
       promos = { title: '', suggestions: [] };
+      pinnedProduct = null;
+      hereShelf = null;
+      armHere = false;
       renderPromoStrip();
       renderShelfRail([]);
       map.loadLayout(layout);
+      map.setWalkMode(walkMode);
+      map.markHere(null);
       map.onShelfTap = (id) => selectShelf(id);
+      renderPeek();
+      syncHereUi();
       shelfView = { shelf: null };
       atShelfId = null;
       renderDeptStrip();
-      mapHint.textContent = `${layout.shelves.length} відділів · зал ${layout.floor.width}×${layout.floor.depth} м · оберіть стелаж на карті або зі стрічки`;
+      mapHint.textContent = `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
+      if (window.innerWidth < 900) sheet.classList.add('collapsed');
       loadPersonal();
       if (tab === 'products') renderProducts();
     }
@@ -698,48 +775,164 @@
       });
     }
 
+    async function fetchHallRoute({ toShelfId, toCheckout = false }) {
+      if (!store) return null;
+      const data = await api('/api/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          branchId: store.id,
+          seed,
+          fromShelfId: hereShelf?.id || null,
+          toShelfId: toShelfId || null,
+          toCheckout
+        })
+      }).catch(() => null);
+      if (!data?.success || !data.route?.length) return null;
+      return data;
+    }
+
+    async function followRoute(points, { shelfId, hint } = {}) {
+      if (!points || points.length < 2) return;
+      map.showRoute(points);
+      refreshPins();
+      loadOnTheWay(points, shelfId ? [shelfId] : []);
+      if (hint) mapHint.textContent = hint;
+    }
+
+    function syncHereUi() {
+      const btn = el('hereBtn');
+      if (!btn) return;
+      btn.classList.toggle('armed', armHere);
+      btn.classList.toggle('set', Boolean(hereShelf) && !armHere);
+      btn.textContent = armHere
+        ? 'Оберіть відділ'
+        : hereShelf
+          ? `Біля «${hereShelf.name}»`
+          : 'Я тут';
+      el('mapTrust').textContent = armHere
+        ? 'Натисніть відділ на карті, де ви стоїте'
+        : 'Схема залу, не точний план цієї філії';
+    }
+
+    function startHerePick() {
+      if (!layout) {
+        mapHint.textContent = 'Спочатку оберіть магазин кнопкою «Змінити»';
+        return;
+      }
+      if (!walkMode) setWalkUi(true);
+      armHere = true;
+      syncHereUi();
+      mapHint.textContent = 'Натисніть відділ на карті, де ви стоїте';
+      if (window.innerWidth < 900) sheet.classList.add('collapsed');
+    }
+
+    async function applyHere(shelf) {
+      armHere = false;
+      hereShelf = shelf;
+      syncHereUi();
+      if (pinnedProduct?.shelfId === shelf.id) {
+        map.clearRoute();
+        map.markHere(shelf);
+        mapHint.textContent = `Ви вже біля «${shelf.name}»`;
+        renderPeek();
+        return;
+      }
+      if (pinnedProduct?.shelfId) {
+        mapHint.textContent = `Ви біля «${shelf.name}». Кладу шлях звідси…`;
+        const data = await fetchHallRoute({ toShelfId: pinnedProduct.shelfId });
+        if (!data) {
+          map.markHere(shelf);
+          mapHint.textContent = `Ви біля «${shelf.name}»`;
+          renderPeek();
+          return;
+        }
+        pinnedProduct = { ...pinnedProduct, route: data.route };
+        const walk = walkLabel(data.route);
+        await followRoute(data.route, {
+          shelfId: pinnedProduct.shelfId,
+          hint: `Від «${data.fromName}» до «${data.toName}»${walk ? ` · ${walk}` : ''}`
+        });
+        renderPeek();
+        return;
+      }
+      map.markHere(shelf);
+      mapHint.textContent = `Ви біля «${shelf.name}». Знайдіть товар — поведу звідси.`;
+      renderPeek();
+    }
+
     function selectShelf(id) {
       const shelf = layout?.shelves.find((s) => s.id === id);
       if (!shelf) return;
-      const alreadyThere = atShelfId === id;
+      if (armHere) {
+        applyHere(shelf);
+        return;
+      }
+      const alreadyThere = atShelfId === id || hereShelf?.id === id;
       map.highlight(id);
       markDeptChip(id);
-      const walk = walkLabel(shelf.route);
-      const bits = [shelf.name];
-      if (walk) bits.push(walk);
-      if (shelf.popular) bits.push('зараз популярний відділ');
-      if (shelf.family) bits.push('для вашої родини');
-      mapHint.textContent = bits.join(' · ');
       openShelf(shelf);
 
       if (alreadyThere) {
+        if (hereShelf?.id === id) {
+          map.clearRoute();
+          map.markHere(shelf);
+          mapHint.textContent = `Ви вже біля «${shelf.name}»`;
+        }
         if (window.innerWidth < 900) sheet.classList.add('collapsed');
         return;
       }
 
+      if (!pinnedProduct || pinnedProduct.shelfId !== id) {
+        pinnedProduct = null;
+        renderPeek();
+      }
+
       atShelfId = null;
-      map.onArrive = () => {
-        atShelfId = id;
-        const extra = promos.suggestions.length ? ` · Цінотижики по дорозі: ${promos.suggestions.length}` : '';
-        mapHint.textContent = `${shelf.name}${walk ? ` · ${walk}` : ''}${extra}`;
-      };
-      map.showRoute(shelf.route, { shelf });
-      loadOnTheWay(shelf.route, [shelf.id]);
+      map.onArrive = () => { atShelfId = id; };
+      if (hereShelf) {
+        fetchHallRoute({ toShelfId: id }).then((data) => {
+          if (!data) return;
+          const walk = walkLabel(data.route);
+          followRoute(data.route, {
+            shelfId: id,
+            hint: `Від «${data.fromName}» до «${shelf.name}»${walk ? ` · ${walk}` : ''}`
+          });
+        });
+      } else {
+        const walk = walkLabel(shelf.route);
+        const bits = [shelf.name];
+        if (walk) bits.push(walk);
+        mapHint.textContent = bits.join(' · ');
+        map.showRoute(shelf.route, { shelf });
+        loadOnTheWay(shelf.route, [shelf.id]);
+      }
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
     }
 
     async function searchProducts(query) {
-      if (!store) { setTab('stores'); return; }
+      const q = String(query || '').trim();
+      if (q.length < 2) return;
+      if (!store) {
+        sheet.classList.remove('collapsed');
+        setTab('products');
+        sheetTitle.textContent = 'Оберіть магазин';
+        sheetBody.innerHTML = '<div class="banner warn">Спочатку натисніть «Змінити» біля адреси і оберіть філію.</div>';
+        return;
+      }
+      const gen = ++searchGen;
       setTab('products');
-      sheetTitle.textContent = `«${query}»`;
+      sheet.classList.remove('collapsed');
+      sheetTitle.textContent = `«${q}»`;
       sheetBody.innerHTML = '<p class="empty">Шукаю в каталозі магазину…</p>';
 
       const data = await api('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ branchId: store.id, query, seed })
+        body: JSON.stringify({ branchId: store.id, query: q, seed })
       }).catch(() => null);
 
+      if (gen !== searchGen) return;
       if (!data) return;
       if (!data.success) {
         sheetBody.innerHTML = `<div class="banner err">${esc(data.error)}</div>`;
@@ -749,10 +942,11 @@
       products = data.products;
       promos = { title: '', suggestions: [] };
       renderPromoStrip();
-      sheetCount.textContent = `${data.totalFound} у магазині`;
+      sheetCount.textContent = data.products.length
+        ? `${data.totalFound} у магазині · оберіть товар`
+        : 'нічого не знайшов';
       renderShelfRail(products);
       renderProducts();
-      if (products[0]) focusProduct(products[0]);
     }
 
     function restrictionHit(p) {
@@ -783,8 +977,8 @@
           </div>
           <div class="price">${money(p.price)}${p.oldPrice ? `<s>${money(p.oldPrice)}</s>` : ''}</div>
           <div class="acts">
-            <button class="btn btn-ink" data-go="${index}" data-bag="${bag}">${icon('route')}Шлях</button>
-            <button class="btn btn-blue" data-cart="${index}" data-bag="${bag}">${icon('cart-add')}Кошик</button>
+            <button class="btn btn-blue" data-go="${index}" data-bag="${bag}">${icon('route')}Шлях</button>
+            <button class="btn btn-ink" data-cart="${index}" data-bag="${bag}">${icon('cart-add')}</button>
             <button class="btn btn-plain btn-icon" data-fav="${index}" data-bag="${bag}">${icon('heart')}</button>
             ${p.slug ? `<button class="btn btn-plain btn-icon" data-info="${index}" data-bag="${bag}">i</button>` : ''}
           </div>
@@ -794,11 +988,11 @@
     function renderProducts() {
       if (tab !== 'products') return;
       if (!store) {
-        sheetBody.innerHTML = '<p class="empty">Спершу оберіть магазин на вкладці «Магазини».</p>';
+        sheetBody.innerHTML = '<p class="empty">Спершу натисніть «Змінити» біля адреси магазину.</p>';
         return;
       }
       if (!products.length) {
-        sheetBody.innerHTML = '<p class="empty">Введіть назву товару — покажу стелаж, шлях від входу<br>і Цінотижики, що трапляться по дорозі.</p>';
+        sheetBody.innerHTML = '<p class="empty">Введіть назву товару — покажу список, стелаж і шлях.<br>Пошук починається після двох літер.</p>';
         return;
       }
 
@@ -856,9 +1050,12 @@
       sheetBody.querySelectorAll('[data-promo-go]').forEach((node) => {
         node.onclick = () => {
           const suggestion = promos.suggestions[Number(node.dataset.promoGo)];
-          map.highlight(suggestion.shelfId);
-          map.showRoute(suggestion.product.route, { promos: promos.suggestions });
-          mapHint.textContent = `${suggestion.product.name} → ${suggestion.shelfName}`;
+          if (!suggestion?.product) return;
+          focusProduct({
+            ...suggestion.product,
+            shelfId: suggestion.shelfId,
+            shelfName: suggestion.shelfName
+          });
         };
       });
     }
@@ -890,24 +1087,119 @@
       setTimeout(() => { button.innerHTML = label; }, 1800);
     }
 
+    function discountPercent(p) {
+      if (!p?.oldPrice || !p?.price) return 0;
+      return Math.max(0, Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100));
+    }
+
+    function shelfCards() {
+      const cards = [];
+      const used = new Set();
+      if (pinnedProduct?.shelfId) {
+        cards.push({
+          shelfId: pinnedProduct.shelfId,
+          product: pinnedProduct,
+          title: discountPercent(pinnedProduct) ? 'Ціна тижня' : 'Товар',
+          discountPercent: discountPercent(pinnedProduct)
+        });
+        used.add(pinnedProduct.shelfId);
+      }
+      for (const suggestion of promos.suggestions) {
+        if (!suggestion?.shelfId || !suggestion.product || used.has(suggestion.shelfId)) continue;
+        cards.push({
+          shelfId: suggestion.shelfId,
+          product: suggestion.product,
+          title: promos.title || 'Ціна тижня',
+          discountPercent: suggestion.discountPercent || discountPercent(suggestion.product)
+        });
+        used.add(suggestion.shelfId);
+      }
+      return cards;
+    }
+
+    function refreshPins() {
+      map.pinShelfCards(shelfCards());
+      renderPeek();
+    }
+
+    function renderPeek() {
+      const peek = el('peek');
+      if (!pinnedProduct) {
+        peek.classList.add('hidden');
+        return;
+      }
+      peek.classList.remove('hidden');
+      const img = el('peekImg');
+      if (pinnedProduct.image) {
+        img.src = pinnedProduct.image;
+        img.alt = pinnedProduct.name || '';
+        img.style.display = '';
+      } else {
+        img.removeAttribute('src');
+        img.alt = '';
+        img.style.display = 'none';
+      }
+      el('peekTitle').textContent = pinnedProduct.name || 'Товар';
+      const walk = walkLabel(pinnedProduct.route);
+      if (hereShelf && hereShelf.id === pinnedProduct.shelfId) {
+        el('peekStep').textContent = `Ви вже біля «${hereShelf.name}»`;
+      } else if (hereShelf) {
+        el('peekStep').textContent = `Від «${hereShelf.name}» до «${pinnedProduct.shelfName || 'стелаж'}»${walk ? ` · ${walk}` : ''}`;
+      } else {
+        el('peekStep').textContent = `Ідіть до «${pinnedProduct.shelfName || 'стелаж'}»${walk ? ` · ${walk}` : ''}`;
+      }
+      const disc = discountPercent(pinnedProduct);
+      el('peekPrice').textContent = `${money(pinnedProduct.price)}${disc ? `  −${disc}%` : ''}`;
+    }
+
+    function setWalkUi(on) {
+      walkMode = Boolean(on);
+      document.body.classList.toggle('walk-mode', walkMode);
+      map.setWalkMode(walkMode);
+      el('modeSwitch').querySelectorAll('button').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.mode === (walkMode ? 'walk' : 'look'));
+      });
+      if (walkMode && window.innerWidth < 900) sheet.classList.add('collapsed');
+      refreshPins();
+    }
+
     async function focusProduct(p) {
-      if (!p?.route || p.route.length < 2) return;
+      if (!p) return;
+      pinnedProduct = p;
       const shelf = layout?.shelves.find((s) => s.id === p.shelfId);
       map.highlight(p.shelfId);
       markDeptChip(p.shelfId);
-      const walk = walkLabel(p.route);
-      mapHint.textContent = `${p.name} → ${p.shelfName || 'стелаж'}${walk ? ` · ${walk}` : ''}`;
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
-      if (shelf) {
-        atShelfId = null;
-        map.onArrive = () => {
-          atShelfId = shelf.id;
-          if (promos.suggestions.length) {
-            mapHint.textContent = `${p.name} → ${p.shelfName || 'стелаж'} · Цінотижики по дорозі: ${promos.suggestions.length}`;
-          }
-        };
+      atShelfId = null;
+      map.onArrive = () => { if (shelf) atShelfId = shelf.id; };
+      renderPeek();
+
+      if (hereShelf) {
+        if (hereShelf.id === p.shelfId) {
+          map.clearRoute();
+          map.markHere(hereShelf);
+          mapHint.textContent = `Ви вже біля «${hereShelf.name}»`;
+          renderPeek();
+          return;
+        }
+        const data = await fetchHallRoute({ toShelfId: p.shelfId });
+        if (data?.route) {
+          pinnedProduct = { ...p, route: data.route };
+          const walk = walkLabel(data.route);
+          await followRoute(data.route, {
+            shelfId: p.shelfId,
+            hint: `Від «${data.fromName}» до «${p.shelfName || data.toName}»${walk ? ` · ${walk}` : ''}`
+          });
+          renderPeek();
+          return;
+        }
       }
+
+      if (!p.route || p.route.length < 2) return;
+      const walk = walkLabel(p.route);
+      mapHint.textContent = `Ідіть до «${p.shelfName || 'стелаж'}»${walk ? ` · ${walk}` : ''}`;
       map.showRoute(p.route, { shelf });
+      refreshPins();
       await loadOnTheWay(p.route, [p.shelfId]);
     }
 
@@ -921,7 +1213,7 @@
 
       if (!data?.success) return;
       promos = { title: data.promoTitle || 'Цінотижики', suggestions: data.suggestions || [] };
-      map.markWeeklyPromos(promos.suggestions);
+      refreshPins();
       renderPromoStrip();
       if (promos.suggestions.length) {
         const count = promos.suggestions.length;
@@ -948,9 +1240,12 @@
       strip.querySelectorAll('[data-promo]').forEach((btn) => {
         btn.onclick = () => {
           const suggestion = promos.suggestions[Number(btn.dataset.promo)];
-          if (!suggestion) return;
-          map.highlight(suggestion.shelfId);
-          map.showRoute(suggestion.product.route, { promos: promos.suggestions });
+          if (!suggestion?.product) return;
+          focusProduct({
+            ...suggestion.product,
+            shelfId: suggestion.shelfId,
+            shelfName: suggestion.shelfName
+          });
         };
       });
       bindHScroll(strip);
@@ -1039,6 +1334,7 @@
       if (data.products?.length) {
         products = data.products;
         renderShelfRail(products);
+        refreshPins();
         if (tab === 'products') {
           sheetTitle.textContent = shelf.name;
           sheetCount.textContent = `${products.length} на стелажі`;
@@ -1059,7 +1355,8 @@
       markDeptChip(null);
       renderShelfRail(products);
       const walk = walkLabel(data.route);
-      mapHint.textContent = `${title} · вхід → ${data.order?.length || 0} відділів → каси${walk ? ` · ${walk}` : ''}`;
+      const from = data.fromName || 'Вхід';
+      mapHint.textContent = `${title} · ${from} → ${data.order?.length || 0} відділів → каси${walk ? ` · ${walk}` : ''}`;
       sheetBody.innerHTML =
         (data.order || []).map((s, i) => `<div class="step"><b>${i + 1}</b><span>${esc(s.name)}</span></div>`).join('') +
         products.map((p, i) => productRow(p, i)).join('');
@@ -1095,13 +1392,13 @@
         ${guest?.promoCodes?.length ? `<div class="banner ok">Промокоди: ${esc(guest.promoCodes.map((c) => c.code || c.title || c).slice(0, 4).join(', '))}</div>` : ''}
         ${guest?.certificates?.length ? `<div class="banner info">Сертифікати: ${guest.certificates.length} шт. — застосую в кошику.</div>` : ''}
       `;
-      el('favRoute').onclick = () => packedRoute('/api/route/favorites', { branchId: store.id, seed }, 'Улюблені');
-      el('offlineRoute').onclick = () => packedRoute('/api/route/repeat', { branchId: store.id, seed, source: 'offline' }, 'Останній чек');
-      el('onlineRoute').onclick = () => packedRoute('/api/route/repeat', { branchId: store.id, seed, source: 'online' }, 'Онлайн-замовлення');
+      el('favRoute').onclick = () => packedRoute('/api/route/favorites', { branchId: store.id, seed, fromShelfId: hereShelf?.id }, 'Улюблені');
+      el('offlineRoute').onclick = () => packedRoute('/api/route/repeat', { branchId: store.id, seed, source: 'offline', fromShelfId: hereShelf?.id }, 'Останній чек');
+      el('onlineRoute').onclick = () => packedRoute('/api/route/repeat', { branchId: store.id, seed, source: 'online', fromShelfId: hereShelf?.id }, 'Онлайн-замовлення');
       sheetBody.querySelectorAll('[data-set]').forEach((btn) => {
         btn.onclick = () => {
           const set = personal.sets[Number(btn.dataset.set)];
-          packedRoute('/api/route/set', { branchId: store.id, seed, slug: set.slug }, set.title);
+          packedRoute('/api/route/set', { branchId: store.id, seed, slug: set.slug, fromShelfId: hereShelf?.id }, set.title);
         };
       });
     }
@@ -1161,7 +1458,7 @@
       const data = await api('/api/list-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ branchId: store.id, items, seed })
+        body: JSON.stringify({ branchId: store.id, items, seed, fromShelfId: hereShelf?.id || null })
       }).catch(() => null);
 
       if (!data) return;
@@ -1180,7 +1477,7 @@
       sheetTitle.textContent = 'Маршрут по списку';
       sheetCount.textContent = `${data.order.length} відділів`;
       const walk = walkLabel(data.route);
-      mapHint.textContent = `Вхід → ${data.order.length} відділів → каси${walk ? ` · ${walk}` : ''}`;
+      mapHint.textContent = `${data.fromName || 'Вхід'} → ${data.order.length} відділів → каси${walk ? ` · ${walk}` : ''}`;
 
       const missing = data.results.filter((r) => !r.best).map((r) => r.query);
       sheetBody.innerHTML =
@@ -1354,24 +1651,34 @@
       });
     }
 
-    function routeToCheckout() {
-      const sco = layout?.registers?.find((r) => r.recommended)
-        || layout?.registers?.find((r) => r.kind === 'sco')
-        || layout?.registers?.[0];
-      const points = sco?.route || layout?.checkoutRoute;
-      if (!points?.length) {
+    async function routeToCheckout() {
+      if (!layout) {
         sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Спочатку оберіть магазин — тоді намалюю шлях до каси.</div>');
         return;
       }
       map.onArrive = null;
       atShelfId = null;
+      pinnedProduct = null;
+      renderPeek();
+      const data = await fetchHallRoute({ toCheckout: true });
+      const sco = layout.registers?.find((r) => r.recommended)
+        || layout.registers?.find((r) => r.kind === 'sco')
+        || layout.registers?.[0];
+      const points = data?.route?.length
+        ? data.route
+        : (sco?.route || layout.checkoutRoute);
+      if (!points?.length) {
+        sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Немає шляху до каси на цій схемі.</div>');
+        return;
+      }
       map.showRoute(points);
       map.highlight(null);
       loadOnTheWay(points);
       const walk = walkLabel(points);
+      const from = data?.fromName || 'Вхід';
       mapHint.textContent = sco?.kind === 'sco'
-        ? `Каса самообслуговування ${sco.n}${sco.recommended ? ' · рекомендую' : ''} · ${walk}. Живої черги в MCP немає.`
-        : `Маршрут до каси ${sco?.n || ''} · ${walk}`;
+        ? `${from} → каса самообслуговування ${sco.n}${sco.recommended ? ' · рекомендую' : ''}${walk ? ` · ${walk}` : ''}. Живої черги в MCP немає.`
+        : `${from} → каса ${sco?.n || ''}${walk ? ` · ${walk}` : ''}`;
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
     }
 
@@ -1385,14 +1692,23 @@
     el('zoomReset').onclick = () => {
       atShelfId = null;
       shelfView = { shelf: null };
+      hereShelf = null;
+      armHere = false;
       map.onArrive = null;
       map.clearRoute();
       map.highlight(null);
       markDeptChip(null);
+      pinnedProduct = null;
       promos = { title: '', suggestions: [] };
       renderPromoStrip();
       renderShelfRail([]);
+      map.markHere(null);
       map.frameAll();
+      renderPeek();
+      syncHereUi();
+      if (layout) {
+        mapHint.textContent = `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
+      }
     };
     bindHScroll(document.querySelector('.tabs'));
     el('shuffleBtn').onclick = () => {
@@ -1403,10 +1719,14 @@
 
     let typing = null;
     mainInput.addEventListener('input', (e) => {
-      if (tab !== 'stores') return;
       clearTimeout(typing);
       const value = e.target.value.trim();
-      typing = setTimeout(() => loadStores(value), 250);
+      if (tab === 'stores') {
+        typing = setTimeout(() => loadStores(value), 250);
+        return;
+      }
+      if (value.length < 2) return;
+      typing = setTimeout(() => searchProducts(value), 280);
     });
     mainInput.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
@@ -1415,9 +1735,20 @@
       if (tab === 'stores') {
         if (/[0-9]/.test(value) || value.split(/\s+/).length > 2) nearestFromQuery(value);
         else loadStores(value);
+      } else {
+        searchProducts(value);
       }
-      else searchProducts(value);
     });
+
+    el('modeSwitch').querySelectorAll('button').forEach((btn) => {
+      btn.onclick = () => setWalkUi(btn.dataset.mode === 'walk');
+    });
+    el('hereBtn').onclick = startHerePick;
+    el('peekHere').onclick = startHerePick;
+    el('peekCart').onclick = (e) => {
+      if (pinnedProduct) addToCart(pinnedProduct, e.currentTarget);
+    };
+    if (new URLSearchParams(location.search).get('walk') === '1') setWalkUi(true);
 
     boot();
   </script>

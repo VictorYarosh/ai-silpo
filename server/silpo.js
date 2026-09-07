@@ -1,4 +1,4 @@
-import { buildLayout, buildMultiRoute, buildRoute, matchShelf } from './layout.js';
+import { buildLayout, buildMultiRoute, buildPath, buildRoute, matchShelf } from './layout.js';
 
 // Публічні дані каталогу кешуємо на процес — вони однакові для всіх гостей.
 const storesCache = { at: 0, stores: [] };
@@ -385,7 +385,7 @@ export async function searchProduct(call, { branchId, query, seed }) {
   };
 }
 
-export async function searchList(call, { branchId, items, seed }) {
+export async function searchList(call, { branchId, items, seed, fromShelfId }) {
   const ctx = await branchContext(call, branchId);
   const [layout, data] = await Promise.all([
     getLayout(call, branchId, seed || branchId),
@@ -401,9 +401,34 @@ export async function searchList(call, { branchId, items, seed }) {
   const shelves = results
     .map((r) => layout.shelves.find((s) => s.id === r.best?.shelfId))
     .filter(Boolean);
-  const { points, order } = buildMultiRoute(layout, shelves);
+  const fromShelf = fromShelfId ? layout.shelves.find((s) => s.id === fromShelfId) : null;
+  const { points, order } = buildMultiRoute(layout, shelves, fromShelf?.approach || null);
 
-  return { results, route: points, order };
+  return { results, route: points, order, fromName: fromShelf?.name || 'Вхід' };
+}
+
+export async function navigateHall(call, { branchId, seed, fromShelfId, toShelfId, toCheckout = false }) {
+  const layout = await getLayout(call, branchId, seed || branchId);
+  const fromShelf = fromShelfId ? layout.shelves.find((s) => s.id === fromShelfId) : null;
+  const from = fromShelf?.approach || layout.entrance;
+  if (toCheckout) {
+    const sco = layout.registers.find((r) => r.recommended)
+      || layout.registers.find((r) => r.kind === 'sco')
+      || layout.registers[0];
+    const to = sco?.approach || layout.checkout;
+    return {
+      route: buildPath(layout, from, to),
+      fromName: fromShelf?.name || 'Вхід',
+      toName: sco ? `Каса ${sco.n}` : 'Каси'
+    };
+  }
+  const toShelf = layout.shelves.find((s) => s.id === toShelfId);
+  if (!toShelf) throw new Error('Немає відділу призначення');
+  return {
+    route: buildPath(layout, from, toShelf.approach),
+    fromName: fromShelf?.name || 'Вхід',
+    toName: toShelf.name
+  };
 }
 
 /** «Цінотижики» магазину — джерело підказок «по дорозі». */
@@ -588,13 +613,14 @@ export async function applyCertificates(call, { certificatesToAdd = [], certific
   return cartSummary(await call('silpo_get_shopping_cart_by_id', { shoppingCartId: id }));
 }
 
-function routePack(layout, products) {
+function routePack(layout, products, fromShelfId) {
   const navigated = withNavigation(products, layout);
   const shelves = navigated
     .map((p) => layout.shelves.find((s) => s.id === p.shelfId))
     .filter(Boolean);
-  const { points, order } = buildMultiRoute(layout, shelves);
-  return { products: navigated, route: points, order };
+  const fromShelf = fromShelfId ? layout.shelves.find((s) => s.id === fromShelfId) : null;
+  const { points, order } = buildMultiRoute(layout, shelves, fromShelf?.approach || null);
+  return { products: navigated, route: points, order, fromName: fromShelf?.name || 'Вхід' };
 }
 
 function restrictionLabels(raw) {
@@ -786,16 +812,16 @@ export async function toggleFavorite(call, { productId, externalProductId, toDel
   return { ok: true, toDelete: Boolean(toDelete) };
 }
 
-export async function routeFromSet(call, { branchId, slug, seed }) {
+export async function routeFromSet(call, { branchId, slug, seed, fromShelfId }) {
   const ctx = await branchContext(call, branchId);
   const [layout, data] = await Promise.all([
     getLayout(call, branchId, seed || branchId),
     call('silpo_get_products', { ...ctx, set: slug, limit: 40, inStock: true })
   ]);
-  return { title: slug, ...routePack(layout, listOf(data?.products, data?.items)) };
+  return { title: slug, ...routePack(layout, listOf(data?.products, data?.items), fromShelfId) };
 }
 
-export async function routeFromFavorites(call, { branchId, seed }) {
+export async function routeFromFavorites(call, { branchId, seed, fromShelfId }) {
   const ctx = await branchContext(call, branchId);
   const [layout, data] = await Promise.all([
     getLayout(call, branchId, seed || branchId),
@@ -806,10 +832,10 @@ export async function routeFromFavorites(call, { branchId, seed }) {
       limit: 40
     })
   ]);
-  return { title: 'Улюблені', ...routePack(layout, listOf(data?.products, data?.items, data?.favorites)) };
+  return { title: 'Улюблені', ...routePack(layout, listOf(data?.products, data?.items, data?.favorites), fromShelfId) };
 }
 
-export async function routeFromOrder(call, { branchId, seed, source = 'offline' }) {
+export async function routeFromOrder(call, { branchId, seed, source = 'offline', fromShelfId }) {
   const ctx = await branchContext(call, branchId);
   const layout = await getLayout(call, branchId, seed || branchId);
   let products = [];
@@ -839,7 +865,7 @@ export async function routeFromOrder(call, { branchId, seed, source = 'offline' 
     products = resolved;
   }
 
-  return { title: source === 'online' ? 'Останнє онлайн-замовлення' : 'Останній чек у залі', ...routePack(layout, products) };
+  return { title: source === 'online' ? 'Останнє онлайн-замовлення' : 'Останній чек у залі', ...routePack(layout, products, fromShelfId) };
 }
 
 function haversine(a, b) {

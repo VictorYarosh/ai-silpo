@@ -106,8 +106,11 @@ export class StoreMap3D {
     this.labels = [];
     this.routeGroup = null;
     this.promoGroup = null;
+    this.hereGroup = null;
+    this.youDot = null;
     this._promoGen = 0;
     this.walker = null;
+    this.walkMode = false;
     this.curve = null;
     this.curveLength = 1;
     this.walkT = 0;
@@ -129,6 +132,7 @@ export class StoreMap3D {
     this.controls.minDistance = 1.1;
     this.controls.maxDistance = 90;
     this.eyeMode = false;
+    this.walkMode = false;
     this.onArrive = null;
     this.walkDone = false;
 
@@ -228,6 +232,10 @@ export class StoreMap3D {
 
   loadLayout(layout) {
     this.clearRoute();
+    if (this.hereGroup) {
+      this.group.remove(this.hereGroup);
+      this.hereGroup = null;
+    }
     this.group.clear();
     this.shelves.clear();
     this.labels = [];
@@ -240,6 +248,30 @@ export class StoreMap3D {
     for (const shelf of layout.shelves) this._shelf(shelf);
 
     this.frameAll();
+  }
+
+  setWalkMode(on) {
+    this.walkMode = Boolean(on);
+    this.eyeMode = this.walkMode;
+    if (this.walkMode) {
+      this.controls.enableRotate = false;
+      this.controls.minPolarAngle = 0;
+      this.controls.maxPolarAngle = 0.12;
+      this.controls.minDistance = 10;
+      this.controls.maxDistance = 90;
+      if (this.curve) this._frameRoute(this.curve.getPoints(8));
+      else this.frameAll();
+    } else {
+      this.controls.enableRotate = true;
+      this.controls.minPolarAngle = 0;
+      this.controls.maxPolarAngle = Math.PI / 2.02;
+      this.controls.minDistance = 1.1;
+      this.controls.maxDistance = 90;
+      if (this.curve) this._frameRoute(this.curve.getPoints(8));
+      else this.frameAll();
+    }
+    if (this.walker) this.walker.visible = !this.walkMode && !this.walkDone;
+    if (this.youDot) this.youDot.visible = this.walkMode;
   }
 
   _floor({ floor }) {
@@ -574,6 +606,15 @@ export class StoreMap3D {
 
   frameAll() {
     if (!this.layout) return;
+    if (this.walkMode) {
+      const { width, depth } = this.layout.floor;
+      const span = Math.max(width, depth, 16);
+      this.camera.fov = 50;
+      this.controls.target.set(0, 0, 0);
+      this.camera.position.set(0, span * 1.2, 0.02);
+      this.camera.updateProjectionMatrix();
+      return;
+    }
     this.eyeMode = false;
     this.controls.minDistance = 1.1;
     this.controls.maxDistance = 90;
@@ -629,6 +670,14 @@ export class StoreMap3D {
 
     this.walker = this._makeWalker();
     this.routeGroup.add(this.walker);
+    this.youDot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.85, 0.85, 0.12, 24),
+      new THREE.MeshStandardMaterial({ color: BLUE, emissive: BLUE, emissiveIntensity: 0.55, roughness: 0.4 })
+    );
+    this.youDot.position.copy(verts[0]).setY(0.22);
+    this.youDot.visible = this.walkMode;
+    this.routeGroup.add(this.youDot);
+    this.markHere(null);
     this.walkT = 0;
     this.walkPhase = 0;
     this.walkDone = false;
@@ -636,10 +685,21 @@ export class StoreMap3D {
 
     this.group.add(this.routeGroup);
     if (opts.focus !== false && !this.eyeMode) this._frameRoute(verts);
-    if (opts.promos?.length) this.markWeeklyPromos(opts.promos);
+    if (this.walkMode) this._frameRoute(verts);
+    if (opts.cards?.length) this.pinShelfCards(opts.cards);
+    else if (opts.promos?.length) this.markWeeklyPromos(opts.promos);
   }
 
   markWeeklyPromos(suggestions) {
+    this.pinShelfCards((suggestions || []).map((s) => ({
+      shelfId: s.shelfId,
+      product: s.product,
+      title: 'Ціна тижня',
+      discountPercent: s.discountPercent
+    })));
+  }
+
+  pinShelfCards(cards) {
     if (!this.routeGroup) return;
     this._promoGen += 1;
     if (this.promoGroup) {
@@ -651,7 +711,7 @@ export class StoreMap3D {
       });
       this.promoGroup = null;
     }
-    if (!suggestions?.length) return;
+    if (!cards?.length) return;
 
     this.promoGroup = new THREE.Group();
     const yellow = new THREE.MeshStandardMaterial({
@@ -661,14 +721,22 @@ export class StoreMap3D {
       roughness: 0.4
     });
 
-    for (const item of suggestions) {
+    for (const item of cards) {
       const shelf = this.shelves.get(item.shelfId)?.shelf;
-      if (!shelf) continue;
-      const height = shelf.kind === 'counter' ? 1.35 : 2.05;
+      if (!shelf || !item.product) continue;
       const towardX = (shelf.approach?.x ?? shelf.x) - shelf.x;
       const towardZ = (shelf.approach?.z ?? shelf.z) - shelf.z;
       const x = shelf.x + towardX * 0.28;
       const z = shelf.z + towardZ * 0.28;
+
+      if (this.walkMode) {
+        const card = this._promoCard(item, x, 1.9, z);
+        card.scale.set(1.2, 1.6, 1);
+        this.promoGroup.add(card);
+        continue;
+      }
+
+      const height = shelf.kind === 'counter' ? 1.35 : 2.05;
       const stemH = 0.95;
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, stemH, 8), yellow);
       stem.position.set(x, height + 0.28 + stemH / 2, z);
@@ -733,7 +801,7 @@ export class StoreMap3D {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = "800 28px 'Silpo Text', -apple-system, sans-serif";
-    ctx.fillText('Ціна тижня', 192, 50);
+    ctx.fillText(item.title || 'Товар', 192, 50);
 
     ctx.fillStyle = '#F2F4F9';
     roundRect(ctx, 44, 108, 296, 236, 22);
@@ -863,6 +931,12 @@ export class StoreMap3D {
 
     this.walker.position.set(position.x, Math.abs(swing) * 0.03, position.z);
     this.walker.rotation.y = Math.atan2(tangent.x, tangent.z);
+    this.walker.visible = !this.walkMode && !this.walkDone;
+    if (this.youDot) {
+      const start = this.curve.getPointAt(0);
+      this.youDot.visible = this.walkMode;
+      this.youDot.position.set(start.x, 0.22, start.z);
+    }
 
     const [leftLeg, rightLeg] = this.walker.userData.legs;
     const [leftArm, rightArm] = this.walker.userData.arms;
@@ -873,7 +947,7 @@ export class StoreMap3D {
 
     if (this.walkDone && !this._arriveNotified) {
       this._arriveNotified = true;
-      this.walker.visible = false;
+      if (!this.walkMode) this.walker.visible = false;
       this.onArrive?.();
     }
   }
@@ -882,6 +956,14 @@ export class StoreMap3D {
     const box = new THREE.Box3().setFromPoints(verts);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
+    if (this.walkMode) {
+      const span = Math.max(14, size.x, size.z) * 1.35;
+      this.camera.fov = 50;
+      this.controls.target.set(center.x, 0, center.z);
+      this.camera.position.set(center.x, span, center.z + 0.02);
+      this.camera.updateProjectionMatrix();
+      return;
+    }
     const radius = Math.max(7, Math.hypot(size.x, size.z) / 2);
     const fovY = (this.camera.fov * Math.PI) / 180;
     const fovX = 2 * Math.atan(Math.tan(fovY / 2) * this.camera.aspect);
@@ -892,6 +974,23 @@ export class StoreMap3D {
     this.camera.updateProjectionMatrix();
   }
 
+  markHere(shelf) {
+    if (this.hereGroup) {
+      this.group.remove(this.hereGroup);
+      this.hereGroup = null;
+    }
+    if (!shelf) return;
+    this.hereGroup = new THREE.Group();
+    const disc = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.95, 0.95, 0.12, 24),
+      new THREE.MeshStandardMaterial({ color: BLUE, emissive: BLUE, emissiveIntensity: 0.5, roughness: 0.4 })
+    );
+    disc.position.set(shelf.x, 0.2, shelf.z);
+    this.hereGroup.add(disc);
+    this.hereGroup.add(this._label('Ви тут', shelf.x, 2.5, shelf.z, 'entrance'));
+    this.group.add(this.hereGroup);
+  }
+
   clearRoute() {
     if (this.routeGroup) {
       this.group.remove(this.routeGroup);
@@ -899,6 +998,7 @@ export class StoreMap3D {
       this.routeGroup = null;
     }
     this.walker = null;
+    this.youDot = null;
     this.promoGroup = null;
     this.curve = null;
   }

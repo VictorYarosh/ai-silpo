@@ -13,6 +13,7 @@ import {
   listStores,
   nearestStores,
   novaPoshtaOffices,
+  navigateHall,
   personalForStore,
   productInsight,
   promosOnTheWay,
@@ -145,13 +146,20 @@ export function createApp() {
   }));
 
   app.post('/api/list-search', route(({ req, call }) => {
-    const { branchId, items, seed } = req.body || {};
+    const { branchId, items, seed, fromShelfId } = req.body || {};
     const list = (Array.isArray(items) ? items : String(items || '').split(/[,;\n]/))
       .map((item) => String(item).trim())
       .filter(Boolean)
       .slice(0, 30);
     if (!branchId || !list.length) throw new Error('Потрібні branchId і список товарів');
-    return searchList(call, { branchId, items: list, seed });
+    return searchList(call, { branchId, items: list, seed, fromShelfId });
+  }));
+
+  app.post('/api/route', route(({ req, call }) => {
+    const { branchId, seed, fromShelfId, toShelfId, toCheckout } = req.body || {};
+    if (!branchId) throw new Error('Потрібен branchId');
+    if (!toCheckout && !toShelfId) throw new Error('Потрібен відділ призначення');
+    return navigateHall(call, { branchId, seed, fromShelfId, toShelfId, toCheckout: Boolean(toCheckout) });
   }));
 
   app.post('/api/on-the-way', route(({ req, call }) => {
@@ -197,21 +205,21 @@ export function createApp() {
   }));
 
   app.post('/api/route/set', route(({ req, call }) => {
-    const { branchId, slug, seed } = req.body || {};
+    const { branchId, slug, seed, fromShelfId } = req.body || {};
     if (!branchId || !slug) throw new Error('Потрібні branchId і slug набору');
-    return routeFromSet(call, { branchId, slug, seed });
+    return routeFromSet(call, { branchId, slug, seed, fromShelfId });
   }));
 
   app.post('/api/route/favorites', route(({ req, call }) => {
-    const { branchId, seed } = req.body || {};
+    const { branchId, seed, fromShelfId } = req.body || {};
     if (!branchId) throw new Error('Потрібен branchId');
-    return routeFromFavorites(call, { branchId, seed });
+    return routeFromFavorites(call, { branchId, seed, fromShelfId });
   }));
 
   app.post('/api/route/repeat', route(({ req, call }) => {
-    const { branchId, seed, source } = req.body || {};
+    const { branchId, seed, source, fromShelfId } = req.body || {};
     if (!branchId) throw new Error('Потрібен branchId');
-    return routeFromOrder(call, { branchId, seed, source });
+    return routeFromOrder(call, { branchId, seed, source, fromShelfId });
   }));
 
   app.get('/api/cart', route(async ({ call }) => ({ cart: await readCart(call) })));
