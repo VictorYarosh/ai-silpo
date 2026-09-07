@@ -1,14 +1,15 @@
 ---
-description: Після кожного оновлення коду комітити і пушити в GitHub
+description: Після кожного оновлення пушити в GitHub і одразу деплоїти Vercel production
 alwaysApply: true
 ---
 
-# Пуш після оновлення
+# GitHub + Vercel після оновлення
 
 Коли зміна в проєкті готова (фіча, фікс, UI):
 
-1. Зроби git commit українською, у стилі репозиторію (навіщо, не що).
-2. Відразу `git push origin HEAD` на GitHub (`VictorYarosh/ai-silpo`).
-3. Не чекай окремого «залий на github» — Vercel підхопить `main` сам.
+1. Git commit українською, у стилі репозиторію (навіщо, не що).
+2. Одразу `git push origin HEAD` на GitHub (`VictorYarosh/ai-silpo`).
+3. Одразу production: `vercel --prod --yes` з каталогу проєкту (лінк `.vercel/project.json`, проєкт `silpo-navigator`).
+4. Перевір https://silpo-navigator.vercel.app — не чекай окремого «онови Vercel».
 
 Не коміть `.env`, секрети й `node_modules`.
