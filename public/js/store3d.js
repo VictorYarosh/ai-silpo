@@ -162,6 +162,15 @@ export class StoreMap3D {
     });
     canvas.addEventListener('pointermove', (e) => this._hover(e));
 
+    this.pinLayer = document.createElement('div');
+    this.pinLayer.className = 'walk-pins hidden';
+    canvas.parentElement?.appendChild(this.pinLayer);
+    this._walkPinData = [];
+    this._walkPinsDirty = false;
+    this._pinNdc = new THREE.Vector3();
+    this._lastCards = [];
+    this.onWalkPin = null;
+
     window.addEventListener('resize', () => this.resize());
     this.resize();
 
@@ -173,6 +182,7 @@ export class StoreMap3D {
       const dt = Math.min(clock.getDelta(), 0.05);
       this.controls.update();
       this._animateWalker(dt);
+      this._syncWalkPins();
       this.renderer.render(this.scene, this.camera);
     });
   }
@@ -272,6 +282,8 @@ export class StoreMap3D {
     }
     if (this.walker) this.walker.visible = !this.walkMode && !this.walkDone;
     if (this.youDot) this.youDot.visible = this.walkMode;
+    if (this._lastCards?.length) this.pinShelfCards(this._lastCards);
+    else this._setWalkPins([]);
   }
 
   _floor({ floor }) {
@@ -700,7 +712,11 @@ export class StoreMap3D {
   }
 
   pinShelfCards(cards) {
-    if (!this.routeGroup) return;
+    this._lastCards = cards || [];
+    if (!this.routeGroup) {
+      this._setWalkPins([]);
+      return;
+    }
     this._promoGen += 1;
     if (this.promoGroup) {
       this.routeGroup.remove(this.promoGroup);
@@ -711,7 +727,10 @@ export class StoreMap3D {
       });
       this.promoGroup = null;
     }
-    if (!cards?.length) return;
+    if (!cards?.length) {
+      this._setWalkPins([]);
+      return;
+    }
 
     this.promoGroup = new THREE.Group();
     const yellow = new THREE.MeshStandardMaterial({
@@ -721,6 +740,32 @@ export class StoreMap3D {
       roughness: 0.4
     });
 
+    if (this.walkMode) {
+      const pins = [];
+      for (const item of cards) {
+        if (item.kind === 'dest' || !item.product) continue;
+        const shelf = this.shelves.get(item.shelfId)?.shelf;
+        if (!shelf) continue;
+        const towardX = (shelf.approach?.x ?? shelf.x) - shelf.x;
+        const towardZ = (shelf.approach?.z ?? shelf.z) - shelf.z;
+        const x = shelf.x + towardX * 0.62;
+        const z = shelf.z + towardZ * 0.62;
+        const pad = new THREE.Mesh(
+          new THREE.CircleGeometry(0.9, 22),
+          new THREE.MeshBasicMaterial({ color: YELLOW })
+        );
+        pad.rotation.x = -Math.PI / 2;
+        pad.position.set(x, 0.07, z);
+        this.promoGroup.add(pad);
+        pins.push({ ...item, x, z });
+        if (pins.length >= 5) break;
+      }
+      this.routeGroup.add(this.promoGroup);
+      this._setWalkPins(pins);
+      return;
+    }
+
+    this._setWalkPins([]);
     for (const item of cards) {
       const shelf = this.shelves.get(item.shelfId)?.shelf;
       if (!shelf || !item.product) continue;
@@ -728,14 +773,6 @@ export class StoreMap3D {
       const towardZ = (shelf.approach?.z ?? shelf.z) - shelf.z;
       const x = shelf.x + towardX * 0.28;
       const z = shelf.z + towardZ * 0.28;
-
-      if (this.walkMode) {
-        const card = this._promoCard(item, x, 1.9, z);
-        card.scale.set(1.2, 1.6, 1);
-        this.promoGroup.add(card);
-        continue;
-      }
-
       const height = shelf.kind === 'counter' ? 1.35 : 2.05;
       const stemH = 0.95;
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, stemH, 8), yellow);
@@ -745,6 +782,62 @@ export class StoreMap3D {
     }
 
     this.routeGroup.add(this.promoGroup);
+  }
+
+  _setWalkPins(pins) {
+    this._walkPinData = pins || [];
+    this._walkPinsDirty = true;
+    this._syncWalkPins();
+  }
+
+  _syncWalkPins() {
+    const layer = this.pinLayer;
+    if (!layer) return;
+    const show = this.walkMode && this._walkPinData.length;
+    layer.classList.toggle('hidden', !show);
+    if (!show) {
+      if (layer.childElementCount) layer.innerHTML = '';
+      return;
+    }
+
+    if (this._walkPinsDirty) {
+      this._walkPinsDirty = false;
+      const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
+      }[c]));
+      layer.innerHTML = this._walkPinData.map((item, i) => {
+        const product = item.product || {};
+        const off = item.discountPercent ? `−${item.discountPercent}%` : '';
+        return `<button class="walk-pin" type="button" data-i="${i}">
+          ${product.image ? `<img src="${esc(product.image)}" alt="">` : ''}
+          <span>
+            ${off ? `<b class="off">${esc(off)}</b>` : ''}
+            <i>${esc(uah(product.price))}</i>
+          </span>
+        </button>`;
+      }).join('');
+      layer.querySelectorAll('.walk-pin').forEach((btn) => {
+        btn.onclick = (event) => {
+          event.stopPropagation();
+          const item = this._walkPinData[Number(btn.dataset.i)];
+          if (item) this.onWalkPin?.(item);
+        };
+      });
+    }
+
+    const rect = this.canvas.getBoundingClientRect();
+    const nodes = layer.children;
+    for (let i = 0; i < this._walkPinData.length; i += 1) {
+      const item = this._walkPinData[i];
+      const node = nodes[i];
+      if (!node) continue;
+      const v = this._pinNdc.set(item.x, 0.2, item.z).project(this.camera);
+      const x = (v.x * 0.5 + 0.5) * rect.width;
+      const y = (-v.y * 0.5 + 0.5) * rect.height;
+      const hidden = v.z > 1 || x < 12 || y < 12 || x > rect.width - 12 || y > rect.height * 0.7;
+      node.hidden = hidden;
+      node.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(-50%, -110%)`;
+    }
   }
 
   _promoCard(item, x, y, z) {
@@ -1001,5 +1094,6 @@ export class StoreMap3D {
     this.youDot = null;
     this.promoGroup = null;
     this.curve = null;
+    this._setWalkPins([]);
   }
 }

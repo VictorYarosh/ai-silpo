@@ -107,7 +107,7 @@
     }
     .zoom button:active { background: var(--blue-soft); }
     .map-dock {
-      position: absolute; left: 12px; right: 12px; bottom: calc(108px + var(--safe-b)); z-index: 2;
+      position: absolute; left: 12px; right: 12px; bottom: calc(108px + var(--safe-b)); z-index: 4;
       display: flex; flex-direction: column; gap: 8px; min-width: 0;
       pointer-events: none;
     }
@@ -291,7 +291,6 @@
     .total { display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--blue-soft); border-radius: 14px; font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--blue-dark); }
 
     .mode-switch {
-      position: absolute; left: 12px; top: 56px; z-index: 3;
       display: flex; background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
     }
     .mode-switch button {
@@ -299,19 +298,43 @@
       font-size: 11px; font-weight: 800; line-height: 1;
     }
     .mode-switch button.active { background: var(--blue); color: #fff; }
+    .map-tools {
+      position: absolute; left: 12px; top: 56px; z-index: 3;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 72%;
+    }
     .map-trust {
-      position: absolute; left: 12px; top: 140px; z-index: 3;
+      position: absolute; left: 12px; top: 102px; z-index: 3;
       background: rgba(255,255,255,.94); border: 1px solid var(--border); border-radius: 12px;
       padding: 6px 10px; font-size: 10px; font-weight: 700; color: var(--muted); max-width: 58%;
     }
     .here-fab {
-      position: absolute; left: 12px; top: 96px; z-index: 3;
       border: 1px solid var(--border); background: #fff; color: var(--ink);
       border-radius: 14px; padding: 9px 12px; font-size: 11px; font-weight: 800; line-height: 1;
-      max-width: 58%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 148px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .here-fab.armed { background: var(--yellow); border-color: var(--yellow); color: #4A3208; }
     .here-fab.set { background: var(--blue-soft); border-color: var(--blue); color: var(--blue-dark); }
+    .walk-pins {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden;
+    }
+    .walk-pins.hidden { display: none !important; }
+    .walk-pin {
+      position: absolute; left: 0; top: 0; pointer-events: auto;
+      display: flex; align-items: center; gap: 6px;
+      background: #FFFBF2; border: 1.5px solid var(--yellow); border-radius: 14px;
+      padding: 4px 8px 4px 4px; box-shadow: 0 8px 18px rgba(32,33,36,.16);
+      max-width: 148px; color: var(--ink);
+    }
+    .walk-pin img {
+      width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; flex: none;
+    }
+    .walk-pin span { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+    .walk-pin .off {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--red); color: #fff; border-radius: 999px; padding: 2px 7px;
+      font-size: 11px; font-weight: 800; line-height: 1.2;
+    }
+    .walk-pin i { font-style: normal; font-size: 13px; font-weight: 800; color: var(--red); }
     .peek {
       position: absolute; left: 12px; right: 12px; bottom: calc(108px + var(--safe-b));
       z-index: 5; display: flex; align-items: center; gap: 10px;
@@ -330,7 +353,13 @@
     body.walk-mode .map-hint { max-width: 72%; }
     body.walk-mode #zoomIn,
     body.walk-mode #zoomOut { display: none; }
-    body.walk-mode .map-dock { bottom: calc(196px + var(--safe-b)); }
+    body.walk-mode .map-trust,
+    body.walk-mode .shelf-rail,
+    body.walk-mode #peekHere { display: none !important; }
+    body.walk-mode:not(.here-armed) .dept-strip { display: none !important; }
+    body.walk-mode .promo-chip b { display: none; }
+    body.walk-mode .promo-chip { width: 120px; }
+    body.walk-mode .promo-chip img { height: 58px; }
     .peek:not(.hidden) + .map-dock { bottom: calc(196px + var(--safe-b)); }
 
     @media (min-width: 900px) {
@@ -349,7 +378,6 @@
       main { flex: 1; min-width: 0; min-height: 0; }
       .map-dock { bottom: 16px; right: 64px; }
       .peek { right: 64px; bottom: 16px; }
-      body.walk-mode .map-dock,
       .peek:not(.hidden) + .map-dock { bottom: 96px; right: 64px; }
     }
   </style>
@@ -402,11 +430,13 @@
   <main>
     <canvas id="map"></canvas>
     <div class="map-hint" id="mapHint">Оберіть магазин кнопкою «Змінити»</div>
-    <div class="mode-switch" id="modeSwitch">
-      <button type="button" data-mode="look">Огляд 3D</button>
-      <button type="button" class="active" data-mode="walk">Прохід</button>
+    <div class="map-tools">
+      <div class="mode-switch" id="modeSwitch">
+        <button type="button" data-mode="look">Огляд 3D</button>
+        <button type="button" class="active" data-mode="walk">Прохід</button>
+      </div>
+      <button type="button" class="here-fab" id="hereBtn">Я тут</button>
     </div>
-    <button type="button" class="here-fab" id="hereBtn">Я тут</button>
     <div class="map-trust" id="mapTrust">Схема залу, не точний план цієї філії</div>
     <div class="zoom">
       <button id="zoomIn" title="Ближче"><i class="si si-plus"></i></button>
@@ -439,6 +469,14 @@
     const el = (id) => document.getElementById(id);
     const map = new StoreMap3D(el('map'));
     map.setWalkMode(true);
+    map.onWalkPin = (item) => {
+      if (!item?.product) return;
+      focusProduct({
+        ...item.product,
+        shelfId: item.shelfId,
+        shelfName: item.shelfName
+      });
+    };
     window.map = map;
     const sheet = el('sheet');
     const sheetBody = el('sheetBody');
@@ -803,6 +841,7 @@
     function syncHereUi() {
       const btn = el('hereBtn');
       if (!btn) return;
+      document.body.classList.toggle('here-armed', armHere);
       btn.classList.toggle('armed', armHere);
       btn.classList.toggle('set', Boolean(hereShelf) && !armHere);
       btn.textContent = armHere
@@ -1097,6 +1136,7 @@
       const used = new Set();
       if (pinnedProduct?.shelfId) {
         cards.push({
+          kind: 'dest',
           shelfId: pinnedProduct.shelfId,
           product: pinnedProduct,
           title: discountPercent(pinnedProduct) ? 'Ціна тижня' : 'Товар',
@@ -1107,10 +1147,12 @@
       for (const suggestion of promos.suggestions) {
         if (!suggestion?.shelfId || !suggestion.product || used.has(suggestion.shelfId)) continue;
         cards.push({
+          kind: 'deal',
           shelfId: suggestion.shelfId,
           product: suggestion.product,
           title: promos.title || 'Ціна тижня',
-          discountPercent: suggestion.discountPercent || discountPercent(suggestion.product)
+          discountPercent: suggestion.discountPercent || discountPercent(suggestion.product),
+          shelfName: suggestion.shelfName
         });
         used.add(suggestion.shelfId);
       }
@@ -1215,7 +1257,7 @@
       promos = { title: data.promoTitle || 'Цінотижики', suggestions: data.suggestions || [] };
       refreshPins();
       renderPromoStrip();
-      if (promos.suggestions.length) {
+      if (promos.suggestions.length && !walkMode) {
         const count = promos.suggestions.length;
         mapHint.textContent = `${mapHint.textContent.split(' · Цінотижики')[0]} · Цінотижики по дорозі: ${count}`;
       }
