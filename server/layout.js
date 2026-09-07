@@ -6,6 +6,42 @@ const VIRTUAL_SLUGS = [
   'lavka-tradytsii'
 ];
 
+// Повні назви MCP на стелажі не вміщаються: «Ковбаси і м'ясні делікатеси».
+const SHORT_BY_SLUG = {
+  'frukty-ovochi': 'Фрукти',
+  'm-iaso': "М'ясо",
+  'ryba': 'Риба',
+  'kovbasni-vyroby-i-m-iasni-delikatesy': 'Ковбаси',
+  'syry': 'Сири',
+  'khlib-ta-vypichka': 'Хліб',
+  'gotovi-stravy-i-kulinariia': 'Кулінарія',
+  'molochni-produkty-ta-iaitsia': 'Молочка',
+  'aptechka-zdorov-ia': 'Аптека',
+  'bakaliia-i-konservy': 'Бакалія',
+  'sousy-i-spetsii': 'Соуси',
+  'solodoshchi': 'Солодощі',
+  'sneky-ta-chypsy': 'Снеки',
+  'kava-chai': 'Кава',
+  'napoi': 'Напої',
+  'zamorozhena-produktsiia': 'Заморозка',
+  'alkogol': 'Алкоголь',
+  'sygarety-stiky-zhuiky': 'Тютюн',
+  'kvity-tovary-dlia-sadu-ta-gorodu': 'Квіти',
+  'dlia-domu': 'Дім',
+  'gigiiena-ta-krasa': 'Гігієна',
+  'dytiachi-tovary': 'Дитячі',
+  'dlia-tvaryn': 'Зоо'
+};
+
+export function shortDeptName(title, slug = '') {
+  const stem = String(slug || '').replace(/-\d+$/, '');
+  if (SHORT_BY_SLUG[stem]) return SHORT_BY_SLUG[stem];
+  const raw = String(title || '').replace(/\s+/g, ' ').trim();
+  if (!raw) return '';
+  const first = raw.split(/\s*(?:,| і | та )\s*/).find(Boolean) || raw;
+  return first.length <= 12 ? first : `${first.slice(0, 11)}…`;
+}
+
 const ZONE_RULES = [
   { zone: 'produce', keys: ['фрукт', 'овоч', 'зелен', 'ягод', 'ягід', 'банан', 'яблук', 'помідор', 'огірк', 'картопл', 'цибул', 'моркв', 'салат'] },
   { zone: 'bakery', keys: ['хліб', 'випіч', 'батон', 'булоч', 'багет', 'круасан', 'лаваш', 'тортил'] },
@@ -537,15 +573,18 @@ export function buildLayout(departments = [], seed = 'silpo') {
     const fridge = FRIDGE_ZONES.has(dept.zone) && slot.kind === 'wall';
     const counter = !fridge && COUNTER_ZONES.has(dept.zone) && slot.kind === 'wall';
     const kind = fridge ? 'fridge' : counter ? 'counter' : slot.kind;
+    const fullTitle = dept.title;
+    const name = shortDeptName(fullTitle, dept.slug) || fullTitle;
 
     shelves.push({
       id: dept.slug,
       slug: dept.slug,
-      name: dept.title,
-      sections: [dept.title],
+      name,
+      title: fullTitle,
+      sections: [fullTitle],
       zone: dept.zone,
       total: dept.total || 0,
-      keywords: (dept.keywords || []).slice(0, 80),
+      keywords: [fullTitle, ...(dept.keywords || [])].filter(Boolean).slice(0, 80),
       kind,
       side: slot.side,
       x: Number(slot.x.toFixed(2)),
@@ -613,7 +652,7 @@ export function matchShelf(product, shelves) {
     let score = 0;
     if (productZone !== 'other' && shelf.zone === productZone) score += 10;
 
-    const name = shelf.name.toLowerCase();
+    const name = `${shelf.name} ${shelf.title || ''}`.toLowerCase();
     if (text.includes(name)) score += 6;
     for (const w of tokens(name)) {
       if (text.includes(w)) score += 3;

@@ -123,7 +123,7 @@
       flex: none; display: inline-flex; align-items: center; justify-content: center;
       border: 1px solid var(--border); background: rgba(255,255,255,.96);
       color: var(--ink); border-radius: 999px; padding: 8px 12px; font-size: 11px; font-weight: 700;
-      white-space: nowrap; line-height: 1; max-width: 200px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; line-height: 1; max-width: 120px; overflow: hidden; text-overflow: ellipsis;
     }
     .dept-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
     .dept-chip:active { background: var(--blue-soft); }
@@ -683,7 +683,7 @@
       dock.classList.remove('hidden');
       strip.classList.remove('hidden');
       strip.innerHTML = layout.shelves.map((s) =>
-        `<button class="dept-chip" type="button" data-shelf="${esc(s.id)}" title="${esc(s.name)}">${esc(s.name)}</button>`
+        `<button class="dept-chip" type="button" data-shelf="${esc(s.id)}" title="${esc(s.title || s.name)}">${esc(s.name)}</button>`
       ).join('');
       strip.querySelectorAll('[data-shelf]').forEach((btn) => {
         btn.onclick = () => selectShelf(btn.dataset.shelf);

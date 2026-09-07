@@ -405,8 +405,8 @@ export class StoreMap3D {
     const label = this._label(
       shelf.name,
       0,
-      height + 1.15,
-      aisleFace ? shelf.depth / 2 + 0.2 : 0,
+      height + 0.58,
+      aisleFace ? shelf.depth / 2 + 0.18 : 0,
       'shelf'
     );
     label.userData.shelfId = shelf.id;
@@ -498,17 +498,17 @@ export class StoreMap3D {
 
   _label(text, x, y, z, variant) {
     const canvas = document.createElement('canvas');
-    canvas.width = variant === 'shelf' ? 1024 : 512;
-    canvas.height = variant === 'shelf' ? 256 : 128;
+    canvas.width = 512;
+    canvas.height = 128;
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false })
     );
     sprite.position.set(x, y, z);
     const scale = variant === 'shelf'
-      ? [8.4, 2.1]
+      ? [3.2, 0.8]
       : variant === 'level'
-        ? [0.55, 0.55]
-        : [2.6, 0.65];
+        ? [0.48, 0.48]
+        : [2.4, 0.6];
     sprite.scale.set(scale[0], scale[1], 1);
     sprite.userData = { canvas, text, variant };
     this.labels.push(sprite);
@@ -530,18 +530,17 @@ export class StoreMap3D {
             : 'rgba(32,33,36,0.92)';
     const color = variant === 'entrance' || variant === 'free' ? '#202124' : '#ffffff';
     const raw = String(text || '');
-    const lines = variant === 'shelf' ? this._wrapLabel(raw, 18) : [raw.length > 26 ? `${raw.slice(0, 25)}…` : raw];
+    const label = variant === 'shelf' && raw.length > 14
+      ? `${raw.slice(0, 13)}…`
+      : variant !== 'level' && raw.length > 22
+        ? `${raw.slice(0, 21)}…`
+        : raw;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = fill;
     ctx.beginPath();
     if (variant === 'level') {
       ctx.arc(256, 64, 52, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (variant === 'shelf') {
-      const h = lines.length > 1 ? 168 : 120;
-      const y = lines.length > 1 ? 44 : 68;
-      ctx.roundRect ? ctx.roundRect(28, y, 968, h, 40) : ctx.rect(28, y, 968, h);
       ctx.fill();
     } else {
       ctx.roundRect ? ctx.roundRect(16, 34, 480, 60, 30) : ctx.rect(16, 34, 480, 60);
@@ -551,34 +550,13 @@ export class StoreMap3D {
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    if (variant === 'shelf') {
-      ctx.font = "800 72px 'Silpo Text', -apple-system, sans-serif";
-      const start = lines.length > 1 ? 108 : 128;
-      lines.forEach((line, i) => ctx.fillText(line, 512, start + i * 76));
-    } else if (variant === 'level') {
-      ctx.font = "800 72px 'Silpo Text', -apple-system, sans-serif";
-      ctx.fillText(raw, 256, 68);
-    } else {
-      ctx.font = "700 34px 'Silpo Text', -apple-system, sans-serif";
-      ctx.fillText(lines[0], 256, 65);
-    }
+    ctx.font = variant === 'level'
+      ? "800 72px 'Silpo Text', -apple-system, sans-serif"
+      : variant === 'shelf'
+        ? "800 36px 'Silpo Text', -apple-system, sans-serif"
+        : "700 34px 'Silpo Text', -apple-system, sans-serif";
+    ctx.fillText(label, 256, variant === 'level' ? 68 : 65);
     sprite.material.map.needsUpdate = true;
-  }
-
-  _wrapLabel(text, max) {
-    const words = String(text || '').split(/\s+/).filter(Boolean);
-    if (!words.length) return [''];
-    const lines = [];
-    let current = '';
-    for (const word of words) {
-      const next = current ? `${current} ${word}` : word;
-      if (next.length > max && current) {
-        lines.push(current);
-        current = word;
-      } else current = next;
-    }
-    if (current) lines.push(current);
-    return lines.slice(0, 2);
   }
 
   _refreshLabels() {
