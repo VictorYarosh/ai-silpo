@@ -127,6 +127,19 @@
     }
     .dept-chip.active { background: var(--blue); border-color: var(--blue); color: #fff; }
     .dept-chip:active { background: var(--blue-soft); }
+    .level-chip {
+      flex: none; display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.96);
+      color: var(--ink); border-radius: 14px; padding: 8px 12px; font-size: 11px; font-weight: 700;
+      line-height: 1.25; max-width: 260px; text-align: left;
+    }
+    .level-chip b {
+      width: 22px; height: 22px; border-radius: 999px; background: var(--blue); color: #fff;
+      display: grid; place-items: center; font-size: 11px; flex: none;
+    }
+    .level-chip span { color: var(--muted); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .level-chip.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .level-chip.active span { color: #cfd3dc; }
     .shelf-rail { padding-bottom: 2px; }
     .shelf-card {
       flex: none; width: 108px; border: 1px solid var(--border); background: rgba(255,255,255,.97);
@@ -353,6 +366,7 @@
     </div>
     <div class="map-dock hidden" id="mapDock">
       <div class="shelf-rail h-scroll hidden" id="shelfRail"></div>
+      <div class="level-strip h-scroll hidden" id="levelStrip"></div>
       <div class="dept-strip h-scroll" id="deptStrip"></div>
     </div>
   </main>
@@ -362,6 +376,7 @@
 
     const el = (id) => document.getElementById(id);
     const map = new StoreMap3D(el('map'));
+    window.map = map;
     const sheet = el('sheet');
     const sheetBody = el('sheetBody');
     const sheetTitle = el('sheetTitle');
@@ -382,6 +397,8 @@
     let personal = { favorites: [], sets: [], onlineOrders: [], offlineOrders: [] };
     let insight = null;
     let railItems = [];
+    let shelfView = { shelf: null, levels: [], level: 0 };
+    let atShelfId = null;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const money = (v) => (v == null ? '' : `${Number(v).toFixed(2).replace('.00', '')} ₴`);
@@ -644,7 +661,10 @@
       promos = { title: '', suggestions: [] };
       renderShelfRail([]);
       map.loadLayout(layout);
-      map.onShelfTap = (id) => selectShelf(id);
+      map.onShelfTap = (id, level) => selectShelf(id, { level });
+      shelfView = { shelf: null, levels: [], level: 0 };
+      atShelfId = null;
+      renderLevelStrip();
       renderDeptStrip();
       mapHint.textContent = `${layout.shelves.length} відділів · зал ${layout.floor.width}×${layout.floor.depth} м · оберіть стелаж на карті або зі стрічки`;
       loadPersonal();
@@ -679,20 +699,77 @@
       });
     }
 
-    function selectShelf(id) {
+    function renderLevelStrip() {
+      const strip = el('levelStrip');
+      const levels = shelfView.levels || [];
+      if (!levels.length) {
+        strip.classList.add('hidden');
+        strip.innerHTML = '';
+        return;
+      }
+      strip.classList.remove('hidden');
+      strip.innerHTML = levels.map((level) => `
+        <button class="level-chip${shelfView.level === level.n ? ' active' : ''}" type="button" data-level="${level.n}">
+          <b>${level.n}</b>
+          <span>${esc(level.brands.slice(0, 3).join(', ') || `Полиця ${level.n}`)}</span>
+        </button>`).join('');
+      strip.querySelectorAll('[data-level]').forEach((btn) => {
+        btn.onclick = () => selectLevel(Number(btn.dataset.level));
+      });
+      bindHScroll(strip);
+    }
+
+    function selectLevel(n) {
+      if (!shelfView.shelf || !n) return;
+      shelfView.level = n;
+      const level = shelfView.levels.find((item) => item.n === n);
+      if (atShelfId === shelfView.shelf.id) map.lookAtShelf(shelfView.shelf, n);
+      map.highlightLevel(shelfView.shelf.id, n);
+      renderLevelStrip();
+      const brands = level?.brands?.length ? level.brands.join(', ') : 'виробники';
+      mapHint.textContent = `${shelfView.shelf.name} · полиця ${n} на рівні ${n === 3 ? 'очей' : n === 2 ? 'грудей' : 'рук'} · ${brands}`;
+      if (level?.products?.length) {
+        products = level.products;
+        renderShelfRail(products);
+        if (tab === 'products') {
+          sheetTitle.textContent = `${shelfView.shelf.name} · ${n}`;
+          sheetCount.textContent = `${level.brands.length} виробн.`;
+          renderProducts();
+        }
+      }
+    }
+
+    function selectShelf(id, opts = {}) {
       const shelf = layout?.shelves.find((s) => s.id === id);
       if (!shelf) return;
+      const alreadyThere = atShelfId === id;
       map.highlight(id);
-      map.showRoute(shelf.route);
       markDeptChip(id);
       const walk = walkLabel(shelf.route);
-      const bits = [`${shelf.name} · ${shelf.total} товарів`];
+      const bits = [`${shelf.name} · три полиці`];
       if (walk) bits.push(walk);
       if (shelf.popular) bits.push('зараз популярний відділ');
       if (shelf.family) bits.push('для вашої родини');
       mapHint.textContent = bits.join(' · ');
       loadOnTheWay(shelf.route, [shelf.id]);
-      openShelf(shelf);
+      openShelf(shelf, opts.level);
+
+      if (alreadyThere) {
+        map.lookAtShelf(shelf, opts.level || shelfView.level || 2);
+        if (opts.level) selectLevel(opts.level);
+        if (window.innerWidth < 900) sheet.classList.add('collapsed');
+        return;
+      }
+
+      atShelfId = null;
+      map.onArrive = () => {
+        atShelfId = id;
+        map.lookAtShelf(shelf, opts.level || 2);
+        mapHint.textContent = `${shelf.name} · стійте біля стелажа і оберіть полицю 1, 2 або 3`;
+        if (opts.level) selectLevel(opts.level);
+      };
+      map.showRoute(shelf.route, { shelf });
+      if (window.innerWidth < 900) sheet.classList.add('collapsed');
     }
 
     async function searchProducts(query) {
@@ -742,6 +819,8 @@
             <div class="sub">
               ${p.displayRatio ? `<span class="pill">${esc(p.displayRatio)}</span>` : ''}
               ${p.shelfName ? `<span class="pill">${esc(p.shelfName)}</span>` : ''}
+              ${p.brand ? `<span class="pill">${esc(p.brand)}</span>` : ''}
+              ${p.shelfLevel ? `<span class="pill">полиця ${p.shelfLevel}</span>` : ''}
               ${p.hasPromotion ? '<span class="pill promo">Акція</span>' : ''}
               ${warns.map((w) => `<span class="pill warn-pill">${esc(w)}</span>`).join('')}
             </div>
@@ -767,7 +846,11 @@
         return;
       }
 
-      sheetBody.innerHTML = `${promoBlock()}<div class="product-list">${products.map(productRow).join('')}</div>`;
+      const visible = shelfView.level
+        ? products.filter((p) => !p.shelfLevel || p.shelfLevel === shelfView.level)
+        : products;
+      const shown = visible.length ? visible : products;
+      sheetBody.innerHTML = `${promoBlock()}<div class="product-list">${shown.map((p, i) => productRow(p, products.indexOf(p))).join('')}</div>`;
       bindProductActions();
     }
 
@@ -857,12 +940,21 @@
 
     async function focusProduct(p) {
       if (!p?.route || p.route.length < 2) return;
+      const shelf = layout?.shelves.find((s) => s.id === p.shelfId);
       map.highlight(p.shelfId);
-      map.showRoute(p.route);
       markDeptChip(p.shelfId);
       const walk = walkLabel(p.route);
-      mapHint.textContent = `${p.name} → ${p.shelfName || 'стелаж'}${walk ? ` · ${walk}` : ''}`;
+      mapHint.textContent = `${p.name} → ${p.shelfName || 'стелаж'}${p.shelfLevel ? ` · полиця ${p.shelfLevel}` : ''}${walk ? ` · ${walk}` : ''}`;
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
+      if (shelf) {
+        atShelfId = null;
+        map.onArrive = () => {
+          atShelfId = shelf.id;
+          map.lookAtShelf(shelf, p.shelfLevel || 2);
+          map.highlightLevel(shelf.id, p.shelfLevel || 2);
+        };
+      }
+      map.showRoute(p.route, { shelf });
       await loadOnTheWay(p.route, [p.shelfId]);
     }
 
@@ -943,7 +1035,7 @@
       return '';
     }
 
-    async function openShelf(shelf) {
+    async function openShelf(shelf, preferredLevel) {
       if (!store || !shelf.slug) return;
       const data = await api(
         `/api/shelf?branchId=${encodeURIComponent(store.id)}&slug=${encodeURIComponent(shelf.slug)}&seed=${encodeURIComponent(seed || store.id)}`
@@ -951,19 +1043,36 @@
       if (!data?.success) return;
       const cat = data.category || {};
       const extra = cat.visible === false ? ' · у цій філії порожньо' : '';
+      const levels = data.levels?.length ? data.levels : [];
+      shelfView = { shelf, levels, level: preferredLevel || 0 };
+      renderLevelStrip();
       const walk = walkLabel(shelf.route);
       mapHint.textContent = [
         shelf.name,
+        '3 полиці',
         cat.minPrice != null ? `від ${money(cat.minPrice)}` : '',
         walk,
         extra.trim()
       ].filter(Boolean).join(' · ');
-      if (data.products?.length) {
+      if (preferredLevel) {
+        shelfView.level = preferredLevel;
+        renderLevelStrip();
+        const level = levels.find((item) => item.n === preferredLevel);
+        if (level?.products?.length) {
+          products = level.products;
+          renderShelfRail(products);
+          if (tab === 'products') {
+            sheetTitle.textContent = `${shelf.name} · ${preferredLevel}`;
+            sheetCount.textContent = `${level.brands.length} виробн.`;
+            renderProducts();
+          }
+        }
+      } else if (data.products?.length) {
         products = data.products;
         renderShelfRail(products);
         if (tab === 'products') {
           sheetTitle.textContent = shelf.name;
-          sheetCount.textContent = `${products.length} на полиці`;
+          sheetCount.textContent = `${products.length} на стелажі`;
           renderProducts();
         }
       }
@@ -974,6 +1083,8 @@
       setTab('products');
       sheetTitle.textContent = title;
       sheetCount.textContent = `${data.order?.length || 0} відділів`;
+      map.onArrive = null;
+      atShelfId = null;
       map.showRoute(data.route);
       map.highlight(null);
       markDeptChip(null);
@@ -1091,6 +1202,8 @@
       }
 
       shoppingList = data.results.map((r) => r.best).filter(Boolean);
+      map.onArrive = null;
+      atShelfId = null;
       map.showRoute(data.route);
       map.highlight(null);
       markDeptChip(null);
@@ -1281,6 +1394,8 @@
         sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Спочатку оберіть магазин — тоді намалюю шлях до каси.</div>');
         return;
       }
+      map.onArrive = null;
+      atShelfId = null;
       map.showRoute(points);
       map.highlight(null);
       const walk = walkLabel(points);
@@ -1297,7 +1412,18 @@
     el('reloadBtn').onclick = boot;
     el('zoomIn').onclick = () => map.camera.position.multiplyScalar(0.85);
     el('zoomOut').onclick = () => map.camera.position.multiplyScalar(1.18);
-    el('zoomReset').onclick = () => { map.clearRoute(); map.highlight(null); markDeptChip(null); renderShelfRail([]); map.frameAll(); };
+    el('zoomReset').onclick = () => {
+      atShelfId = null;
+      shelfView = { shelf: null, levels: [], level: 0 };
+      map.onArrive = null;
+      map.clearRoute();
+      map.highlight(null);
+      map.highlightLevel(null, 0);
+      markDeptChip(null);
+      renderShelfRail([]);
+      renderLevelStrip();
+      map.frameAll();
+    };
     bindHScroll(document.querySelector('.tabs'));
     el('shuffleBtn').onclick = () => {
       if (!store) return;

@@ -296,8 +296,52 @@ function normalizeProduct(product) {
     step: product.step ?? 1,
     image,
     category: product.category || product.categoryName || null,
-    categorySlug: product.categorySlug || null
+    categorySlug: product.categorySlug || null,
+    brand: brandOf(product.name || product.title || '')
   };
+}
+
+const GENERIC_HEAD = /^(молоко|кефір|кефир|йогурт|сметана|сир|масло|вершки|хліб|батон|вода|сік|пиво|вино|чай|кава|цукор|сіль|борошно|олія|яйц|ковбас|сосиск|чипси|печиво|корм|шампунь|порошок|рис|гречк|макарон|соус|кетчуп|майонез)$/i;
+
+function brandOf(name) {
+  const words = String(name || '')
+    .replace(/["«»„“]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const brand = words.find((word) => {
+    const clean = word.replace(/[.,:%]/g, '');
+    if (clean.length < 3) return false;
+    if (/^\d/.test(clean)) return false;
+    if (/^(з|із|та|для|без|у|в|на|по|від|або|шт|л|мл|г|кг)$/i.test(clean)) return false;
+    return !GENERIC_HEAD.test(clean);
+  });
+  return brand || words[0] || 'Інше';
+}
+
+function splitShelfLevels(products) {
+  const levels = [1, 2, 3].map((n) => ({ n, title: `Полиця ${n}`, brands: [], products: [] }));
+  for (const product of products) {
+    const brand = product.brand || brandOf(product.name);
+    const n = product.shelfLevel || levelOfBrand(brand);
+    const level = levels[n - 1];
+    if (!level.brands.includes(brand)) level.brands.push(brand);
+    level.products.push({ ...product, brand, shelfLevel: n });
+  }
+  return levels.map((level) => ({
+    ...level,
+    title: level.brands.length
+      ? `Полиця ${level.n} · ${level.brands.slice(0, 3).join(', ')}`
+      : `Полиця ${level.n}`
+  }));
+}
+
+function levelOfBrand(brand) {
+  let hash = 2166136261;
+  for (const char of String(brand || '')) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) % 3 + 1;
 }
 
 function withNavigation(products, layout) {
@@ -309,6 +353,7 @@ function withNavigation(products, layout) {
       shelfId: shelf?.id || null,
       shelfName: shelf?.name || null,
       shelfZone: shelf?.zone || null,
+      shelfLevel: levelOfBrand(product.brand),
       route: buildRoute(layout, shelf)
     };
   });
@@ -712,13 +757,15 @@ export async function shelfDetails(call, { branchId, categorySlug, seed }) {
       ...ctx,
       category: categorySlug,
       inStock: true,
-      limit: 24,
+      limit: 48,
       sortBy: 'popularity'
     }))
   ]);
+  const mapped = withNavigation(listOf(products?.products, products?.items), layout);
   return {
     category: data?.category || data,
-    products: withNavigation(listOf(products?.products, products?.items), layout)
+    products: mapped,
+    levels: splitShelfLevels(mapped)
   };
 }
 

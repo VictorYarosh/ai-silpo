@@ -88,9 +88,12 @@ export class StoreMap3D {
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.target.set(0, 0.5, 0);
     this.controls.enableDamping = true;
-    this.controls.maxPolarAngle = Math.PI / 2.15;
-    this.controls.minDistance = 8;
+    this.controls.maxPolarAngle = Math.PI / 2.02;
+    this.controls.minDistance = 1.1;
     this.controls.maxDistance = 90;
+    this.eyeMode = false;
+    this.onArrive = null;
+    this.walkDone = false;
 
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0xc7ced9, 1.05));
     const sun = new THREE.DirectionalLight(0xffffff, 0.75);
@@ -151,9 +154,15 @@ export class StoreMap3D {
       -((event.clientY - rect.top) / rect.height) * 2 + 1
     );
     this.raycaster.setFromCamera(pointer, this.camera);
-    const targets = [...this.shelves.values()].flatMap((s) => [s.hit, s.frame, s.label].filter(Boolean));
+    const targets = [...this.shelves.values()].flatMap((s) => [
+      ...(s.levelHits || []),
+      s.hit,
+      s.frame,
+      s.label
+    ].filter(Boolean));
     const hit = this.raycaster.intersectObjects(targets, false)[0];
-    return hit?.object.userData.shelfId || null;
+    if (!hit) return null;
+    return { id: hit.object.userData.shelfId, level: hit.object.userData.level || 0 };
   }
 
   _pick(event) {
@@ -162,16 +171,18 @@ export class StoreMap3D {
     if (!this.onShelfTap || !start) return;
     // Обертання камери не має обирати стелаж.
     if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) return;
-    const id = this._hitShelf(event);
-    if (id) this.onShelfTap(id);
+    const hit = this._hitShelf(event);
+    if (hit) this.onShelfTap(hit.id, hit.level);
   }
 
   _hover(event) {
     if (this._pointerDown || !this.shelves.size) return;
-    const id = this._hitShelf(event);
+    const hit = this._hitShelf(event);
+    const id = hit?.id || null;
     this.canvas.style.cursor = id ? 'pointer' : 'grab';
     if (id === this._hoverId) return;
     this._hoverId = id;
+    if (this.eyeMode) return;
     for (const entry of this.shelves.values()) {
       const hot = entry.shelf.id === id;
       const active = entry.header.material.emissiveIntensity > 0.4;
@@ -187,7 +198,6 @@ export class StoreMap3D {
     this.layout = layout;
 
     this._floor(layout);
-    this._walls(layout);
     this._entrance(layout.entrance);
     this._registers(layout);
     for (const island of layout.islands || []) this._promoIsland(island);
@@ -224,21 +234,6 @@ export class StoreMap3D {
     texture.repeat.set(width, depth);
     texture.anisotropy = 4;
     return texture;
-  }
-
-  _walls({ floor }) {
-    const { width, depth } = floor;
-    const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92 });
-    const walls = [
-      { x: 0, z: -depth / 2, w: width, d: 0.3 },
-      { x: -width / 2, z: 0, w: 0.3, d: depth },
-      { x: width / 2, z: 0, w: 0.3, d: depth }
-    ];
-    for (const wall of walls) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(wall.w, 4, wall.d), mat);
-      mesh.position.set(wall.x, 2, wall.z);
-      this.group.add(mesh);
-    }
   }
 
   _entrance(point) {
@@ -328,132 +323,167 @@ export class StoreMap3D {
     this.group.add(group);
   }
 
+  _shelfLevels(shelf) {
+    if (shelf.kind === 'counter') {
+      return [
+        { n: 1, y: 0.42 },
+        { n: 2, y: 0.78 },
+        { n: 3, y: 1.16 }
+      ];
+    }
+    return [
+      { n: 1, y: 0.5 },
+      { n: 2, y: 1.12 },
+      { n: 3, y: 1.74 }
+    ];
+  }
+
   _shelf(shelf) {
     const group = new THREE.Group();
     group.position.set(shelf.x, 0, shelf.z);
     group.rotation.y = shelf.rotY || 0;
 
     const zoneColor = ZONE_COLORS[shelf.zone] || ZONE_COLORS.other;
-    const body = new THREE.Mesh(
-      new THREE.BoxGeometry(shelf.width, shelf.height, shelf.depth),
-      new THREE.MeshStandardMaterial({
-        color: shelf.kind === 'fridge' ? 0xf7fafc : METAL,
-        roughness: shelf.kind === 'fridge' ? 0.3 : 0.8,
-        metalness: shelf.kind === 'fridge' ? 0.3 : 0.1
-      })
-    );
-    body.position.y = shelf.height / 2;
-    body.userData.shelfId = shelf.id;
-    group.add(body);
-
+    const height = shelf.kind === 'counter' ? 1.35 : 2.05;
     const aisleFace = shelf.kind === 'wall' || shelf.kind === 'fridge' || shelf.kind === 'counter';
+    const sides = aisleFace ? [1] : [1, -1];
+    const metal = new THREE.MeshStandardMaterial({
+      color: shelf.kind === 'fridge' ? 0xf7fafc : METAL,
+      roughness: shelf.kind === 'fridge' ? 0.28 : 0.72,
+      metalness: shelf.kind === 'fridge' ? 0.35 : 0.12
+    });
 
-    // Невидимий «магніт» для тапу: з висоти пташиного польоту корпус стелажа занадто тонкий.
+    const back = new THREE.Mesh(new THREE.BoxGeometry(shelf.width, height, 0.08), metal);
+    back.position.y = height / 2;
+    back.userData.shelfId = shelf.id;
+    group.add(back);
+
+    for (const side of [-1, 1]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.08, height, shelf.depth), metal);
+      post.position.set(side * (shelf.width / 2 - 0.04), height / 2, 0);
+      group.add(post);
+    }
+
     const hit = new THREE.Mesh(
-      new THREE.BoxGeometry(Math.max(shelf.width, 2.4), shelf.height + 1.1, Math.max(shelf.depth + 1.2, 1.8)),
+      new THREE.BoxGeometry(Math.max(shelf.width, 2.4), height + 1.1, Math.max(shelf.depth + 1.4, 1.8)),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
     );
-    hit.position.set(0, (shelf.height + 1.1) / 2, aisleFace ? shelf.depth / 2 + 0.4 : 0);
+    hit.position.set(0, (height + 1.1) / 2, aisleFace ? shelf.depth / 2 + 0.35 : 0);
     hit.userData.shelfId = shelf.id;
     group.add(hit);
 
-    // Кольоровий фриз зверху — так відділ видно навіть без підпису.
     const header = new THREE.Mesh(
-      new THREE.BoxGeometry(shelf.width, 0.3, shelf.depth + 0.06),
+      new THREE.BoxGeometry(shelf.width, 0.28, shelf.depth + 0.08),
       new THREE.MeshStandardMaterial({ color: zoneColor, roughness: 0.55 })
     );
-    header.position.y = shelf.height + 0.15;
+    header.position.y = height + 0.14;
     if (shelf.popular) {
       header.material.emissive = new THREE.Color(YELLOW);
       header.material.emissiveIntensity = 0.28;
     }
     group.add(header);
 
-    const sides = shelf.kind === 'wall' || shelf.kind === 'fridge' || shelf.kind === 'counter' ? [1] : [1, -1];
-
     if (shelf.kind === 'fridge') {
       for (const side of sides) {
         const glass = new THREE.Mesh(
-          new THREE.BoxGeometry(shelf.width - 0.2, shelf.height - 0.5, 0.05),
+          new THREE.BoxGeometry(shelf.width - 0.16, height - 0.2, 0.04),
           new THREE.MeshStandardMaterial({
             color: 0xdff0fb,
             transparent: true,
-            opacity: 0.42,
+            opacity: 0.28,
             roughness: 0.05,
             metalness: 0.1
           })
         );
-        glass.position.set(0, shelf.height / 2 + 0.1, side * (shelf.depth / 2 + 0.04));
+        glass.position.set(0, height / 2, side * (shelf.depth / 2 + 0.03));
         group.add(glass);
       }
-    } else if (shelf.kind === 'counter') {
-      const glass = new THREE.Mesh(
-        new THREE.BoxGeometry(shelf.width - 0.1, 0.7, shelf.depth + 0.3),
-        new THREE.MeshStandardMaterial({ color: 0xeaf4fb, transparent: true, opacity: 0.34, roughness: 0.05 })
-      );
-      glass.position.set(0, shelf.height + 0.35, 0.1);
-      group.add(glass);
     }
 
-    this._stock(group, shelf, sides, zoneColor);
+    const { planks, levelHits } = this._stock(group, { ...shelf, height }, sides, zoneColor);
 
     const label = this._label(
       shelf.name,
       0,
-      shelf.height + 0.85,
-      aisleFace ? shelf.depth / 2 + 0.15 : 0,
+      height + 1.15,
+      aisleFace ? shelf.depth / 2 + 0.2 : 0,
       'shelf'
     );
     label.userData.shelfId = shelf.id;
     group.add(label);
 
     this.group.add(group);
-    this.shelves.set(shelf.id, { group, shelf, frame: body, header, label, hit, baseColor: zoneColor });
+    this.shelves.set(shelf.id, {
+      group,
+      shelf,
+      frame: back,
+      header,
+      label,
+      hit,
+      planks,
+      levelHits,
+      baseColor: zoneColor
+    });
   }
 
-  /** Товари на полицях: ряди коробок і бутлів, стабільні для конкретного відділу. */
+  /** Три полиці з товарами: низ / середина / рівень очей. */
   _stock(group, shelf, sides, zoneColor) {
     const rng = rngFrom(`${shelf.id}:${shelf.width}`);
-    const levels = [];
-    const top = shelf.kind === 'counter' ? shelf.height + 0.05 : shelf.height - 0.35;
-    for (let y = 0.55; y <= top; y += 0.55) levels.push(y);
-    if (!levels.length) levels.push(shelf.height / 2);
-
+    const levels = this._shelfLevels(shelf);
     const bottle = BOTTLE_ZONES.has(shelf.zone);
-    const itemW = bottle ? 0.16 : 0.22;
-    const perRow = Math.max(2, Math.floor((shelf.width - 0.4) / (itemW + 0.03)));
+    const itemW = bottle ? 0.2 : 0.28;
+    const perRow = Math.max(3, Math.floor((shelf.width - 0.35) / (itemW + 0.06)));
     const count = perRow * levels.length * sides.length;
-
     const geometry = bottle
-      ? new THREE.CylinderGeometry(itemW / 2, itemW / 2, 0.34, 8)
-      : new THREE.BoxGeometry(itemW, 0.3, 0.2);
+      ? new THREE.CylinderGeometry(itemW / 2, itemW / 2, 0.42, 10)
+      : new THREE.BoxGeometry(itemW, 0.38, 0.24);
     const mesh = new THREE.InstancedMesh(
       geometry,
-      new THREE.MeshStandardMaterial({ roughness: 0.6 }),
+      new THREE.MeshStandardMaterial({ roughness: 0.55 }),
       count
     );
 
     const matrix = new THREE.Matrix4();
     let index = 0;
+    const planks = [];
+    const levelHits = [];
+    const levelColors = [0xf4b942, 0x4aa3df, 0x6bc26b];
 
     for (const side of sides) {
-      const plankMat = new THREE.MeshStandardMaterial({ color: 0xc9d1de, roughness: 0.75 });
-      for (const y of levels) {
-        const plank = new THREE.Mesh(new THREE.BoxGeometry(shelf.width - 0.1, 0.04, 0.34), plankMat);
-        plank.position.set(0, y - 0.17, side * (shelf.depth / 2 + 0.12));
+      for (const level of levels) {
+        const plankMat = new THREE.MeshStandardMaterial({ color: 0xd5dbe6, roughness: 0.7 });
+        const plank = new THREE.Mesh(new THREE.BoxGeometry(shelf.width - 0.08, 0.05, 0.42), plankMat);
+        plank.position.set(0, level.y, side * (shelf.depth / 2 + 0.12));
+        plank.userData = { shelfId: shelf.id, level: level.n };
         group.add(plank);
+        planks.push({ mesh: plank, level: level.n, material: plankMat });
 
+        const levelHit = new THREE.Mesh(
+          new THREE.BoxGeometry(shelf.width, 0.55, 0.7),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+        );
+        levelHit.position.set(0, level.y + 0.22, side * (shelf.depth / 2 + 0.22));
+        levelHit.userData = { shelfId: shelf.id, level: level.n };
+        group.add(levelHit);
+        levelHits.push(levelHit);
+
+        const badge = this._label(String(level.n), -shelf.width / 2 + 0.18, level.y + 0.28, side * (shelf.depth / 2 + 0.28), 'level');
+        badge.userData.shelfId = shelf.id;
+        badge.userData.level = level.n;
+        group.add(badge);
+
+        const brandTint = new THREE.Color(levelColors[level.n - 1]);
         for (let i = 0; i < perRow; i += 1) {
-          const x = -shelf.width / 2 + 0.28 + i * ((shelf.width - 0.56) / Math.max(1, perRow - 1));
-          const height = 0.24 + rng() * 0.18;
-          matrix.makeScale(1, height / 0.3, 1);
+          const x = -shelf.width / 2 + 0.36 + i * ((shelf.width - 0.72) / Math.max(1, perRow - 1));
+          const height = bottle ? 0.34 + rng() * 0.12 : 0.3 + rng() * 0.16;
+          matrix.makeScale(1, height / 0.38, 1);
           matrix.setPosition(
-            x + (rng() - 0.5) * 0.03,
-            y - 0.14 + height / 2,
-            side * (shelf.depth / 2 + 0.16 + rng() * 0.06)
+            x,
+            level.y + 0.03 + height / 2,
+            side * (shelf.depth / 2 + 0.18)
           );
           mesh.setMatrixAt(index, matrix);
-          mesh.setColorAt(index, tint(zoneColor, rng));
+          mesh.setColorAt(index, tint(brandTint.getHex(), rng, 0.18));
           index += 1;
         }
       }
@@ -463,17 +493,23 @@ export class StoreMap3D {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     group.add(mesh);
+    return { planks, levelHits };
   }
 
   _label(text, x, y, z, variant) {
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 128;
+    canvas.width = variant === 'shelf' ? 1024 : 512;
+    canvas.height = variant === 'shelf' ? 256 : 128;
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false })
     );
     sprite.position.set(x, y, z);
-    sprite.scale.set(variant === 'shelf' ? 3.4 : 2.6, variant === 'shelf' ? 0.85 : 0.65, 1);
+    const scale = variant === 'shelf'
+      ? [8.4, 2.1]
+      : variant === 'level'
+        ? [0.55, 0.55]
+        : [2.6, 0.65];
+    sprite.scale.set(scale[0], scale[1], 1);
     sprite.userData = { canvas, text, variant };
     this.labels.push(sprite);
     this._drawLabel(sprite);
@@ -483,22 +519,66 @@ export class StoreMap3D {
   _drawLabel(sprite) {
     const { canvas, text, variant } = sprite.userData;
     const ctx = canvas.getContext('2d');
-    const fill = variant === 'entrance' ? '#FBBB5E' : variant === 'checkout' ? '#FE8522' : variant === 'free' ? '#07B324' : 'rgba(32,33,36,0.9)';
+    const fill = variant === 'entrance'
+      ? '#FBBB5E'
+      : variant === 'checkout'
+        ? '#FE8522'
+        : variant === 'free'
+          ? '#07B324'
+          : variant === 'level'
+            ? '#2358D1'
+            : 'rgba(32,33,36,0.92)';
     const color = variant === 'entrance' || variant === 'free' ? '#202124' : '#ffffff';
-    const label = String(text).length > 26 ? `${String(text).slice(0, 25)}…` : String(text);
+    const raw = String(text || '');
+    const lines = variant === 'shelf' ? this._wrapLabel(raw, 18) : [raw.length > 26 ? `${raw.slice(0, 25)}…` : raw];
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = fill;
     ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(16, 34, 480, 60, 30) : ctx.rect(16, 34, 480, 60);
-    ctx.fill();
+    if (variant === 'level') {
+      ctx.arc(256, 64, 52, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (variant === 'shelf') {
+      const h = lines.length > 1 ? 168 : 120;
+      const y = lines.length > 1 ? 44 : 68;
+      ctx.roundRect ? ctx.roundRect(28, y, 968, h, 40) : ctx.rect(28, y, 968, h);
+      ctx.fill();
+    } else {
+      ctx.roundRect ? ctx.roundRect(16, 34, 480, 60, 30) : ctx.rect(16, 34, 480, 60);
+      ctx.fill();
+    }
 
     ctx.fillStyle = color;
-    ctx.font = "700 34px 'Silpo Text', -apple-system, sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(label, 256, 65);
+    if (variant === 'shelf') {
+      ctx.font = "800 72px 'Silpo Text', -apple-system, sans-serif";
+      const start = lines.length > 1 ? 108 : 128;
+      lines.forEach((line, i) => ctx.fillText(line, 512, start + i * 76));
+    } else if (variant === 'level') {
+      ctx.font = "800 72px 'Silpo Text', -apple-system, sans-serif";
+      ctx.fillText(raw, 256, 68);
+    } else {
+      ctx.font = "700 34px 'Silpo Text', -apple-system, sans-serif";
+      ctx.fillText(lines[0], 256, 65);
+    }
     sprite.material.map.needsUpdate = true;
+  }
+
+  _wrapLabel(text, max) {
+    const words = String(text || '').split(/\s+/).filter(Boolean);
+    if (!words.length) return [''];
+    const lines = [];
+    let current = '';
+    for (const word of words) {
+      const next = current ? `${current} ${word}` : word;
+      if (next.length > max && current) {
+        lines.push(current);
+        current = word;
+      } else current = next;
+    }
+    if (current) lines.push(current);
+    return lines.slice(0, 2);
   }
 
   _refreshLabels() {
@@ -507,15 +587,45 @@ export class StoreMap3D {
 
   frameAll() {
     if (!this.layout) return;
+    this.eyeMode = false;
+    this.controls.minDistance = 1.1;
+    this.controls.maxDistance = 90;
+    this.controls.maxPolarAngle = Math.PI / 2.02;
     const { width, depth } = this.layout.floor;
     const radius = Math.hypot(width, depth) / 2;
     const fovY = (this.camera.fov * Math.PI) / 180;
     const fovX = 2 * Math.atan(Math.tan(fovY / 2) * this.camera.aspect);
     const distance = (radius / Math.sin(Math.min(fovY, fovX) / 2)) * 1.06;
 
+    this.camera.fov = 46;
     this.controls.target.set(0, 0.5, 0);
     this.camera.position.set(0, distance * 0.74, distance * 0.68);
     this.camera.updateProjectionMatrix();
+  }
+
+  lookAtShelf(shelf, level = 2) {
+    if (!shelf) return;
+    const ax = shelf.approach?.x ?? shelf.x;
+    const az = shelf.approach?.z ?? shelf.z + 2;
+    const dx = shelf.x - ax;
+    const dz = shelf.z - az;
+    const len = Math.hypot(dx, dz) || 1;
+    const ux = dx / len;
+    const uz = dz / len;
+    const stand = 2.4;
+    const eye = 1.62;
+    const lookY = level === 1 ? 0.68 : level === 3 ? 1.7 : 1.18;
+    const faceX = shelf.x - ux * ((shelf.depth || 0.8) / 2);
+    const faceZ = shelf.z - uz * ((shelf.depth || 0.8) / 2);
+    this.eyeMode = true;
+    this.camera.fov = 62;
+    this.camera.updateProjectionMatrix();
+    this.controls.minDistance = 0.8;
+    this.controls.maxDistance = 14;
+    this.controls.maxPolarAngle = Math.PI * 0.8;
+    this.camera.position.set(faceX - ux * stand, eye, faceZ - uz * stand);
+    this.controls.target.set(faceX, lookY, faceZ);
+    this.controls.update();
   }
 
   highlight(shelfId) {
@@ -525,7 +635,18 @@ export class StoreMap3D {
       entry.header.material.color = new THREE.Color(active ? ORANGE : entry.baseColor);
       entry.header.material.emissive = new THREE.Color(active ? 0x6b3200 : entry.shelf.popular ? YELLOW : 0x000000);
       entry.header.material.emissiveIntensity = active ? 0.6 : entry.shelf.popular ? 0.28 : 0;
-      entry.group.scale.setScalar(active ? 1.05 : 1);
+      if (!this.eyeMode) entry.group.scale.setScalar(active ? 1.05 : 1);
+    }
+  }
+
+  highlightLevel(shelfId, level) {
+    for (const entry of this.shelves.values()) {
+      for (const plank of entry.planks || []) {
+        const on = entry.shelf.id === shelfId && plank.level === level;
+        plank.material.color = new THREE.Color(on ? ORANGE : 0xd5dbe6);
+        plank.material.emissive = new THREE.Color(on ? 0x5a2c00 : 0x000000);
+        plank.material.emissiveIntensity = on ? 0.45 : 0;
+      }
     }
   }
 
@@ -559,9 +680,11 @@ export class StoreMap3D {
     this.routeGroup.add(this.walker);
     this.walkT = 0;
     this.walkPhase = 0;
+    this.walkDone = false;
+    this._arriveNotified = false;
 
     this.group.add(this.routeGroup);
-    if (opts.focus !== false) this._frameRoute(verts);
+    if (opts.focus !== false && !this.eyeMode) this._frameRoute(verts);
   }
 
   /** Покупець із кошиком: ноги й руки крокують, корпус повертається за маршрутом. */
@@ -629,13 +752,17 @@ export class StoreMap3D {
   _animateWalker(dt) {
     if (!this.walker || !this.curve) return;
 
-    const speed = 1.5 / this.curveLength;
-    this.walkT = (this.walkT + dt * speed) % 1;
-    this.walkPhase += dt * 8.5;
+    if (!this.walkDone) {
+      const speed = 1.7 / this.curveLength;
+      this.walkT = Math.min(1, this.walkT + dt * speed);
+      if (this.walkT >= 1) this.walkDone = true;
+    }
 
-    const position = this.curve.getPointAt(this.walkT);
-    const tangent = this.curve.getTangentAt(this.walkT);
-    const swing = Math.sin(this.walkPhase);
+    const t = this.walkDone ? 1 : this.walkT;
+    const position = this.curve.getPointAt(t);
+    const tangent = this.curve.getTangentAt(t);
+    const swing = this.walkDone ? 0 : Math.sin(this.walkPhase);
+    if (!this.walkDone) this.walkPhase += dt * 8.5;
 
     this.walker.position.set(position.x, Math.abs(swing) * 0.03, position.z);
     this.walker.rotation.y = Math.atan2(tangent.x, tangent.z);
@@ -646,6 +773,11 @@ export class StoreMap3D {
     rightLeg.rotation.x = -swing * 0.6;
     leftArm.rotation.x = -swing * 0.45;
     rightArm.rotation.x = swing * 0.2;
+
+    if (this.walkDone && !this._arriveNotified) {
+      this._arriveNotified = true;
+      this.onArrive?.();
+    }
   }
 
   _frameRoute(verts) {
