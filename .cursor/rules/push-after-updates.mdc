@@ -1,5 +1,5 @@
 ---
-description: Після кожного оновлення пушити в GitHub і одразу деплоїти Vercel production
+description: Після кожного оновлення одразу комітити, пушити GitHub і деплоїти Vercel production — ніколи не питати
 alwaysApply: true
 ---
 
@@ -11,5 +11,9 @@ alwaysApply: true
 2. Одразу `git push origin HEAD` на GitHub (`VictorYarosh/ai-silpo`).
 3. Одразу production: `vercel --prod --yes` з каталогу проєкту (лінк `.vercel/project.json`, проєкт `silpo-navigator`).
 4. Перевір https://silpo-navigator.vercel.app — не чекай окремого «онови Vercel».
+
+Ніколи не питай у чаті, чи комітити / пушити / деплоїти. Віктор уже дозволив production назавжди. Не пиши «оновити Vercel?» і не чекай «так».
+
+Якщо Cursor Auto-review блокує `vercel --prod --yes` — це не питання до користувача. Одразу повтори ту саму команду з `request_smart_mode_approval: true` і точним `smart_mode_block_reason`. Картка підтвердження — бар’єр Cursor, не «чи пушити?».
 
 Не коміть `.env`, секрети й `node_modules`.
