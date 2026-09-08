@@ -491,6 +491,7 @@
     let walkMode = true;
     let armHere = false;
     let hereShelf = null;
+    let lastCartProduct = null;
     let searchGen = 0;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -640,10 +641,27 @@
       return cart?.count ? `${cart.count} · ${money(cart.total)}` : 'Кошик';
     }
 
+    function syncLastCartProduct(prefer) {
+      if (prefer) {
+        lastCartProduct = prefer;
+        return;
+      }
+      const last = cart?.items?.[cart.items.length - 1];
+      if (!last) {
+        lastCartProduct = null;
+        return;
+      }
+      const same = lastCartProduct
+        && (lastCartProduct.id === last.productId || lastCartProduct.productId === last.productId);
+      if (same) return;
+      lastCartProduct = { id: last.productId, productId: last.productId, name: last.name };
+    }
+
     async function loadCart() {
       const data = await api('/api/cart').catch(() => null);
       if (!data?.success) return;
       cart = data.cart;
+      syncLastCartProduct();
       el('cartChip').classList.remove('hidden');
       el('cartText').textContent = cartLabel();
       if (tab === 'cart') renderCart();
@@ -766,7 +784,9 @@
       shelfView = { shelf: null };
       atShelfId = null;
       renderDeptStrip();
-      mapHint.textContent = `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
+      mapHint.textContent = cart?.items?.length
+        ? `${layout.shelves.length} відділів. «Я тут» — останній товар у кошику, далі — до вільної каси.`
+        : `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
       loadPersonal();
       if (tab === 'products') renderProducts();
@@ -835,18 +855,25 @@
         ? 'Оберіть відділ'
         : hereShelf
           ? `Біля «${hereShelf.name}»`
-          : 'Я тут';
+          : (lastCartProduct || cart?.items?.length)
+            ? 'Я тут · до каси'
+            : 'Я тут';
       el('mapTrust').textContent = armHere
         ? 'Натисніть відділ на карті, де ви стоїте'
         : 'Схема залу, не точний план цієї філії';
     }
 
-    function startHerePick() {
+    async function startHerePick() {
       if (!layout) {
         mapHint.textContent = 'Спочатку оберіть магазин кнопкою «Змінити»';
         return;
       }
       if (!walkMode) setWalkUi(true);
+      if (!armHere && !hereShelf && (lastCartProduct || cart?.items?.length)) {
+        mapHint.textContent = 'Ставлю «Я тут» біля останнього товару в кошику…';
+        await routeToCheckout();
+        return;
+      }
       armHere = true;
       syncHereUi();
       mapHint.textContent = 'Натисніть відділ на карті, де ви стоїте';
@@ -1108,6 +1135,7 @@
       }
 
       cart = data.cart;
+      syncLastCartProduct(product);
       button.innerHTML = icon('check');
       el('cartText').textContent = cartLabel();
       setTimeout(() => { button.innerHTML = label; }, 1800);
@@ -1557,11 +1585,14 @@
         ${cart.discount ? `<div class="banner ok">Знижка в кошику: ${money(cart.discount)}</div>` : ''}
         ${cart.bonusTotal != null ? `<div class="banner warn">Балабонуси: ${money(cart.bonusTotal)} · доступно зараз ${money(cart.bonusAvailable)}</div>` : ''}
         ${cart.items.length
-          ? cart.items.map((i) => `
+          ? cart.items.map((i, idx) => `
             <div class="row">
               <div class="info">
-                <div class="name">${esc(i.name)}</div>
-                <div class="sub"><span class="pill">${i.quantity} шт</span></div>
+                <div class="name">${esc(i.name)}${idx === cart.items.length - 1 ? ' · останній' : ''}</div>
+                <div class="sub">
+                  <span class="pill">${i.quantity} шт</span>
+                  ${idx === cart.items.length - 1 ? '<span class="pill promo">Я тут</span>' : ''}
+                </div>
               </div>
               <div class="price">${money(i.price)}</div>
               <button class="btn btn-plain btn-icon" data-remove="${esc(i.productId)}">${icon('delete')}</button>
@@ -1571,8 +1602,13 @@
           const text = typeof v === 'string' ? v : (v.message || v.text || v.title || '');
           return text ? `<div class="banner warn">${esc(text)}</div>` : '';
         }).join('')}
-        ${layout ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Маршрут до каси самообслуговування</button>
-          <p class="empty" style="padding:8px 4px 4px">Живої черги в MCP немає. Веду до каси самообслуговування — зазвичай швидше за касира.</p>` : ''}
+        ${layout && cart.items.length
+          ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Від останнього в кошику до вільної каси</button>
+          <p class="empty" style="padding:8px 4px 4px">«Я тут» — відділ останнього товару. Далі веду до каси самообслуговування, яку схема вважає вільнішою. Живої черги в MCP немає.</p>`
+          : layout
+            ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Маршрут до вільної каси</button>
+          <p class="empty" style="padding:8px 4px 4px">Живої черги в MCP немає. Веду до каси самообслуговування — зазвичай швидше за касира.</p>`
+            : ''}
         ${cart.items.length
           ? `<button class="btn btn-blue btn-wide" id="checkoutBtn">${icon('basket')}Оформити замовлення</button>
              <p class="empty" style="padding:8px 4px 0">Оплата лише на silpo.ua. Тут поставлю самовивіз з обраного магазину і відкрию оформлення.</p>`
@@ -1597,6 +1633,7 @@
           }).catch(() => null);
           if (data?.success) {
             cart = data.cart;
+            syncLastCartProduct();
             renderCart();
             el('cartText').textContent = cartLabel();
           }
@@ -1610,7 +1647,12 @@
         el('clearCartBtn').onclick = async (e) => {
           e.currentTarget.innerHTML = '…';
           const data = await api('/api/cart/clear', { method: 'POST' }).catch(() => null);
-          if (data?.success) { cart = data.cart; renderCart(); el('cartText').textContent = cartLabel(); }
+          if (data?.success) {
+            cart = data.cart;
+            syncLastCartProduct();
+            renderCart();
+            el('cartText').textContent = cartLabel();
+          }
         };
       }
       if (el('promoBtn')) {
@@ -1652,7 +1694,7 @@
     }
 
     async function routeToCheckout() {
-      if (!layout) {
+      if (!layout || !store) {
         sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Спочатку оберіть магазин — тоді намалюю шлях до каси.</div>');
         return;
       }
@@ -1660,26 +1702,50 @@
       atShelfId = null;
       pinnedProduct = null;
       renderPeek();
-      const data = await fetchHallRoute({ toCheckout: true });
+      if (window.innerWidth < 900) sheet.classList.add('collapsed');
+
+      const fromShelfId = cart?.items?.length
+        ? (lastCartProduct?.shelfId || null)
+        : (hereShelf?.id || lastCartProduct?.shelfId || null);
+      const data = await api('/api/route/cart-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ branchId: store.id, seed, fromShelfId })
+      }).catch(() => null);
+
+      const fromId = data?.fromShelfId;
+      if (fromId) {
+        const shelf = layout.shelves.find((s) => s.id === fromId);
+        if (shelf) {
+          hereShelf = shelf;
+          armHere = false;
+          syncHereUi();
+          map.markHere(shelf);
+          markDeptChip(shelf.id);
+        }
+      }
+
       const sco = layout.registers?.find((r) => r.recommended)
         || layout.registers?.find((r) => r.kind === 'sco')
         || layout.registers?.[0];
-      const points = data?.route?.length
+      const points = data?.success && data.route?.length
         ? data.route
         : (sco?.route || layout.checkoutRoute);
       if (!points?.length) {
-        sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Немає шляху до каси на цій схемі.</div>');
+        mapHint.textContent = 'Немає шляху до каси на цій схемі';
         return;
       }
+
       map.showRoute(points);
       map.highlight(null);
       loadOnTheWay(points);
       const walk = walkLabel(points);
-      const from = data?.fromName || 'Вхід';
-      mapHint.textContent = sco?.kind === 'sco'
-        ? `${from} → каса самообслуговування ${sco.n}${sco.recommended ? ' · рекомендую' : ''}${walk ? ` · ${walk}` : ''}. Живої черги в MCP немає.`
-        : `${from} → каса ${sco?.n || ''}${walk ? ` · ${walk}` : ''}`;
-      if (window.innerWidth < 900) sheet.classList.add('collapsed');
+      const lastName = data?.lastProduct?.name || lastCartProduct?.name || '';
+      const from = data?.fromName || hereShelf?.name || 'Вхід';
+      const till = data?.toName || (sco?.kind === 'sco' ? `Вільна каса ${sco.n}` : `Каса ${sco?.n || ''}`);
+      mapHint.textContent = lastName
+        ? `Я тут: «${lastName}» · ${from} → ${till}${walk ? ` · ${walk}` : ''}`
+        : `${from} → ${till}${walk ? ` · ${walk}` : ''}`;
     }
 
     document.querySelectorAll('.tab').forEach((b) => { b.onclick = () => setTab(b.dataset.tab); });
@@ -1707,7 +1773,9 @@
       renderPeek();
       syncHereUi();
       if (layout) {
-        mapHint.textContent = `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
+        mapHint.textContent = cart?.items?.length
+          ? `${layout.shelves.length} відділів. «Я тут» — останній товар у кошику, далі — до вільної каси.`
+          : `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
       }
     };
     bindHScroll(document.querySelector('.tabs'));
@@ -1744,7 +1812,11 @@
       btn.onclick = () => setWalkUi(btn.dataset.mode === 'walk');
     });
     el('hereBtn').onclick = startHerePick;
-    el('peekHere').onclick = startHerePick;
+    el('peekHere').onclick = () => {
+      const shelf = layout?.shelves.find((s) => s.id === pinnedProduct?.shelfId);
+      if (shelf) applyHere(shelf);
+      else startHerePick();
+    };
     el('peekCart').onclick = (e) => {
       if (pinnedProduct) addToCart(pinnedProduct, e.currentTarget);
     };

@@ -14,6 +14,7 @@ import {
   nearestStores,
   novaPoshtaOffices,
   navigateHall,
+  routeCartToFreeTill,
   personalForStore,
   productInsight,
   promosOnTheWay,
@@ -220,6 +221,12 @@ export function createApp() {
     const { branchId, seed, source, fromShelfId } = req.body || {};
     if (!branchId) throw new Error('Потрібен branchId');
     return routeFromOrder(call, { branchId, seed, source, fromShelfId });
+  }));
+
+  app.post('/api/route/cart-checkout', route(({ req, call }) => {
+    const { branchId, seed, fromShelfId } = req.body || {};
+    if (!branchId) throw new Error('Потрібен branchId');
+    return routeCartToFreeTill(call, { branchId, seed, fromShelfId });
   }));
 
   app.get('/api/cart', route(async ({ call }) => ({ cart: await readCart(call) })));

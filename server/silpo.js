@@ -431,6 +431,27 @@ export async function navigateHall(call, { branchId, seed, fromShelfId, toShelfI
   };
 }
 
+export async function routeCartToFreeTill(call, { branchId, seed, fromShelfId }) {
+  const layout = await getLayout(call, branchId, seed || branchId);
+  const cart = await readCart(call).catch(() => null);
+  const last = cart?.items?.[cart.items.length - 1] || null;
+  let fromShelf = fromShelfId ? layout.shelves.find((s) => s.id === fromShelfId) : null;
+  if (!fromShelf && last) fromShelf = matchShelf({ name: last.name, id: last.productId }, layout.shelves);
+  const sco = layout.registers.find((r) => r.recommended)
+    || layout.registers.find((r) => r.kind === 'sco')
+    || layout.registers[0];
+  const from = fromShelf?.approach || layout.entrance;
+  const to = sco?.approach || layout.checkout;
+  return {
+    route: buildPath(layout, from, to),
+    fromName: fromShelf?.name || 'Вхід',
+    toName: sco?.kind === 'sco' ? `Вільна каса самообслуговування ${sco.n}` : (sco ? `Каса ${sco.n}` : 'Каси'),
+    fromShelfId: fromShelf?.id || null,
+    lastProduct: last,
+    register: sco ? { n: sco.n, kind: sco.kind, recommended: Boolean(sco.recommended) } : null
+  };
+}
+
 /** «Цінотижики» магазину — джерело підказок «по дорозі». */
 async function weeklyPromos(call, branchId) {
   const cached = promoCache.get(branchId);
