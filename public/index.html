@@ -284,7 +284,7 @@
     .banner.err { background: #FDECEA; color: var(--red); }
     .banner.ok { background: #E8F8EC; color: #0A7A25; }
     .banner.info { background: var(--blue-soft); color: var(--blue-dark); }
-    .listline { display: flex; gap: 8px; padding: 0 0 10px; min-width: 0; }
+    .listline { display: flex; gap: 8px; padding: 0 0 10px; min-width: 0; flex-wrap: wrap; }
     .listline input { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 14px; padding: 12px; font-size: 14px; background: var(--bg); }
     .listline .btn { flex: none; }
     .step { display: flex; gap: 10px; align-items: center; padding: 11px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 6px; font-size: 12px; }
@@ -494,6 +494,9 @@
     let hereShelf = null;
     let lastCartProduct = null;
     let cartWalk = null;
+    let listWalk = null;
+    let listMissing = [];
+    let listGen = 0;
     let searchGen = 0;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -565,7 +568,11 @@
         b.classList.toggle('active', on);
         if (on) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
       });
-      mainInput.placeholder = next === 'stores' ? 'Місто, вулиця або адреса' : 'Назва товару';
+      mainInput.placeholder = next === 'stores'
+        ? 'Місто, вулиця або адреса'
+        : next === 'list'
+          ? 'Додати товар у список'
+          : 'Назва товару';
       render();
     }
 
@@ -776,6 +783,8 @@
       hereShelf = null;
       armHere = false;
       cartWalk = null;
+      listWalk = null;
+      listMissing = [];
       renderPromoStrip();
       renderShelfRail([]);
       map.loadLayout(layout);
@@ -1442,9 +1451,48 @@
       showPacked(title, data);
     }
 
+    function parseListQueries(raw) {
+      return String(raw || '').split(/[,;\n]/).map((s) => s.trim()).filter(Boolean);
+    }
+
+    function productKey(product) {
+      if (product?.id != null && product.id !== '') return `id:${product.id}`;
+      return `name:${product?.name || ''}|${product?.price ?? ''}`;
+    }
+
+    function appendShoppingProducts(found) {
+      let added = 0;
+      for (const product of found) {
+        if (!product?.name && product?.id == null) continue;
+        if (shoppingList.some((x) => productKey(x) === productKey(product))) continue;
+        shoppingList.push(product);
+        added += 1;
+      }
+      return added;
+    }
+
+    function applyListRoute(data) {
+      if (!data?.route) return;
+      listWalk = { order: data.order || [], fromName: data.fromName || 'Вхід' };
+      map.onArrive = null;
+      atShelfId = null;
+      map.showRoute(data.route);
+      map.highlight(null);
+      markDeptChip(null);
+      renderShelfRail(shoppingList);
+      const walk = walkLabel(data.route);
+      const stops = (data.order || []).length;
+      mapHint.textContent = `${data.fromName || 'Вхід'} → ${stops} відділів → каси${walk ? ` · ${walk}` : ''}`;
+    }
+
     function renderList() {
-      sheetTitle.textContent = 'Список покупок';
+      sheetTitle.textContent = listWalk?.order?.length ? 'Маршрут по списку' : 'Список покупок';
       sheetCount.textContent = shoppingList.length ? `${shoppingList.length} товарів` : '';
+      const walkSteps = listWalk?.order?.length
+        ? `<div class="step"><b>·</b><span>${esc(listWalk.fromName || 'Вхід')}</span></div>
+          ${listWalk.order.map((s, i) => `<div class="step"><b>${i + 1}</b><span>${esc(s.name)}</span></div>`).join('')}
+          <div class="step"><b>✓</b><span>Каси</span></div>`
+        : '';
       const items = shoppingList.length
         ? shoppingList.map((p, i) => `
           <div class="row">
@@ -1456,29 +1504,55 @@
             <div class="price">${money(p.price)}</div>
             <button class="btn btn-plain btn-icon" data-del="${i}">${icon('close')}</button>
           </div>`).join('')
-        : '<p class="empty">Введіть список через кому — прокладу маршрут через усі відділи до кас<br>і додам знайдене в кошик «Сільпо».</p>';
+        : '<p class="empty">Додайте товар — по одному або через кому. Потім прокладіть маршрут через відділи до кас.</p>';
 
       sheetBody.innerHTML = `
         <div class="listline">
-          <input id="bulkInput" placeholder="молоко, хліб, банани, кава">
-          <button class="btn btn-ink" id="bulkBtn">${icon('route')}Маршрут</button>
+          <input id="bulkInput" placeholder="молоко, хліб — Enter додасть" autocomplete="off">
+          <button class="btn btn-blue" id="listAddBtn">${icon('plus')}Додати</button>
         </div>
+        ${listMissing.length ? `<div class="banner warn">Не знайшли в цьому магазині: ${esc(listMissing.join(', '))}</div>` : ''}
+        ${walkSteps}
         ${items}
+        <button class="btn btn-ink btn-wide" id="bulkBtn">${icon('route')}Маршрут по списку</button>
         ${shoppingList.length ? `<button class="btn btn-blue btn-wide" id="listToCartBtn">${icon('cart-add')}Додати весь список у кошик</button>` : ''}`;
 
+      el('listAddBtn').onclick = () => addListQueries(el('bulkInput').value);
+      el('bulkInput').onkeydown = (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        addListQueries(e.target.value);
+      };
       el('bulkBtn').onclick = () => bulkRoute(el('bulkInput').value);
-      el('bulkInput').onkeydown = (e) => { if (e.key === 'Enter') bulkRoute(e.target.value); };
       sheetBody.querySelectorAll('[data-del]').forEach((b) => {
-        b.onclick = () => { shoppingList.splice(Number(b.dataset.del), 1); renderList(); };
+        b.onclick = () => {
+          shoppingList.splice(Number(b.dataset.del), 1);
+          listWalk = null;
+          listMissing = [];
+          map.showRoute(null);
+          renderList();
+        };
       });
       if (el('listToCartBtn')) el('listToCartBtn').onclick = (e) => addListToCart(e.currentTarget);
     }
 
-    async function bulkRoute(raw) {
-      const items = String(raw || '').split(/[,;\n]/).map((s) => s.trim()).filter(Boolean);
-      if (!store || !items.length) return;
-      setTab('list');
-      sheetBody.innerHTML = '<p class="empty">Складаю маршрут по відділах…</p>';
+    async function addListQueries(raw) {
+      const items = parseListQueries(raw);
+      if (!store) {
+        sheet.classList.remove('collapsed');
+        setTab('list');
+        sheetTitle.textContent = 'Оберіть магазин';
+        sheetBody.innerHTML = '<div class="banner warn">Спочатку натисніть «Змінити» біля адреси і оберіть філію.</div>';
+        return null;
+      }
+      if (!items.length) return null;
+
+      const gen = ++listGen;
+      const addBtn = el('listAddBtn');
+      const prevAdd = addBtn?.innerHTML;
+      if (addBtn) addBtn.innerHTML = '…';
+      if (tab !== 'list') setTab('list');
+      sheet.classList.remove('collapsed');
 
       const data = await api('/api/list-search', {
         method: 'POST',
@@ -1486,33 +1560,69 @@
         body: JSON.stringify({ branchId: store.id, items, seed, fromShelfId: hereShelf?.id || null })
       }).catch(() => null);
 
-      if (!data) return;
+      if (gen !== listGen) return null;
+      if (!data) {
+        if (addBtn && prevAdd) addBtn.innerHTML = prevAdd;
+        return null;
+      }
       if (!data.success) {
-        sheetBody.innerHTML = `<div class="banner err">${esc(data.error)}</div>`;
+        listMissing = [data.error || 'Не вдалося знайти товари'];
+        renderList();
+        return null;
+      }
+
+      const added = appendShoppingProducts(data.results.map((r) => r.best).filter(Boolean));
+      listMissing = data.results.filter((r) => !r.best).map((r) => r.query);
+      if (added) {
+        listWalk = null;
+        map.showRoute(null);
+      }
+      if (el('mainInput') && tab === 'list') mainInput.value = '';
+      renderList();
+      return data;
+    }
+
+    async function bulkRoute(raw) {
+      if (!store) {
+        sheet.classList.remove('collapsed');
+        setTab('list');
+        sheetTitle.textContent = 'Оберіть магазин';
+        sheetBody.innerHTML = '<div class="banner warn">Спочатку натисніть «Змінити» біля адреси і оберіть філію.</div>';
+        return;
+      }
+      if (parseListQueries(raw).length) {
+        await addListQueries(raw);
+      }
+      if (!shoppingList.length) return;
+
+      const names = shoppingList.map((p) => p.name).filter(Boolean);
+      if (!names.length) return;
+      if (tab !== 'list') setTab('list');
+      const btn = el('bulkBtn');
+      const prev = btn?.innerHTML;
+      if (btn) btn.innerHTML = 'Складаю…';
+
+      const data = await api('/api/list-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ branchId: store.id, items: names, seed, fromShelfId: hereShelf?.id || null })
+      }).catch(() => null);
+
+      if (!data) {
+        if (btn && prev) btn.innerHTML = prev;
+        return;
+      }
+      if (!data.success) {
+        listMissing = [data.error || 'Немає даних для маршруту'];
+        renderList();
         return;
       }
 
-      shoppingList = data.results.map((r) => r.best).filter(Boolean);
-      map.onArrive = null;
-      atShelfId = null;
-      map.showRoute(data.route);
-      map.highlight(null);
-      markDeptChip(null);
-      renderShelfRail(shoppingList);
-      sheetTitle.textContent = 'Маршрут по списку';
-      sheetCount.textContent = `${data.order.length} відділів`;
-      const walk = walkLabel(data.route);
-      mapHint.textContent = `${data.fromName || 'Вхід'} → ${data.order.length} відділів → каси${walk ? ` · ${walk}` : ''}`;
-
+      appendShoppingProducts(data.results.map((r) => r.best).filter(Boolean));
       const missing = data.results.filter((r) => !r.best).map((r) => r.query);
-      sheetBody.innerHTML =
-        data.order.map((s, i) => `<div class="step"><b>${i + 1}</b><span>${esc(s.name)}</span></div>`).join('') +
-        (missing.length ? `<div class="banner warn">Не знайшли в цьому магазині: ${esc(missing.join(', '))}</div>` : '') +
-        shoppingList.map(productRow).join('') +
-        `<button class="btn btn-blue btn-wide" id="listToCartBtn">${icon('cart-add')}Додати весь список у кошик</button>`;
-
-      bindProductActions();
-      el('listToCartBtn').onclick = (e) => addListToCart(e.currentTarget);
+      if (missing.length) listMissing = missing;
+      applyListRoute(data);
+      renderList();
     }
 
     async function addListToCart(button) {
@@ -1800,6 +1910,7 @@
         typing = setTimeout(() => loadStores(value), 250);
         return;
       }
+      if (tab === 'list') return;
       if (value.length < 2) return;
       typing = setTimeout(() => searchProducts(value), 280);
     });
@@ -1810,6 +1921,8 @@
       if (tab === 'stores') {
         if (/[0-9]/.test(value) || value.split(/\s+/).length > 2) nearestFromQuery(value);
         else loadStores(value);
+      } else if (tab === 'list') {
+        addListQueries(value);
       } else {
         searchProducts(value);
       }
