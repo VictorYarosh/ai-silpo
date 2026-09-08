@@ -14,7 +14,7 @@ import {
   nearestStores,
   novaPoshtaOffices,
   navigateHall,
-  routeCartToFreeTill,
+  routeCartTour,
   personalForStore,
   productInsight,
   promosOnTheWay,
@@ -224,9 +224,9 @@ export function createApp() {
   }));
 
   app.post('/api/route/cart-checkout', route(({ req, call }) => {
-    const { branchId, seed, fromShelfId } = req.body || {};
+    const { branchId, seed } = req.body || {};
     if (!branchId) throw new Error('Потрібен branchId');
-    return routeCartToFreeTill(call, { branchId, seed, fromShelfId });
+    return routeCartTour(call, { branchId, seed });
   }));
 
   app.get('/api/cart', route(async ({ call }) => ({ cart: await readCart(call) })));

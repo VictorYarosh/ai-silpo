@@ -431,23 +431,34 @@ export async function navigateHall(call, { branchId, seed, fromShelfId, toShelfI
   };
 }
 
-export async function routeCartToFreeTill(call, { branchId, seed, fromShelfId }) {
+/** Кошик у залі: вхід → товари як у списку → вільна каса самообслуговування. */
+export async function routeCartTour(call, { branchId, seed }) {
   const layout = await getLayout(call, branchId, seed || branchId);
   const cart = await readCart(call).catch(() => null);
-  const last = cart?.items?.[cart.items.length - 1] || null;
-  let fromShelf = fromShelfId ? layout.shelves.find((s) => s.id === fromShelfId) : null;
-  if (!fromShelf && last) fromShelf = matchShelf({ name: last.name, id: last.productId }, layout.shelves);
+  const items = cart?.items || [];
+  const legs = [];
+  const shelves = [];
+  for (const item of items) {
+    const shelf = matchShelf({ name: item.name, id: item.productId }, layout.shelves);
+    legs.push({
+      productId: item.productId,
+      name: item.name,
+      quantity: item.quantity,
+      shelfId: shelf?.id || null,
+      shelfName: shelf?.name || null
+    });
+    if (shelf) shelves.push(shelf);
+  }
+  const { points, order } = buildMultiRoute(layout, shelves, layout.entrance, { ordered: true });
   const sco = layout.registers.find((r) => r.recommended)
     || layout.registers.find((r) => r.kind === 'sco')
     || layout.registers[0];
-  const from = fromShelf?.approach || layout.entrance;
-  const to = sco?.approach || layout.checkout;
   return {
-    route: buildPath(layout, from, to),
-    fromName: fromShelf?.name || 'Вхід',
+    route: points,
+    order,
+    legs,
+    fromName: 'Вхід',
     toName: sco?.kind === 'sco' ? `Вільна каса самообслуговування ${sco.n}` : (sco ? `Каса ${sco.n}` : 'Каси'),
-    fromShelfId: fromShelf?.id || null,
-    lastProduct: last,
     register: sco ? { n: sco.n, kind: sco.kind, recommended: Boolean(sco.recommended) } : null
   };
 }

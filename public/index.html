@@ -492,6 +492,7 @@
     let armHere = false;
     let hereShelf = null;
     let lastCartProduct = null;
+    let cartWalk = null;
     let searchGen = 0;
 
     const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -773,6 +774,7 @@
       pinnedProduct = null;
       hereShelf = null;
       armHere = false;
+      cartWalk = null;
       renderPromoStrip();
       renderShelfRail([]);
       map.loadLayout(layout);
@@ -785,7 +787,7 @@
       atShelfId = null;
       renderDeptStrip();
       mapHint.textContent = cart?.items?.length
-        ? `${layout.shelves.length} відділів. «Я тут» — останній товар у кошику, далі — до вільної каси.`
+        ? `${layout.shelves.length} відділів. У кошику — маршрут від входу по товарах до каси.`
         : `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
       if (window.innerWidth < 900) sheet.classList.add('collapsed');
       loadPersonal();
@@ -855,9 +857,7 @@
         ? 'Оберіть відділ'
         : hereShelf
           ? `Біля «${hereShelf.name}»`
-          : (lastCartProduct || cart?.items?.length)
-            ? 'Я тут · до каси'
-            : 'Я тут';
+          : 'Я тут';
       el('mapTrust').textContent = armHere
         ? 'Натисніть відділ на карті, де ви стоїте'
         : 'Схема залу, не точний план цієї філії';
@@ -869,11 +869,6 @@
         return;
       }
       if (!walkMode) setWalkUi(true);
-      if (!armHere && !hereShelf && (lastCartProduct || cart?.items?.length)) {
-        mapHint.textContent = 'Ставлю «Я тут» біля останнього товару в кошику…';
-        await routeToCheckout();
-        return;
-      }
       armHere = true;
       syncHereUi();
       mapHint.textContent = 'Натисніть відділ на карті, де ви стоїте';
@@ -1135,6 +1130,7 @@
       }
 
       cart = data.cart;
+      cartWalk = null;
       syncLastCartProduct(product);
       button.innerHTML = icon('check');
       el('cartText').textContent = cartLabel();
@@ -1580,33 +1576,44 @@
         if (!cart) return;
       }
       sheetCount.textContent = cart.count ? `${cart.count} шт` : 'порожній';
+      const walkSteps = cartWalk
+        ? `<div class="step"><b>·</b><span>${esc(cartWalk.fromName || 'Вхід')}</span></div>
+          ${(cartWalk.legs || []).map((l, i) => `<div class="step"><b>${i + 1}</b><span>${esc(l.name)}${l.shelfName ? ` · ${esc(l.shelfName)}` : ''}</span></div>`).join('')}
+          <div class="step"><b>✓</b><span>${esc(cartWalk.toName || 'Каса')}</span></div>`
+        : '';
       sheetBody.innerHTML = `
         <div class="total"><span>До сплати</span><span>${money(cart.total)}</span></div>
         ${cart.discount ? `<div class="banner ok">Знижка в кошику: ${money(cart.discount)}</div>` : ''}
         ${cart.bonusTotal != null ? `<div class="banner warn">Балабонуси: ${money(cart.bonusTotal)} · доступно зараз ${money(cart.bonusAvailable)}</div>` : ''}
+        ${walkSteps}
         ${cart.items.length
-          ? cart.items.map((i, idx) => `
+          ? cart.items.map((i, idx) => {
+            const leg = cartWalk?.legs?.find((l) => l.productId === i.productId);
+            const shelf = leg?.shelfName;
+            return `
             <div class="row">
               <div class="info">
-                <div class="name">${esc(i.name)}${idx === cart.items.length - 1 ? ' · останній' : ''}</div>
+                <div class="name">${esc(i.name)}</div>
                 <div class="sub">
+                  <span class="pill">${idx + 1}</span>
                   <span class="pill">${i.quantity} шт</span>
-                  ${idx === cart.items.length - 1 ? '<span class="pill promo">Я тут</span>' : ''}
+                  ${shelf ? `<span class="pill promo">${esc(shelf)}</span>` : ''}
                 </div>
               </div>
               <div class="price">${money(i.price)}</div>
               <button class="btn btn-plain btn-icon" data-remove="${esc(i.productId)}">${icon('delete')}</button>
-            </div>`).join('')
+            </div>`;
+          }).join('')
           : '<p class="empty">Кошик порожній. Додайте товари з пошуку —<br>вони одразу з’являться у застосунку «Сільпо».</p>'}
         ${(cart.validations || []).map((v) => {
           const text = typeof v === 'string' ? v : (v.message || v.text || v.title || '');
           return text ? `<div class="banner warn">${esc(text)}</div>` : '';
         }).join('')}
         ${layout && cart.items.length
-          ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Від останнього в кошику до вільної каси</button>
-          <p class="empty" style="padding:8px 4px 4px">«Я тут» — відділ останнього товару. Далі веду до каси самообслуговування, яку схема вважає вільнішою. Живої черги в MCP немає.</p>`
+          ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Маршрут: вхід → товари → каса</button>
+          <p class="empty" style="padding:8px 4px 4px">Порядок як у кошику: вхід, перший товар, другий, далі вільна каса самообслуговування. Однакові відділи не повторюю. Живої черги в MCP немає.</p>`
           : layout
-            ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Маршрут до вільної каси</button>
+            ? `<button class="btn btn-ink btn-wide" id="tillBtn">${icon('routes')}Маршрут від входу до вільної каси</button>
           <p class="empty" style="padding:8px 4px 4px">Живої черги в MCP немає. Веду до каси самообслуговування — зазвичай швидше за касира.</p>`
             : ''}
         ${cart.items.length
@@ -1633,6 +1640,7 @@
           }).catch(() => null);
           if (data?.success) {
             cart = data.cart;
+            cartWalk = null;
             syncLastCartProduct();
             renderCart();
             el('cartText').textContent = cartLabel();
@@ -1649,6 +1657,7 @@
           const data = await api('/api/cart/clear', { method: 'POST' }).catch(() => null);
           if (data?.success) {
             cart = data.cart;
+            cartWalk = null;
             syncLastCartProduct();
             renderCart();
             el('cartText').textContent = cartLabel();
@@ -1695,35 +1704,24 @@
 
     async function routeToCheckout() {
       if (!layout || !store) {
-        sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Спочатку оберіть магазин — тоді намалюю шлях до каси.</div>');
+        sheetBody.insertAdjacentHTML('afterbegin', '<div class="banner err">Спочатку оберіть магазин — тоді намалюю шлях по кошику.</div>');
         return;
       }
       map.onArrive = null;
       atShelfId = null;
       pinnedProduct = null;
       renderPeek();
-      if (window.innerWidth < 900) sheet.classList.add('collapsed');
 
-      const fromShelfId = cart?.items?.length
-        ? (lastCartProduct?.shelfId || null)
-        : (hereShelf?.id || lastCartProduct?.shelfId || null);
+      const tillBtn = el('tillBtn');
+      const tillLabel = tillBtn?.innerHTML;
+      if (tillBtn) tillBtn.innerHTML = 'Кладу маршрут…';
+
       const data = await api('/api/route/cart-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ branchId: store.id, seed, fromShelfId })
+        body: JSON.stringify({ branchId: store.id, seed })
       }).catch(() => null);
-
-      const fromId = data?.fromShelfId;
-      if (fromId) {
-        const shelf = layout.shelves.find((s) => s.id === fromId);
-        if (shelf) {
-          hereShelf = shelf;
-          armHere = false;
-          syncHereUi();
-          map.markHere(shelf);
-          markDeptChip(shelf.id);
-        }
-      }
+      if (tillBtn && tillLabel) tillBtn.innerHTML = tillLabel;
 
       const sco = layout.registers?.find((r) => r.recommended)
         || layout.registers?.find((r) => r.kind === 'sco')
@@ -1732,20 +1730,27 @@
         ? data.route
         : (sco?.route || layout.checkoutRoute);
       if (!points?.length) {
-        mapHint.textContent = 'Немає шляху до каси на цій схемі';
+        mapHint.textContent = 'Немає шляху по кошику на цій схемі';
         return;
       }
 
+      cartWalk = {
+        order: data?.order || [],
+        legs: data?.legs || [],
+        fromName: data?.fromName || 'Вхід',
+        toName: data?.toName || (sco?.kind === 'sco' ? `Вільна каса ${sco.n}` : `Каса ${sco?.n || ''}`)
+      };
       map.showRoute(points);
       map.highlight(null);
+      map.markHere(null);
       loadOnTheWay(points);
       const walk = walkLabel(points);
-      const lastName = data?.lastProduct?.name || lastCartProduct?.name || '';
-      const from = data?.fromName || hereShelf?.name || 'Вхід';
-      const till = data?.toName || (sco?.kind === 'sco' ? `Вільна каса ${sco.n}` : `Каса ${sco?.n || ''}`);
-      mapHint.textContent = lastName
-        ? `Я тут: «${lastName}» · ${from} → ${till}${walk ? ` · ${walk}` : ''}`
-        : `${from} → ${till}${walk ? ` · ${walk}` : ''}`;
+      const stops = (cartWalk.order || []).map((s) => s.name);
+      mapHint.textContent = [cartWalk.fromName, ...stops, cartWalk.toName]
+        .filter(Boolean)
+        .join(' → ') + (walk ? ` · ${walk}` : '');
+      if (tab === 'cart') renderCart();
+      if (window.innerWidth < 900) sheet.classList.add('collapsed');
     }
 
     document.querySelectorAll('.tab').forEach((b) => { b.onclick = () => setTab(b.dataset.tab); });
@@ -1760,6 +1765,7 @@
       shelfView = { shelf: null };
       hereShelf = null;
       armHere = false;
+      cartWalk = null;
       map.onArrive = null;
       map.clearRoute();
       map.highlight(null);
@@ -1774,7 +1780,7 @@
       syncHereUi();
       if (layout) {
         mapHint.textContent = cart?.items?.length
-          ? `${layout.shelves.length} відділів. «Я тут» — останній товар у кошику, далі — до вільної каси.`
+          ? `${layout.shelves.length} відділів. У кошику — маршрут від входу по товарах до каси.`
           : `${layout.shelves.length} відділів на схемі. Натисніть «Я тут» на своєму відділі — або знайдіть товар.`;
       }
     };

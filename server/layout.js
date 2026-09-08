@@ -682,7 +682,7 @@ export function buildRoute(layout, shelf) {
   return findPath(layout.nav, layout.entrance, shelf.approach);
 }
 
-export function buildMultiRoute(layout, shelves, startPoint = null) {
+export function buildMultiRoute(layout, shelves, startPoint = null, { ordered = false } = {}) {
   const stops = [];
   for (const shelf of shelves) {
     if (shelf && !stops.some((s) => s.id === shelf.id)) stops.push(shelf);
@@ -694,13 +694,15 @@ export function buildMultiRoute(layout, shelves, startPoint = null) {
   let current = origin;
   const left = [...stops];
 
-  // Найближчий наступний відділ по прямій, а самі переходи вже прокладає A*.
+  // Кошик іде як у списку. Набори й улюблені — найближчий наступний відділ по прямій.
   while (left.length) {
-    left.sort(
-      (a, b) =>
-        Math.hypot(a.approach.x - current.x, a.approach.z - current.z) -
-        Math.hypot(b.approach.x - current.x, b.approach.z - current.z)
-    );
+    if (!ordered) {
+      left.sort(
+        (a, b) =>
+          Math.hypot(a.approach.x - current.x, a.approach.z - current.z) -
+          Math.hypot(b.approach.x - current.x, b.approach.z - current.z)
+      );
+    }
     const next = left.shift();
     points.push(...findPath(layout.nav, current, next.approach).slice(1));
     order.push({ id: next.id, name: next.name });
