@@ -7,33 +7,33 @@ const RED = 0xda291c;
 const YELLOW = 0xfbbb5e;
 const ORANGE = 0xfe8522;
 const INK = 0x202124;
-const METAL = 0xd7dce6;
+const METAL = 0xfff4e4;
 
 const ZONE_COLORS = {
-  produce: 0x4caf50,
-  bakery: 0xe0a63c,
-  dairy: 0x64a8e8,
-  cheese: 0xf0c14b,
-  meat: 0xd9534f,
-  sausage: 0xc2695c,
-  fish: 0x2f8fd0,
-  deli: 0xfe8522,
-  grocery: 0xc79a55,
-  sauces: 0xa9663c,
-  sweets: 0xe173a5,
-  snacks: 0xf3a63c,
-  coffee: 0x7a5236,
-  drinks: 0x3d8fd8,
-  frozen: 0x8ecae6,
-  alcohol: 0x8e5673,
-  tobacco: 0x8b8a86,
-  household: 0x7f8aa0,
-  care: 0xa17dc4,
-  health: 0x45b39a,
-  kids: 0xf4a3bd,
-  pets: 0xa9855c,
-  garden: 0x74a35a,
-  other: 0xa9b0bd
+  produce: 0x4ad85a,
+  bakery: 0xffc14a,
+  dairy: 0x4eb6ff,
+  cheese: 0xffd34a,
+  meat: 0xff5c52,
+  sausage: 0xf07864,
+  fish: 0x3aa8ff,
+  deli: 0xff8c2a,
+  grocery: 0xf0b24a,
+  sauces: 0xe07a3a,
+  sweets: 0xff74b8,
+  snacks: 0xffb43a,
+  coffee: 0xc46e3c,
+  drinks: 0x3a9cff,
+  frozen: 0x6edcff,
+  alcohol: 0xd45a98,
+  tobacco: 0xd2b48c,
+  household: 0x6a9cff,
+  care: 0xc888ff,
+  health: 0x2ed9b0,
+  kids: 0xff8ac8,
+  pets: 0xe89a48,
+  garden: 0x7edc5a,
+  other: 0x7ab4ff
 };
 
 const BOTTLE_ZONES = new Set(['drinks', 'alcohol', 'sauces', 'care']);
@@ -57,9 +57,9 @@ function tint(hex, rng, amount = 0.22) {
   const hsl = {};
   color.getHSL(hsl);
   color.setHSL(
-    (hsl.h + (rng() - 0.5) * 0.08 + 1) % 1,
-    Math.min(1, hsl.s * (0.7 + rng() * 0.6)),
-    Math.min(0.9, Math.max(0.25, hsl.l + (rng() - 0.5) * amount))
+    (hsl.h + (rng() - 0.5) * 0.05 + 1) % 1,
+    Math.min(1, hsl.s * (0.95 + rng() * 0.25)),
+    Math.min(0.78, Math.max(0.38, hsl.l + (rng() - 0.5) * amount))
   );
   return color;
 }
@@ -81,13 +81,15 @@ export class StoreMap3D {
     this.walkPhase = 0;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf2f4f9);
+    this.scene.background = new THREE.Color(0xfff7e8);
 
     this.camera = new THREE.PerspectiveCamera(46, 1, 0.1, 300);
     this.camera.position.set(0, 30, 34);
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.NoToneMapping;
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.target.set(0, 0.5, 0);
@@ -108,13 +110,17 @@ export class StoreMap3D {
     this.onArrive = null;
     this.walkDone = false;
 
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xc7ced9, 1.05));
-    const sun = new THREE.DirectionalLight(0xffffff, 0.75);
-    sun.position.set(14, 26, 18);
+    this.scene.add(new THREE.AmbientLight(0xfff6e4, 0.72));
+    this.scene.add(new THREE.HemisphereLight(0xfff8ee, 0xffd27a, 1.55));
+    const sun = new THREE.DirectionalLight(0xfff4dc, 1.35);
+    sun.position.set(14, 28, 16);
     this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xffffff, 0.28);
-    fill.position.set(-16, 18, -12);
+    const fill = new THREE.DirectionalLight(0xffe7b0, 0.7);
+    fill.position.set(-18, 20, -14);
     this.scene.add(fill);
+    const bounce = new THREE.DirectionalLight(0xfffaf0, 0.45);
+    bounce.position.set(0, 22, -20);
+    this.scene.add(bounce);
 
     this.group = new THREE.Group();
     this.scene.add(this.group);
@@ -276,7 +282,7 @@ export class StoreMap3D {
     const { width, depth } = floor;
     const slab = new THREE.Mesh(
       new THREE.PlaneGeometry(width, depth),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, map: this._tileTexture(width, depth) })
+      new THREE.MeshStandardMaterial({ color: 0xfff8ea, roughness: 0.82, map: this._tileTexture(width, depth) })
     );
     slab.rotation.x = -Math.PI / 2;
     this.group.add(slab);
@@ -288,13 +294,14 @@ export class StoreMap3D {
     canvas.width = 64;
     canvas.height = 64;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#EDF0F5';
+    ctx.fillStyle = '#FFE9B8';
     ctx.fillRect(0, 0, 64, 64);
-    ctx.strokeStyle = '#E1E6EF';
+    ctx.strokeStyle = '#F5C45C';
     ctx.lineWidth = 3;
     ctx.strokeRect(0, 0, 64, 64);
 
     const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(width, depth);
@@ -321,8 +328,8 @@ export class StoreMap3D {
   }
 
   _registers({ registers, checkout }) {
-    const deskMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
-    const scoMat = new THREE.MeshStandardMaterial({ color: 0xeaf0fd, roughness: 0.65 });
+    const deskMat = new THREE.MeshStandardMaterial({ color: 0xfffaf2, roughness: 0.55 });
+    const scoMat = new THREE.MeshStandardMaterial({ color: 0xd6e8ff, roughness: 0.5 });
     const beltMat = new THREE.MeshStandardMaterial({ color: 0x33373d, roughness: 0.85 });
     const screenMat = new THREE.MeshStandardMaterial({ color: INK, emissive: 0x0a1a3a, emissiveIntensity: 0.4 });
     const freeMat = new THREE.MeshStandardMaterial({ color: 0x07b324, emissive: 0x07b324, emissiveIntensity: 0.35, roughness: 0.5 });
@@ -413,10 +420,13 @@ export class StoreMap3D {
     const height = shelf.kind === 'counter' ? 1.35 : 2.05;
     const aisleFace = shelf.kind === 'wall' || shelf.kind === 'fridge' || shelf.kind === 'counter';
     const sides = aisleFace ? [1] : [1, -1];
+    const frameTint = new THREE.Color(zoneColor).lerp(new THREE.Color(0xfff6e8), shelf.kind === 'fridge' ? 0.72 : 0.38);
     const metal = new THREE.MeshStandardMaterial({
-      color: shelf.kind === 'fridge' ? 0xf7fafc : METAL,
-      roughness: shelf.kind === 'fridge' ? 0.28 : 0.72,
-      metalness: shelf.kind === 'fridge' ? 0.35 : 0.12
+      color: frameTint,
+      roughness: shelf.kind === 'fridge' ? 0.22 : 0.48,
+      metalness: shelf.kind === 'fridge' ? 0.28 : 0.08,
+      emissive: new THREE.Color(zoneColor),
+      emissiveIntensity: 0.08
     });
 
     const back = new THREE.Mesh(new THREE.BoxGeometry(shelf.width, height, 0.08), metal);
@@ -440,13 +450,14 @@ export class StoreMap3D {
 
     const header = new THREE.Mesh(
       new THREE.BoxGeometry(shelf.width, 0.28, shelf.depth + 0.08),
-      new THREE.MeshStandardMaterial({ color: zoneColor, roughness: 0.55 })
+      new THREE.MeshStandardMaterial({
+        color: zoneColor,
+        roughness: 0.42,
+        emissive: new THREE.Color(zoneColor),
+        emissiveIntensity: shelf.popular ? 0.32 : 0.2
+      })
     );
     header.position.y = height + 0.14;
-    if (shelf.popular) {
-      header.material.emissive = new THREE.Color(YELLOW);
-      header.material.emissiveIntensity = 0.28;
-    }
     group.add(header);
 
     if (shelf.kind === 'fridge') {
@@ -454,11 +465,13 @@ export class StoreMap3D {
         const glass = new THREE.Mesh(
           new THREE.BoxGeometry(shelf.width - 0.16, height - 0.2, 0.04),
           new THREE.MeshStandardMaterial({
-            color: 0xdff0fb,
+            color: 0xb8ecff,
             transparent: true,
-            opacity: 0.28,
+            opacity: 0.38,
             roughness: 0.05,
-            metalness: 0.1
+            metalness: 0.12,
+            emissive: 0x7ad4ff,
+            emissiveIntensity: 0.22
           })
         );
         glass.position.set(0, height / 2, side * (shelf.depth / 2 + 0.03));
@@ -504,25 +517,30 @@ export class StoreMap3D {
       : new THREE.BoxGeometry(itemW, 0.38, 0.24);
     const mesh = new THREE.InstancedMesh(
       geometry,
-      new THREE.MeshStandardMaterial({ roughness: 0.55 }),
+      new THREE.MeshStandardMaterial({ roughness: 0.42 }),
       count
     );
 
     const matrix = new THREE.Matrix4();
     let index = 0;
     const planks = [];
-    const levelColors = [0xf4b942, 0x4aa3df, 0x6bc26b];
+    const levelColors = [0xffc14a, 0x4eb6ff, 0x4ad85a];
 
     for (const side of sides) {
       for (const level of levels) {
-        const plankMat = new THREE.MeshStandardMaterial({ color: 0xd5dbe6, roughness: 0.7 });
+        const plankMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(zoneColor).lerp(new THREE.Color(0xfff4dc), 0.58),
+          roughness: 0.55,
+          emissive: new THREE.Color(zoneColor),
+          emissiveIntensity: 0.06
+        });
         const plank = new THREE.Mesh(new THREE.BoxGeometry(shelf.width - 0.08, 0.05, 0.42), plankMat);
         plank.position.set(0, level.y, side * (shelf.depth / 2 + 0.12));
         plank.userData = { shelfId: shelf.id };
         group.add(plank);
         planks.push({ mesh: plank, level: level.n, material: plankMat });
 
-        const brandTint = new THREE.Color(levelColors[level.n - 1]);
+        const brandTint = new THREE.Color(zoneColor).lerp(new THREE.Color(levelColors[level.n - 1]), 0.4);
         for (let i = 0; i < perRow; i += 1) {
           const x = -shelf.width / 2 + 0.36 + i * ((shelf.width - 0.72) / Math.max(1, perRow - 1));
           const height = bottle ? 0.34 + rng() * 0.12 : 0.3 + rng() * 0.16;
@@ -553,6 +571,7 @@ export class StoreMap3D {
     const sprite = new THREE.Sprite(
       new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false })
     );
+    sprite.material.map.colorSpace = THREE.SRGBColorSpace;
     sprite.position.set(x, y, z);
     const scale = variant === 'shelf' ? [3.2, 0.8] : [2.4, 0.6];
     sprite.scale.set(scale[0], scale[1], 1);
@@ -573,7 +592,7 @@ export class StoreMap3D {
           ? '#07B324'
           : variant === 'promo'
             ? '#FBBB5E'
-            : 'rgba(32,33,36,0.92)';
+            : '#2358D1';
     const color = variant === 'entrance' || variant === 'free' || variant === 'promo' ? '#202124' : '#ffffff';
     const raw = String(text || '');
     const label = variant === 'shelf' && raw.length > 14
@@ -634,8 +653,8 @@ export class StoreMap3D {
     for (const entry of this.shelves.values()) {
       const active = entry.shelf.id === shelfId;
       entry.header.material.color = new THREE.Color(active ? ORANGE : entry.baseColor);
-      entry.header.material.emissive = new THREE.Color(active ? 0x6b3200 : entry.shelf.popular ? YELLOW : 0x000000);
-      entry.header.material.emissiveIntensity = active ? 0.6 : entry.shelf.popular ? 0.28 : 0;
+      entry.header.material.emissive = new THREE.Color(active ? ORANGE : entry.shelf.popular ? YELLOW : entry.baseColor);
+      entry.header.material.emissiveIntensity = active ? 0.55 : entry.shelf.popular ? 0.32 : 0.2;
       if (!this.eyeMode) entry.group.scale.setScalar(active ? 1.05 : 1);
     }
   }
