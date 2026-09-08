@@ -1,39 +1,45 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// Кольори з silpo.ua: синій #2358D1, червоний #DA291C, жовтий #FBBB5E, помаранчевий #FE8522.
+// Кольори з silpo.ua: синій #2358D1, червоний #DA291C, жовтий #FBBB5E, помаранчевий #FE8522, зелений #07B324.
 const BLUE = 0x2358d1;
+const BLUE_DARK = 0x1b47aa;
+const BLUE_SOFT = 0xeaf0fd;
 const RED = 0xda291c;
 const YELLOW = 0xfbbb5e;
+const YELLOW_SOFT = 0xffe2ad;
 const ORANGE = 0xfe8522;
+const GREEN = 0x07b324;
 const INK = 0x202124;
-const METAL = 0xfff4e4;
+const PAPER = 0xf2f4f9;
+const WHITE = 0xffffff;
 
+// Відділи лише фірмовими кольорами — як кнопки, ціни й Цінотижики на сайті.
 const ZONE_COLORS = {
-  produce: 0x4ad85a,
-  bakery: 0xffc14a,
-  dairy: 0x4eb6ff,
-  cheese: 0xffd34a,
-  meat: 0xff5c52,
-  sausage: 0xf07864,
-  fish: 0x3aa8ff,
-  deli: 0xff8c2a,
-  grocery: 0xf0b24a,
-  sauces: 0xe07a3a,
-  sweets: 0xff74b8,
-  snacks: 0xffb43a,
-  coffee: 0xc46e3c,
-  drinks: 0x3a9cff,
-  frozen: 0x6edcff,
-  alcohol: 0xd45a98,
-  tobacco: 0xd2b48c,
-  household: 0x6a9cff,
-  care: 0xc888ff,
-  health: 0x2ed9b0,
-  kids: 0xff8ac8,
-  pets: 0xe89a48,
-  garden: 0x7edc5a,
-  other: 0x7ab4ff
+  produce: GREEN,
+  bakery: YELLOW,
+  dairy: BLUE,
+  cheese: YELLOW,
+  meat: RED,
+  sausage: RED,
+  fish: BLUE_DARK,
+  deli: ORANGE,
+  grocery: YELLOW,
+  sauces: ORANGE,
+  sweets: YELLOW,
+  snacks: YELLOW,
+  coffee: ORANGE,
+  drinks: BLUE,
+  frozen: BLUE,
+  alcohol: RED,
+  tobacco: INK,
+  household: BLUE_DARK,
+  care: ORANGE,
+  health: GREEN,
+  kids: YELLOW,
+  pets: ORANGE,
+  garden: GREEN,
+  other: BLUE
 };
 
 const BOTTLE_ZONES = new Set(['drinks', 'alcohol', 'sauces', 'care']);
@@ -57,7 +63,7 @@ function tint(hex, rng, amount = 0.22) {
   const hsl = {};
   color.getHSL(hsl);
   color.setHSL(
-    (hsl.h + (rng() - 0.5) * 0.05 + 1) % 1,
+    (hsl.h + (rng() - 0.5) * 0.02 + 1) % 1,
     Math.min(1, hsl.s * (0.95 + rng() * 0.25)),
     Math.min(0.78, Math.max(0.38, hsl.l + (rng() - 0.5) * amount))
   );
@@ -81,7 +87,7 @@ export class StoreMap3D {
     this.walkPhase = 0;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xfff7e8);
+    this.scene.background = new THREE.Color(BLUE_SOFT);
 
     this.camera = new THREE.PerspectiveCamera(46, 1, 0.1, 300);
     this.camera.position.set(0, 30, 34);
@@ -110,15 +116,15 @@ export class StoreMap3D {
     this.onArrive = null;
     this.walkDone = false;
 
-    this.scene.add(new THREE.AmbientLight(0xfff6e4, 0.72));
-    this.scene.add(new THREE.HemisphereLight(0xfff8ee, 0xffd27a, 1.55));
-    const sun = new THREE.DirectionalLight(0xfff4dc, 1.35);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.78));
+    this.scene.add(new THREE.HemisphereLight(0xffffff, BLUE_SOFT, 1.35));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.15);
     sun.position.set(14, 28, 16);
     this.scene.add(sun);
-    const fill = new THREE.DirectionalLight(0xffe7b0, 0.7);
+    const fill = new THREE.DirectionalLight(YELLOW_SOFT, 0.38);
     fill.position.set(-18, 20, -14);
     this.scene.add(fill);
-    const bounce = new THREE.DirectionalLight(0xfffaf0, 0.45);
+    const bounce = new THREE.DirectionalLight(BLUE_SOFT, 0.42);
     bounce.position.set(0, 22, -20);
     this.scene.add(bounce);
 
@@ -282,7 +288,7 @@ export class StoreMap3D {
     const { width, depth } = floor;
     const slab = new THREE.Mesh(
       new THREE.PlaneGeometry(width, depth),
-      new THREE.MeshStandardMaterial({ color: 0xfff8ea, roughness: 0.82, map: this._tileTexture(width, depth) })
+      new THREE.MeshStandardMaterial({ color: PAPER, roughness: 0.82, map: this._tileTexture(width, depth) })
     );
     slab.rotation.x = -Math.PI / 2;
     this.group.add(slab);
@@ -294,9 +300,9 @@ export class StoreMap3D {
     canvas.width = 64;
     canvas.height = 64;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#FFE9B8';
+    ctx.fillStyle = '#F2F4F9';
     ctx.fillRect(0, 0, 64, 64);
-    ctx.strokeStyle = '#F5C45C';
+    ctx.strokeStyle = '#DEDFE0';
     ctx.lineWidth = 3;
     ctx.strokeRect(0, 0, 64, 64);
 
@@ -317,7 +323,7 @@ export class StoreMap3D {
     pad.position.set(point.x, 0.05, point.z);
     this.group.add(pad);
 
-    const postMat = new THREE.MeshStandardMaterial({ color: METAL, metalness: 0.5, roughness: 0.4 });
+    const postMat = new THREE.MeshStandardMaterial({ color: BLUE, metalness: 0.2, roughness: 0.45 });
     for (const side of [-1, 1]) {
       const post = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.1, 0.5), postMat);
       post.position.set(point.x + side * 1.25, 0.55, point.z);
@@ -328,11 +334,11 @@ export class StoreMap3D {
   }
 
   _registers({ registers, checkout }) {
-    const deskMat = new THREE.MeshStandardMaterial({ color: 0xfffaf2, roughness: 0.55 });
-    const scoMat = new THREE.MeshStandardMaterial({ color: 0xd6e8ff, roughness: 0.5 });
+    const deskMat = new THREE.MeshStandardMaterial({ color: WHITE, roughness: 0.55 });
+    const scoMat = new THREE.MeshStandardMaterial({ color: BLUE_SOFT, roughness: 0.5 });
     const beltMat = new THREE.MeshStandardMaterial({ color: 0x33373d, roughness: 0.85 });
     const screenMat = new THREE.MeshStandardMaterial({ color: INK, emissive: 0x0a1a3a, emissiveIntensity: 0.4 });
-    const freeMat = new THREE.MeshStandardMaterial({ color: 0x07b324, emissive: 0x07b324, emissiveIntensity: 0.35, roughness: 0.5 });
+    const freeMat = new THREE.MeshStandardMaterial({ color: GREEN, emissive: GREEN, emissiveIntensity: 0.35, roughness: 0.5 });
 
     for (const register of registers || []) {
       const sco = register.kind === 'sco';
@@ -420,13 +426,12 @@ export class StoreMap3D {
     const height = shelf.kind === 'counter' ? 1.35 : 2.05;
     const aisleFace = shelf.kind === 'wall' || shelf.kind === 'fridge' || shelf.kind === 'counter';
     const sides = aisleFace ? [1] : [1, -1];
-    const frameTint = new THREE.Color(zoneColor).lerp(new THREE.Color(0xfff6e8), shelf.kind === 'fridge' ? 0.72 : 0.38);
+    const frameTint = new THREE.Color(shelf.kind === 'fridge' ? BLUE_SOFT : WHITE)
+      .lerp(new THREE.Color(zoneColor), shelf.kind === 'fridge' ? 0.12 : 0.16);
     const metal = new THREE.MeshStandardMaterial({
       color: frameTint,
       roughness: shelf.kind === 'fridge' ? 0.22 : 0.48,
-      metalness: shelf.kind === 'fridge' ? 0.28 : 0.08,
-      emissive: new THREE.Color(zoneColor),
-      emissiveIntensity: 0.08
+      metalness: shelf.kind === 'fridge' ? 0.22 : 0.06
     });
 
     const back = new THREE.Mesh(new THREE.BoxGeometry(shelf.width, height, 0.08), metal);
@@ -465,13 +470,13 @@ export class StoreMap3D {
         const glass = new THREE.Mesh(
           new THREE.BoxGeometry(shelf.width - 0.16, height - 0.2, 0.04),
           new THREE.MeshStandardMaterial({
-            color: 0xb8ecff,
+            color: BLUE_SOFT,
             transparent: true,
-            opacity: 0.38,
+            opacity: 0.42,
             roughness: 0.05,
             metalness: 0.12,
-            emissive: 0x7ad4ff,
-            emissiveIntensity: 0.22
+            emissive: BLUE,
+            emissiveIntensity: 0.12
           })
         );
         glass.position.set(0, height / 2, side * (shelf.depth / 2 + 0.03));
@@ -524,15 +529,13 @@ export class StoreMap3D {
     const matrix = new THREE.Matrix4();
     let index = 0;
     const planks = [];
-    const levelColors = [0xffc14a, 0x4eb6ff, 0x4ad85a];
+    const levelColors = [YELLOW, BLUE, ORANGE];
 
     for (const side of sides) {
       for (const level of levels) {
         const plankMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(zoneColor).lerp(new THREE.Color(0xfff4dc), 0.58),
-          roughness: 0.55,
-          emissive: new THREE.Color(zoneColor),
-          emissiveIntensity: 0.06
+          color: WHITE,
+          roughness: 0.55
         });
         const plank = new THREE.Mesh(new THREE.BoxGeometry(shelf.width - 0.08, 0.05, 0.42), plankMat);
         plank.position.set(0, level.y, side * (shelf.depth / 2 + 0.12));
@@ -540,7 +543,7 @@ export class StoreMap3D {
         group.add(plank);
         planks.push({ mesh: plank, level: level.n, material: plankMat });
 
-        const brandTint = new THREE.Color(zoneColor).lerp(new THREE.Color(levelColors[level.n - 1]), 0.4);
+        const brandTint = new THREE.Color(levelColors[level.n - 1]);
         for (let i = 0; i < perRow; i += 1) {
           const x = -shelf.width / 2 + 0.36 + i * ((shelf.width - 0.72) / Math.max(1, perRow - 1));
           const height = bottle ? 0.34 + rng() * 0.12 : 0.3 + rng() * 0.16;
