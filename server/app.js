@@ -24,6 +24,7 @@ import {
   routeFromFavorites,
   routeFromOrder,
   routeFromSet,
+  routeShoppingList,
   searchList,
   searchProduct,
   setNovaPoshta,
@@ -227,6 +228,14 @@ export function createApp() {
     const { branchId, seed } = req.body || {};
     if (!branchId) throw new Error('Потрібен branchId');
     return routeCartTour(call, { branchId, seed });
+  }));
+
+  app.post('/api/route/list', route(({ req, call }) => {
+    const { branchId, seed, fromShelfId, items } = req.body || {};
+    if (!branchId) throw new Error('Потрібен branchId');
+    const list = Array.isArray(items) ? items.slice(0, 40) : [];
+    if (!list.length) throw new Error('Спочатку оберіть товари в списку');
+    return routeShoppingList(call, { branchId, seed, fromShelfId, items: list });
   }));
 
   app.get('/api/cart', route(async ({ call }) => ({ cart: await readCart(call) })));

@@ -389,7 +389,7 @@ export async function searchList(call, { branchId, items, seed, fromShelfId }) {
   const ctx = await branchContext(call, branchId);
   const [layout, data] = await Promise.all([
     getLayout(call, branchId, seed || branchId),
-    call('silpo_find_products_batch', { ...ctx, products: items, limit: 5 })
+    call('silpo_find_products_batch', { ...ctx, products: items, limit: 16 })
   ]);
 
   const results = (data?.queries || []).map((q, i) => {
@@ -405,6 +405,26 @@ export async function searchList(call, { branchId, items, seed, fromShelfId }) {
   const { points, order } = buildMultiRoute(layout, shelves, fromShelf?.approach || null);
 
   return { results, route: points, order, fromName: fromShelf?.name || 'Вхід' };
+}
+
+export async function routeShoppingList(call, { branchId, seed, fromShelfId, items }) {
+  const layout = await getLayout(call, branchId, seed || branchId);
+  const seen = new Set();
+  const shelves = [];
+  for (const item of items || []) {
+    const shelf = (item?.shelfId && layout.shelves.find((s) => s.id === item.shelfId))
+      || matchShelf({
+        name: item?.name,
+        id: item?.id,
+        categorySlug: item?.categorySlug
+      }, layout.shelves);
+    if (!shelf || seen.has(shelf.id)) continue;
+    seen.add(shelf.id);
+    shelves.push(shelf);
+  }
+  const fromShelf = fromShelfId ? layout.shelves.find((s) => s.id === fromShelfId) : null;
+  const { points, order } = buildMultiRoute(layout, shelves, fromShelf?.approach || null);
+  return { route: points, order, fromName: fromShelf?.name || 'Вхід' };
 }
 
 export async function navigateHall(call, { branchId, seed, fromShelfId, toShelfId, toCheckout = false }) {
